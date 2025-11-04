@@ -21,14 +21,24 @@ topology:
         - "ip route add default via 192.168.100.1"
 
     # --- Zone 2: DMZ ---
+    
     waf:
       kind: linux
-      image: nginx:alpine 
+      # WIR HABEN DAS IMAGE SCHON GEBAUT
+      # Jetzt verwenden wir den lokalen Image-Namen
+      image: sun-waf-image
+      
       exec:
         - "ip addr add 10.10.1.10/24 dev eth1"
         - "ip route del default" 
         - "ip route add default via 10.10.1.1"
-
+      # Binds (Mounts) bleiben gleich
+      binds:
+        # 1. Mountet unsere Reverse-Proxy-Konfiguration
+        - waf_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+        # 2. Mountet unsere WAF-Aktivierungs-Datei
+        - waf_config/rules/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
+         
     ids:
       kind: linux
       image: alpine:latest 
