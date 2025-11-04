@@ -1,14 +1,21 @@
 #!/bin/bash
 
-# === Automatisierter WAF & Reverse-Proxy Test ===
+# ==========================================================
+# === Automatisierter WAF & Reverse-Proxy Test (Erweitert) ===
+#
+# Test 1:   Prüft die Proxy-Funktion (Legitimer Zugriff).
+# Test 2-4: Prüft die WAF-Funktion (Blockiert Angriffe).
+# ==========================================================
 
 # --- Konfiguration ---
 ATTACKER_CONTAINER="clab-sun_dmz-attacker"
 WAF_IP="10.10.1.10"
 EXPECTED_CONTENT="Willkommen auf dem sicheren Webserver"
 
-# Ein einfacher Path-Traversal-Angriff, der von OWASP CRS blockiert wird
-ATTACK_URL="http://${WAF_IP}/?param=../../etc/passwd"
+# Angriffs-Payloads (sollten alle 403 Forbidden auslösen)
+ATTACK_URL_PATH="http://${WAF_IP}/?param=../../etc/passwd"
+ATTACK_URL_XSS="http://${WAF_IP}/?search=<script>alert(1)</script>"
+ATTACK_URL_SQLI="http://${WAF_IP}/?id=1%20OR%201=1" # %20 = URL-kodiertes Leerzeichen
 
 # --- Farben ---
 GREEN="\033[0;32m"
@@ -20,7 +27,6 @@ TEST_FAILED=0
 
 # --- Test 1: Positiv-Test (Legitimer Zugriff) ---
 echo -n "Test 1: Legitimer Zugriff ('attacker' -> 'waf') ... "
-# -T 3 = 3 Sekunden Timeout
 OUTPUT=$(docker exec $ATTACKER_CONTAINER wget -T 3 -qO- "http://$WAF_IP/")
 
 if [ $? -eq 0 ] && [[ "$OUTPUT" == *"$EXPECTED_CONTENT"* ]]; then
@@ -30,13 +36,31 @@ else
     TEST_FAILED=1
 fi
 
-# --- Test 2: Negativ-Test (WAF-Angriff) ---
+# --- Test 2: Negativ-Test (Path Traversal) ---
 echo -n "Test 2: Path Traversal Angriff ('attacker' -> 'waf') ... "
+docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL_PATH" 2>&1 | grep -q "403 Forbidden"
 
-# Führe wget aus und prüfe den stderr-Output direkt mit grep
-# -q = quiet mode (keine Ausgabe)
-# Wir suchen nach der Zeichenkette "403 Forbidden", die die WAF senden muss.
-docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL" 2>&1 | grep -q "403 Forbidden"
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}ERFOLG${NC}: WAF hat den Angriff korrekt blockiert (403 Forbidden gefunden)."
+else
+    echo -e "${RED}FEHLER${NC}: WAF hat den Angriff NICHT blockiert (403 Forbidden nicht gefunden)."
+    TEST_FAILED=1
+fi
+
+# --- NEU: Test 3: Negativ-Test (Cross-Site Scripting) ---
+echo -n "Test 3: Cross-Site Scripting (XSS) Angriff ('attacker' -> 'waf') ... "
+docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL_XSS" 2>&1 | grep -q "403 Forbidden"
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}ERFOLG${NC}: WAF hat den Angriff korrekt blockiert (403 Forbidden gefunden)."
+else
+    echo -e "${RED}FEHLER${NC}: WAF hat den Angriff NICHT blockiert (403 Forbidden nicht gefunden)."
+    TEST_FAILED=1
+fi
+
+# --- NEU: Test 4: Negativ-Test (SQL-Injection) ---
+echo -n "Test 4: SQL-Injection (SQLi) Angriff ('attacker' -> 'waf') ... "
+docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL_SQLI" 2>&1 | grep -q "403 Forbidden"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}ERFOLG${NC}: WAF hat den Angriff korrekt blockiert (403 Forbidden gefunden)."
