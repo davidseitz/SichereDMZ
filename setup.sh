@@ -75,15 +75,15 @@ function check_and_build_waf {
 # Funktion zum Starten des Labs
 function deploy_lab {
     echo -e "${BLUE}Deploye Containerlab-Topologie ($TOPOLOGY_FILE)...${NC}"
-    # Ruft containerlab auf; verlässt sich auf die sudoers-Regel
-    sudo containerlab deploy -t $TOPOLOGY_FILE
+    # Ruft containerlab auf
+    containerlab deploy -t $TOPOLOGY_FILE
 }
 
 # Funktion zum Zerstören des Labs
 function destroy_lab {
     echo -e "${BLUE}Zerstöre Containerlab-Topologie ($TOPOLOGY_FILE)...${NC}"
-    # Ruft containerlab auf; verlässt sich auf die sudoers-Regel
-    sudo containerlab destroy -t $TOPOLOGY_FILE
+    # Ruft containerlab aufl
+    containerlab destroy -t $TOPOLOGY_FILE
 }
 
 # Funktion zum Ausführen der Tests
