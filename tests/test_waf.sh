@@ -32,17 +32,16 @@ fi
 
 # --- Test 2: Negativ-Test (WAF-Angriff) ---
 echo -n "Test 2: Path Traversal Angriff ('attacker' -> 'waf') ... "
-# -S = --server-response (um den HTTP-Statuscode zu sehen)
-# Wir erwarten einen HTTP 403 (Forbidden) von der WAF
-HTTP_STATUS=$(docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL" 2>&1 | grep "HTTP/" | awk '{print $2}')
 
-if [ "$HTTP_STATUS" == "403" ]; then
-    echo -e "${GREEN}ERFOLG${NC}: WAF hat den Angriff korrekt blockiert (HTTP 403)."
-elif [ -z "$HTTP_STATUS" ]; then
-    echo -e "${RED}FEHLER${NC}: WAF hat nicht geantwortet (Timeout?)."
-    TEST_FAILED=1
+# Führe wget aus und prüfe den stderr-Output direkt mit grep
+# -q = quiet mode (keine Ausgabe)
+# Wir suchen nach der Zeichenkette "403 Forbidden", die die WAF senden muss.
+docker exec $ATTACKER_CONTAINER wget -S --spider -T 3 "$ATTACK_URL" 2>&1 | grep -q "403 Forbidden"
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}ERFOLG${NC}: WAF hat den Angriff korrekt blockiert (403 Forbidden gefunden)."
 else
-    echo -e "${RED}FEHLER${NC}: WAF hat den Angriff durchgelassen (Status: $HTTP_STATUS). Erwartet: 403."
+    echo -e "${RED}FEHLER${NC}: WAF hat den Angriff NICHT blockiert (403 Forbidden nicht gefunden)."
     TEST_FAILED=1
 fi
 
