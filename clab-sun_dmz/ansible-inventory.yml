@@ -8,26 +8,26 @@ all:
     linux:
       hosts:
         clab-sun_dmz-attacker:
-          ansible_host: 172.20.20.12
+          ansible_host: 172.20.20.4
         clab-sun_dmz-br_backend:
-          ansible_host: 172.20.20.11
+          ansible_host: 172.20.20.9
         clab-sun_dmz-br_client:
-          ansible_host: 172.20.20.6
-        clab-sun_dmz-br_dmz:
           ansible_host: 172.20.20.3
+        clab-sun_dmz-br_dmz:
+          ansible_host: 172.20.20.11
         clab-sun_dmz-br_internet:
-          ansible_host: 172.20.20.5
+          ansible_host: 172.20.20.2
         clab-sun_dmz-client:
           ansible_host: 172.20.20.10
         clab-sun_dmz-ids:
-          ansible_host: 172.20.20.2
+          ansible_host: 172.20.20.5
         clab-sun_dmz-router_edge:
-          ansible_host: 172.20.20.8
+          ansible_host: 172.20.20.12
         clab-sun_dmz-router_int:
-          ansible_host: 172.20.20.4
+          ansible_host: 172.20.20.8
         clab-sun_dmz-siem:
-          ansible_host: 172.20.20.9
-        clab-sun_dmz-waf:
           ansible_host: 172.20.20.13
-        clab-sun_dmz-web:
+        clab-sun_dmz-waf:
           ansible_host: 172.20.20.7
+        clab-sun_dmz-web:
+          ansible_host: 172.20.20.6

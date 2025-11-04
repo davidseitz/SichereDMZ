@@ -3,27 +3,27 @@ attacker:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.12
+    hostname: 172.20.20.4
 br_backend:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.11
+    hostname: 172.20.20.9
 br_client:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.6
+    hostname: 172.20.20.3
 br_dmz:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.3
+    hostname: 172.20.20.11
 br_internet:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.5
+    hostname: 172.20.20.2
 client:
     username: 
     password: 
@@ -33,29 +33,29 @@ ids:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.2
+    hostname: 172.20.20.5
 router_edge:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.8
+    hostname: 172.20.20.12
 router_int:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.4
+    hostname: 172.20.20.8
 siem:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.9
+    hostname: 172.20.20.13
 waf:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.13
+    hostname: 172.20.20.7
 web:
     username: 
     password: 
     platform: linux
-    hostname: 172.20.20.7
+    hostname: 172.20.20.6
