@@ -1,9 +1,11 @@
 name: sun_dmz
 
-# Version 9: Behebt den "RTNETLINK answers: File exists" Fehler.
-# Ursache: Containerlab fügt eine Management-Default-Route hinzu.
-# Lösung: Wir löschen die existierende Default-Route ("ip route del default")
-#         bevor wir unsere eigene hinzufügen.
+# Version 12: Behebt "Host is unreachable".
+# Ursache: Die 'br_*' Container (kind: linux) haben nicht 
+#          automatisch wie Switches (Bridges) agiert.
+# Lösung: Hinzufügen von 'exec'-Befehlen zu allen 'br_*' Knoten,
+#         um manuell eine Bridge 'br0' zu erstellen und alle
+#         Schnittstellen (ethX) zu dieser Bridge hinzuzufügen.
 
 topology:
   nodes:
@@ -13,32 +15,36 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 192.168.100.10/24 dev eth1"
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route del default" 
         - "ip route add default via 192.168.100.1"
 
     # --- Zone 2: DMZ ---
     waf:
       kind: linux
-      image: nginx:alpine # Platzhalter!
+      image: nginx:alpine 
       exec:
         - "ip addr add 10.10.1.10/24 dev eth1"
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route del default" 
         - "ip route add default via 10.10.1.1"
 
     ids:
       kind: linux
-      image: alpine:latest # Platzhalter!
+      image: alpine:latest 
       exec:
         - "ip addr add 10.10.1.20/24 dev eth1"
-        - "ip route add 10.10.3.0/24 via 10.10.1.2" # (Funktionierte korrekt)
+        - "ip route add 10.10.3.0/24 via 10.10.1.2" 
 
     web:
       kind: linux
-      image: nginx:alpine # Platzhalter!
+      image: nginx:alpine
       exec:
         - "ip addr add 10.10.1.100/24 dev eth1"
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route del default" 
         - "ip route add default via 10.10.1.1"
+      binds:
+        # Relative Pfade für Portabilität
+        - web_config/html:/var/www/html:ro
+        - web_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
 
     # --- Zone 3: Interne Netze ---
     client:
@@ -46,15 +52,15 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 10.10.2.10/24 dev eth1"
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route del default" 
         - "ip route add default via 10.10.2.1"
         
     siem:
       kind: linux
-      image: alpine:latest # Platzhalter!
+      image: alpine:latest 
       exec:
         - "ip addr add 10.10.3.10/24 dev eth1"
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route del default" 
         - "ip route add default via 10.10.3.1"
 
     # --- Router / Firewalls ---
@@ -64,9 +70,9 @@ topology:
       sysctls:
         net.ipv4.ip_forward: 1
       exec:
-        - "ip addr add 192.168.100.1/24 dev eth1" # IF zum Internet
-        - "ip addr add 10.10.1.1/24 dev eth2"   # IF zur DMZ
-        - "ip route add 10.10.0.0/16 via 10.10.1.2" # (Funktionierte korrekt)
+        - "ip addr add 192.168.100.1/24 dev eth1" 
+        - "ip addr add 10.10.1.1/24 dev eth2"   
+        - "ip route add 10.10.0.0/16 via 10.10.1.2" 
         
     router_int:
       kind: linux
@@ -74,46 +80,76 @@ topology:
       sysctls:
         net.ipv4.ip_forward: 1
       exec:
-        - "ip addr add 10.10.1.2/24 dev eth1"   # IF zur DMZ
-        - "ip addr add 10.10.2.1/24 dev eth2"   # IF zum Client-Netz
-        - "ip addr add 10.10.3.1/24 dev eth3"   # IF zum Backend-Netz
-        - "ip route del default" # FIX: Alte Route löschen
+        - "ip addr add 10.10.1.2/24 dev eth1"   
+        - "ip addr add 10.10.2.1/24 dev eth2"   
+        - "ip addr add 10.10.3.1/24 dev eth3"   
+        - "ip route del default" 
         - "ip route add default via 10.10.1.1" 
 
-    # --- Definition der Switches (als kind: linux) ---
+    # --- Definition der Switches (JETZT KORREKT KONFIGURIERT) ---
     br_internet:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip link add name br0 type bridge"
+        - "ip link set br0 up"
+        - "ip link set eth1 master br0"
+        - "ip link set eth2 master br0"
+        - "ip link set eth1 up"
+        - "ip link set eth2 up"
 
     br_dmz:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip link add name br0 type bridge"
+        - "ip link set br0 up"
+        - "ip link set eth1 master br0"
+        - "ip link set eth2 master br0"
+        - "ip link set eth3 master br0"
+        - "ip link set eth4 master br0"
+        - "ip link set eth5 master br0"
+        - "ip link set eth1 up"
+        - "ip link set eth2 up"
+        - "ip link set eth3 up"
+        - "ip link set eth4 up"
+        - "ip link set eth5 up"
 
     br_client:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip link add name br0 type bridge"
+        - "ip link set br0 up"
+        - "ip link set eth1 master br0"
+        - "ip link set eth2 master br0"
+        - "ip link set eth1 up"
+        - "ip link set eth2 up"
       
     br_backend:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip link add name br0 type bridge"
+        - "ip link set br0 up"
+        - "ip link set eth1 master br0"
+        - "ip link set eth2 master br0"
+        - "ip link set eth1 up"
+        - "ip link set eth2 up"
 
   links:
-    # (Links Sektion bleibt unverändert zu V8)
-    # --- Verbindungen zum Internet-Switch ---
+    # (Links Sektion bleibt unverändert)
     - endpoints: ["attacker:eth1", "br_internet:eth1"]
     - endpoints: ["router_edge:eth1", "br_internet:eth2"]
 
-    # --- Verbindungen zum DMZ-Switch ---
     - endpoints: ["router_edge:eth2", "br_dmz:eth1"]
     - endpoints: ["router_int:eth1", "br_dmz:eth2"]
     - endpoints: ["waf:eth1", "br_dmz:eth3"]
     - endpoints: ["ids:eth1", "br_dmz:eth4"]
     - endpoints: ["web:eth1", "br_dmz:eth5"]
         
-    # --- Verbindungen zum Client-Switch ---
     - endpoints: ["router_int:eth2", "br_client:eth1"]
     - endpoints: ["client:eth1", "br_client:eth2"]
 
-    # --- Verbindungen zum Backend-Switch ---
     - endpoints: ["router_int:eth3", "br_backend:eth1"]
     - endpoints: ["siem:eth1", "br_backend:eth2"]
