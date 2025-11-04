@@ -1,0 +1,583 @@
+{
+  "name": "sun_dmz",
+  "type": "clab",
+  "clab": {
+    "config": {
+      "prefix": "clab",
+      "mgmt": {
+        "network": "clab",
+        "bridge": "br-154c2701b529",
+        "ipv4-subnet": "172.20.20.0/24",
+        "ipv4-gw": "172.20.20.1",
+        "ipv6-subnet": "3fff:172:20:20::/64",
+        "ipv6-gw": "3fff:172:20:20::1",
+        "external-access": true
+      }
+    }
+  },
+  "ssh-pub-keys": [],
+  "nodes": {
+    "attacker": {
+      "index": "0",
+      "shortname": "attacker",
+      "longname": "clab-sun_dmz-attacker",
+      "fqdn": "attacker.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/attacker",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.4",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::4",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/attacker",
+        "clab-node-longname": "clab-sun_dmz-attacker",
+        "clab-node-name": "attacker",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "br_backend": {
+      "index": "1",
+      "shortname": "br_backend",
+      "longname": "clab-sun_dmz-br_backend",
+      "fqdn": "br_backend.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/br_backend",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.12",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::c",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/br_backend",
+        "clab-node-longname": "clab-sun_dmz-br_backend",
+        "clab-node-name": "br_backend",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "br_client": {
+      "index": "2",
+      "shortname": "br_client",
+      "longname": "clab-sun_dmz-br_client",
+      "fqdn": "br_client.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/br_client",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.3",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::3",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/br_client",
+        "clab-node-longname": "clab-sun_dmz-br_client",
+        "clab-node-name": "br_client",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "br_dmz": {
+      "index": "3",
+      "shortname": "br_dmz",
+      "longname": "clab-sun_dmz-br_dmz",
+      "fqdn": "br_dmz.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/br_dmz",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.7",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::7",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/br_dmz",
+        "clab-node-longname": "clab-sun_dmz-br_dmz",
+        "clab-node-name": "br_dmz",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "br_internet": {
+      "index": "4",
+      "shortname": "br_internet",
+      "longname": "clab-sun_dmz-br_internet",
+      "fqdn": "br_internet.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/br_internet",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.6",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::6",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/br_internet",
+        "clab-node-longname": "clab-sun_dmz-br_internet",
+        "clab-node-name": "br_internet",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "client": {
+      "index": "5",
+      "shortname": "client",
+      "longname": "clab-sun_dmz-client",
+      "fqdn": "client.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/client",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.9",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::9",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/client",
+        "clab-node-longname": "clab-sun_dmz-client",
+        "clab-node-name": "client",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "ids": {
+      "index": "6",
+      "shortname": "ids",
+      "longname": "clab-sun_dmz-ids",
+      "fqdn": "ids.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/ids",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.2",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::2",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/ids",
+        "clab-node-longname": "clab-sun_dmz-ids",
+        "clab-node-name": "ids",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "router_edge": {
+      "index": "7",
+      "shortname": "router_edge",
+      "longname": "clab-sun_dmz-router_edge",
+      "fqdn": "router_edge.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/router_edge",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.8",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::8",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/router_edge",
+        "clab-node-longname": "clab-sun_dmz-router_edge",
+        "clab-node-name": "router_edge",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "router_int": {
+      "index": "8",
+      "shortname": "router_int",
+      "longname": "clab-sun_dmz-router_int",
+      "fqdn": "router_int.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/router_int",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.10",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::a",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/router_int",
+        "clab-node-longname": "clab-sun_dmz-router_int",
+        "clab-node-name": "router_int",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "siem": {
+      "index": "9",
+      "shortname": "siem",
+      "longname": "clab-sun_dmz-siem",
+      "fqdn": "siem.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/siem",
+      "kind": "linux",
+      "image": "alpine:latest",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.11",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::b",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/siem",
+        "clab-node-longname": "clab-sun_dmz-siem",
+        "clab-node-name": "siem",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+      ]
+    },
+    "waf": {
+      "index": "10",
+      "shortname": "waf",
+      "longname": "clab-sun_dmz-waf",
+      "fqdn": "waf.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/waf",
+      "kind": "linux",
+      "image": "nginx:alpine",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.13",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::d",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/waf",
+        "clab-node-longname": "clab-sun_dmz-waf",
+        "clab-node-name": "waf",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+        {
+          "host-ip": "",
+          "host-port": 0,
+          "port": 80,
+          "protocol": "tcp"
+        }
+      ]
+    },
+    "web": {
+      "index": "11",
+      "shortname": "web",
+      "longname": "clab-sun_dmz-web",
+      "fqdn": "web.sun_dmz.io",
+      "group": "",
+      "labdir": "/home/david/SUN/clab-sun_dmz/web",
+      "kind": "linux",
+      "image": "nginx:alpine",
+      "mgmt-net": "",
+      "mgmt-intf": "",
+      "mgmt-ipv4-address": "172.20.20.5",
+      "mgmt-ipv4-prefix-length": 24,
+      "mgmt-ipv6-address": "3fff:172:20:20::5",
+      "mgmt-ipv6-prefix-length": 64,
+      "mac-address": "",
+      "labels": {
+        "clab-mgmt-net-bridge": "br-154c2701b529",
+        "clab-node-group": "",
+        "clab-node-kind": "linux",
+        "clab-node-lab-dir": "/home/david/SUN/clab-sun_dmz/web",
+        "clab-node-longname": "clab-sun_dmz-web",
+        "clab-node-name": "web",
+        "clab-node-type": "",
+        "clab-owner": "david",
+        "clab-topo-file": "/home/david/SUN/topology.yaml",
+        "containerlab": "sun_dmz"
+      },
+      "port-bindings": [
+        {
+          "host-ip": "",
+          "host-port": 0,
+          "port": 80,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  },
+  "links": [
+    {
+      "endpoints": {
+        "a": {
+          "node": "attacker",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:9b:c2:da",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_internet",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:f5:7a:09",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "router_edge",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:81:5d:9f",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_internet",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:02:54:fc",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "router_edge",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:be:dd:49",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_dmz",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:80:c5:ab",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "router_int",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:6d:44:10",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_dmz",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:88:ee:9e",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "waf",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:e4:53:df",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_dmz",
+          "interface": "eth3",
+          "mac": "aa:c1:ab:56:5d:2c",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "ids",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:23:a0:b6",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_dmz",
+          "interface": "eth4",
+          "mac": "aa:c1:ab:ed:7a:6c",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "web",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:ab:c4:b0",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_dmz",
+          "interface": "eth5",
+          "mac": "aa:c1:ab:62:9f:b2",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "router_int",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:1d:d4:4b",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_client",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:8b:3c:04",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "client",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:8d:29:41",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_client",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:af:85:01",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "router_int",
+          "interface": "eth3",
+          "mac": "aa:c1:ab:4a:e5:05",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_backend",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:83:40:7e",
+          "peer": "a"
+        }
+      }
+    },
+    {
+      "endpoints": {
+        "a": {
+          "node": "siem",
+          "interface": "eth1",
+          "mac": "aa:c1:ab:45:f5:a9",
+          "peer": "z"
+        },
+        "z": {
+          "node": "br_backend",
+          "interface": "eth2",
+          "mac": "aa:c1:ab:03:4c:27",
+          "peer": "a"
+        }
+      }
+    }
+  ]
+}

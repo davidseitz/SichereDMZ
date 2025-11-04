@@ -1,0 +1,119 @@
+name: sun_dmz
+
+# Version 9: Behebt den "RTNETLINK answers: File exists" Fehler.
+# Ursache: Containerlab fügt eine Management-Default-Route hinzu.
+# Lösung: Wir löschen die existierende Default-Route ("ip route del default")
+#         bevor wir unsere eigene hinzufügen.
+
+topology:
+  nodes:
+    # --- Zone 1: Internet ---
+    attacker:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - "ip addr add 192.168.100.10/24 dev eth1"
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 192.168.100.1"
+
+    # --- Zone 2: DMZ ---
+    waf:
+      kind: linux
+      image: nginx:alpine # Platzhalter!
+      exec:
+        - "ip addr add 10.10.1.10/24 dev eth1"
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 10.10.1.1"
+
+    ids:
+      kind: linux
+      image: alpine:latest # Platzhalter!
+      exec:
+        - "ip addr add 10.10.1.20/24 dev eth1"
+        - "ip route add 10.10.3.0/24 via 10.10.1.2" # (Funktionierte korrekt)
+
+    web:
+      kind: linux
+      image: nginx:alpine # Platzhalter!
+      exec:
+        - "ip addr add 10.10.1.100/24 dev eth1"
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 10.10.1.1"
+
+    # --- Zone 3: Interne Netze ---
+    client:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - "ip addr add 10.10.2.10/24 dev eth1"
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 10.10.2.1"
+        
+    siem:
+      kind: linux
+      image: alpine:latest # Platzhalter!
+      exec:
+        - "ip addr add 10.10.3.10/24 dev eth1"
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 10.10.3.1"
+
+    # --- Router / Firewalls ---
+    router_edge:
+      kind: linux
+      image: alpine:latest
+      sysctls:
+        net.ipv4.ip_forward: 1
+      exec:
+        - "ip addr add 192.168.100.1/24 dev eth1" # IF zum Internet
+        - "ip addr add 10.10.1.1/24 dev eth2"   # IF zur DMZ
+        - "ip route add 10.10.0.0/16 via 10.10.1.2" # (Funktionierte korrekt)
+        
+    router_int:
+      kind: linux
+      image: alpine:latest
+      sysctls:
+        net.ipv4.ip_forward: 1
+      exec:
+        - "ip addr add 10.10.1.2/24 dev eth1"   # IF zur DMZ
+        - "ip addr add 10.10.2.1/24 dev eth2"   # IF zum Client-Netz
+        - "ip addr add 10.10.3.1/24 dev eth3"   # IF zum Backend-Netz
+        - "ip route del default" # FIX: Alte Route löschen
+        - "ip route add default via 10.10.1.1" 
+
+    # --- Definition der Switches (als kind: linux) ---
+    br_internet:
+      kind: linux
+      image: alpine:latest
+
+    br_dmz:
+      kind: linux
+      image: alpine:latest
+
+    br_client:
+      kind: linux
+      image: alpine:latest
+      
+    br_backend:
+      kind: linux
+      image: alpine:latest
+
+  links:
+    # (Links Sektion bleibt unverändert zu V8)
+    # --- Verbindungen zum Internet-Switch ---
+    - endpoints: ["attacker:eth1", "br_internet:eth1"]
+    - endpoints: ["router_edge:eth1", "br_internet:eth2"]
+
+    # --- Verbindungen zum DMZ-Switch ---
+    - endpoints: ["router_edge:eth2", "br_dmz:eth1"]
+    - endpoints: ["router_int:eth1", "br_dmz:eth2"]
+    - endpoints: ["waf:eth1", "br_dmz:eth3"]
+    - endpoints: ["ids:eth1", "br_dmz:eth4"]
+    - endpoints: ["web:eth1", "br_dmz:eth5"]
+        
+    # --- Verbindungen zum Client-Switch ---
+    - endpoints: ["router_int:eth2", "br_client:eth1"]
+    - endpoints: ["client:eth1", "br_client:eth2"]
+
+    # --- Verbindungen zum Backend-Switch ---
+    - endpoints: ["router_int:eth3", "br_backend:eth1"]
+    - endpoints: ["siem:eth1", "br_backend:eth2"]

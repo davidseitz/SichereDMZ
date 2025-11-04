@@ -1,0 +1,61 @@
+---
+attacker:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.4
+br_backend:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.12
+br_client:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.3
+br_dmz:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.7
+br_internet:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.6
+client:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.9
+ids:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.2
+router_edge:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.8
+router_int:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.10
+siem:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.11
+waf:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.13
+web:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.5
