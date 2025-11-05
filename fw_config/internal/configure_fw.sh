@@ -1,28 +1,25 @@
 #!/bin/sh
-set -e
 
-# === FW2 (Internal) IPTABLES SCRIPT (V36) ===
+# === FW1 (Edge) NFTABLES SCRIPT (V45) ===
+# Verwendung von absoluten Pfaden (/usr/sbin/nft)
 
-# ENTFERNT: modprobe ip_tables
-# ENTFERNT: modprobe nf_conntrack
+NFT="/usr/sbin/nft"
 
-# 1. Setze Default Policies (NUR INPUT/OUTPUT)
-iptables -P INPUT   DROP
-iptables -P OUTPUT  ACCEPT
-iptables -P FORWARD ACCEPT 
-iptables -F FORWARD 
+$NFT flush ruleset
+$NFT add table inet filter
 
-# 2. Erlaube etablierte Verbindungen
-iptables -A INPUT   -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# Policies
+$NFT add chain inet filter INPUT   { type filter hook input priority 0\; policy drop\; }
+$NFT add chain inet filter OUTPUT  { type filter hook output priority 0\; policy accept\; }
+$NFT add chain inet filter FORWARD { type filter hook forward priority 0\; policy accept\; }
 
-# 3. Definiere 'Least Privilege'-Verkehr
-iptables -A FORWARD -i eth1 -o eth3 -d 10.10.3.10 -p tcp --dport 1514 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth3 -d 10.10.3.10 -p tcp --dport 514 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth3 -d 10.10.3.10 -p tcp --dport 1514 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -d 10.10.1.10 -p tcp --dport 80 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -d 10.10.1.10 -p tcp --dport 443 -j ACCEPT
+# 1. Erlaube etablierte Verbindungen
+$NFT add rule inet filter FORWARD ct state established,related accept
+$NFT add rule inet filter INPUT   ct state established,related accept
 
-# 4. KORREKTUR: Explizite 'Log & Drop'-Regel am Ende
-iptables -A FORWARD -j LOG --log-prefix "FW2_DENIED_FWD: "
-iptables -A FORWARD -j DROP
+# 2. 'Least Privilege' ACCEPT-Regeln
+$NFT add rule inet filter FORWARD iifname "eth1" oifname "eth2" \
+    ip daddr 10.10.1.10 tcp dport { 80, 443 } accept
+
+# 3. Explizites 'Log & Drop' am Ende
+$NFT add rule inet filter FORWARD log prefix \"FW1_DENIED_FWD: \" drop

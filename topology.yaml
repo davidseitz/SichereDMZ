@@ -99,6 +99,8 @@ topology:
       binds:
         # KORREKTUR: ':ro' entfernt
         - fw_config/edge/configure_fw.sh:/fw_config/configure_fw.sh
+
+    # ... (router_edge bleibt unverändert) ...
         
     router_int:
       kind: linux
@@ -108,9 +110,9 @@ topology:
       sysctls:
         net.ipv4.ip_forward: 1
       exec:
-        # 1. Installiere iptables (OHNE modprobe)
+        # 1. Installiere nftables
         - "apk update"
-        - "apk add iptables"
+        - "apk add nftables"
         # 2. Netzwerkkonfiguration
         - "ip addr add 10.10.1.2/24 dev eth1"   
         - "ip addr add 10.10.2.1/24 dev eth2"   
@@ -121,7 +123,7 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
-        # KORREKTUR: ':ro' entfernt
+        # Das Skript ist jetzt auch ein nftables-Skript
         - fw_config/internal/configure_fw.sh:/fw_config/configure_fw.sh
 
     # --- Definition der Switches ---
