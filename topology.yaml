@@ -41,10 +41,29 @@ topology:
 
     ids:
       kind: linux
-      image: alpine:latest 
+      # Wir verwenden ein vorgefertigtes Suricata-Image
+      image: jasonish/suricata:latest
+
+      # WICHTIG: Erhöhte Rechte, damit Suricata den Netzwerkverkehr
+      # im "promiscuous mode" mitlesen kann.
+      cap-add:
+        - NET_ADMIN
+        - NET_RAW
+        - SYS_NICE
+
       exec:
+        # IP-Konfiguration (nur für Management/Logs, nicht für Sniffing)
         - "ip addr add 10.10.1.20/24 dev eth1"
-        - "ip route add 10.10.3.0/24 via 10.10.1.2" 
+        - "ip route add 10.10.3.0/24 via 10.10.1.2"
+
+      binds:
+        # Mountet unsere Custom-Regel
+        - ids_config/rules/custom.rules:/etc/suricata/rules/custom.rules:ro
+        # Mountet das Log-Verzeichnis, damit wir Logs von außen lesen können
+        - ids_config/logs:/var/log/suricata
+
+      # Suricata lädt ALLE Regeln aus /etc/suricata/rules/
+      cmd: "suricata -c /etc/suricata/suricata.yaml -i eth1"
 
     web:
       kind: linux

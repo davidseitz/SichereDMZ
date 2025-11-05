@@ -1,0 +1,3 @@
+# Regel-ID: 1000001
+# Zweck: Generiere einen Alarm, wenn der 'attacker' (192.168.100.x) versucht, den 'web'-Server (10.10.1.100) anzupingen.
+alert icmp 192.168.100.0/24 any -> 10.10.1.100 any (msg:"ICMP Ping Test (Attacker -> Web)"; sid:1000001; rev:1;)
