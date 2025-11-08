@@ -16,31 +16,23 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        # 1. ZUERST Pakete installieren
+        # 1. Installiere netcat UND curl (FIX FÜR FEHLER 2)
         - "apk update"
-        - "apk add netcat-openbsd"
-        # 2. DANN auf eth1 warten & Netzwerk konfigurieren
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 192.168.100.10/24 dev eth1;
-            ip route del default;
-            ip route add default via 192.168.100.1;
-          '
+        - "apk add netcat-openbsd curl"
+        # 2. Netzwerkkonfiguration
+        - "ip addr add 192.168.100.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 192.168.100.1"
 
     # --- Zone 2: DMZ ---
     waf:
       kind: linux
       image: sun-waf-image
       exec:
-        # Hier ist kein apk nötig, aber WARTEN ist entscheidend
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 10.10.1.10/24 dev eth1;
-            ip route del default;
-            ip route add default via 10.10.1.1;
-          '
+        - "ip addr add 10.10.1.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.1.1"
+          
       binds:
         - waf_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
         - waf_config/rules/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
@@ -48,35 +40,42 @@ topology:
     ids:
       kind: linux
       image: jasonish/suricata:latest
+      
       cap-add:
         - NET_ADMIN
         - NET_RAW
         - SYS_NICE
-      exec:
-        # WARTEN auf eth1
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 10.10.1.20/24 dev eth1;
-            ip route add 10.10.3.0/24 via 10.10.1.2;
-          '
+        
       binds:
+        # DER DOKUMENTATIONS-ANSATZ:
+        # Mountet ein schreibbares Verzeichnis für die Konfiguration
+        - ids_config/etc_suricata:/etc/suricata
+        
+        # Mountet unsere Custom-Regel in den Ordner,
+        # den suricata-update erwartet
         - ids_config/rules/custom.rules:/etc/suricata/rules/custom.rules:ro
         - ids_config/logs:/var/log/suricata
-      cmd: "suricata -c /etc/suricata/suricata.yaml -i eth1"
+        - ids_config/start_ids.sh:/start_ids.sh:ro
+        
+      cmd: >
+        sh -c '
+          echo "Warte auf eth1..."
+          while [ ! -d /sys/class/net/eth1 ]; do 
+            sleep 0.1; 
+          done;
+          echo "eth1 gefunden. Starte /start_ids.sh"
+          /start_ids.sh
+        '
 
     web:
       kind: linux
       image: nginx:alpine
       exec:
-        # WARTEN auf eth1
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 10.10.1.100/24 dev eth1;
-            ip route del default;
-            ip route add default via 10.10.1.1;
-          '
+        
+        - "ip addr add 10.10.1.100/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.1.1"
+
       binds:
         - web_config/html:/var/www/html:ro
         - web_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -90,26 +89,19 @@ topology:
         - "apk update"
         - "apk add netcat-openbsd"
         # 2. DANN auf eth1 warten & Netzwerk konfigurieren
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 10.10.2.10/24 dev eth1;
-            ip route del default;
-            ip route add default via 10.10.2.1;
-          '
+        
+        - "ip addr add 10.10.2.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.2.1"
         
     siem:
       kind: linux
       image: alpine:latest 
       exec:
         # WARTEN auf eth1
-        - >
-          sh -c '
-            while [ ! -d /sys/class/net/eth1 ]; do sleep 0.1; done;
-            ip addr add 10.10.3.10/24 dev eth1;
-            ip route del default;
-            ip route add default via 10.10.3.1;
-          '
+        - "ip addr add 10.10.3.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.3.1"
 
 # --- Router / Firewalls ---
     router_edge:
