@@ -1,0 +1,66 @@
+graph TD
+    %% ----- STYLING -----
+    classDef router fill:#f9f,stroke:#333,stroke-width:2px
+    classDef security fill:#ff9,stroke:#333,stroke-width:2px
+    classDef server fill:#ccf,stroke:#333,stroke-width:2px
+    classDef switch fill:#cff,stroke:#333,stroke-width:2px
+
+    graph TD
+    %% ----- STYLING -----
+    classDef router fill:#f9f,stroke:#333,stroke-width:2px
+    classDef security fill:#ff9,stroke:#333,stroke-width:2px
+    classDef server fill:#ccf,stroke:#333,stroke-width:2px
+    classDef siem fill:#fcc,stroke:#333,stroke-width:2px
+    classDef client fill:#cfc,stroke:#333,stroke-width:2px
+
+    %% ----- ZONEN (Subgraphs) -----
+    subgraph "Internet (192.168.100.0/24)"
+        INET["Internet<br>(Angreifer / Nutzer)"]
+    end
+
+    subgraph "DMZ (10.10.1.0/24)"
+        direction TB
+        WAF["WAF / Reverse-Proxy<br>(NGINX + ModSecurity)<br><b>LISTEN: 80, 443</b>"]
+        IDS["IDS (Suricata)<br>(Passiv/Mirror)"]
+        WEB["Webserver<br><b>LISTEN: 80</b>"]
+        WAF -- "Proxy an Port 80" --> WEB
+    end
+
+    subgraph "Interne Netze (LAN)"
+        direction TB
+        subgraph "Client-Netz (10.10.2.0/24)"
+            CLIENT["Interner Client"]
+        end
+        subgraph "Backend-Netz (10.10.3.0/24)"
+            SIEM["SIEM (Wazuh)<br><b>LISTEN: 1514 (Agents)</b><br><b>LISTEN: 514 (Syslog)</b><br><b>LISTEN: 443 (UI)</b>"]
+        end
+    end
+
+    %% ----- ROUTER (zwischen den Zonen) -----
+    R_EDGE["Edge Router (FW1)<br><b>ALLOW IN: 80/443</b>"]
+    R_INT["Internal Router (FW2)<br><b>ALLOW IN: 1514, 514</b>"]
+
+    %% ----- DATENFLÜSSE (Traffic) -----
+    INET -- "Anfrage an 80/443" --> R_EDGE
+    R_EDGE -- "Forward an WAF (80/443)" --> WAF
+    R_EDGE -- "Traffic-Spiegelung" --> IDS
+    R_EDGE -- "Transit" --> R_INT
+    
+    %% ----- INTERNE FLÜSSE -----
+    R_INT -- "verbindet Netze" --> CLIENT
+    R_INT -- "verbindet Netze" --> SIEM
+    CLIENT -. "Interner Test (80/443)" .-> R_INT -. "Interner Test" .-> WAF
+
+    %% ----- LOGGING-FLÜSSE (Detektion) -----
+    WAF -. "Logs an SIEM (1514)" .-> R_INT -.-> SIEM
+    IDS -. "Alerts an SIEM (514)" .-> R_INT -.-> SIEM
+    WEB -. "Logs an SIEM (1514)" .-> R_INT -.-> SIEM
+    R_EDGE -. "FW Logs an SIEM (514)" .-> R_INT -.-> SIEM
+    R_INT -. "FW Logs an SIEM (514)" .-> SIEM
+
+    %% ----- CSS Klassen Zuweisung -----
+    class R_EDGE,R_INT router
+    class WAF,IDS security
+    class WEB server
+    class SIEM siem
+    class INET,CLIENT client
