@@ -41,31 +41,18 @@ topology:
       kind: linux
       image: jasonish/suricata:latest
       
+      # WICHTIG: KEIN network-mode: host
+      # WICHTIG: KEIN exec: für Bridging
+      
       cap-add:
         - NET_ADMIN
         - NET_RAW
         - SYS_NICE
-        
       binds:
-        # DER DOKUMENTATIONS-ANSATZ:
-        # Mountet ein schreibbares Verzeichnis für die Konfiguration
-        - ids_config/etc_suricata:/etc/suricata
-        
-        # Mountet unsere Custom-Regel in den Ordner,
-        # den suricata-update erwartet
-        - ids_config/rules/custom.rules:/etc/suricata/rules/custom.rules:ro
-        - ids_config/logs:/var/log/suricata
-        - ids_config/start_ids.sh:/start_ids.sh:ro
-        
-      cmd: >
-        sh -c '
-          echo "Warte auf eth1..."
-          while [ ! -d /sys/class/net/eth1 ]; do 
-            sleep 0.1; 
-          done;
-          echo "eth1 gefunden. Starte /start_ids.sh"
-          /start_ids.sh
-        '
+        - logs:/var/log/suricata
+      
+      # Suricata lauscht einfach auf eth1, wohin der Traffic gespiegelt wird
+      cmd: -i eth1
 
     web:
       kind: linux
@@ -175,10 +162,16 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        # WARTET auf alle 5 Interfaces (eth1-eth5)
+        # 1. ZUERST Pakete installieren
+        - "apk update"
+        - "apk add iproute2" # WICHTIG: Wird für 'tc' (Port Mirroring) benötigt
+
+        # 2. WARTET auf alle 5 Interfaces (eth1-eth5)
         - >
           sh -c '
             while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ] || [ ! -d /sys/class/net/eth4 ] || [ ! -d /sys/class/net/eth5 ]; do sleep 0.1; done;
+            
+            # 1. Standard Bridge aufsetzen
             ip link add name br0 type bridge;
             ip link set br0 up;
             ip link set eth1 master br0;
@@ -191,6 +184,20 @@ topology:
             ip link set eth3 up;
             ip link set eth4 up;
             ip link set eth5 up;
+
+            # 2. Port Spiegelung (SPAN) mit tc aufsetzen
+            tc qdisc add dev eth3 ingress
+            tc filter add dev eth3 parent ffff: protocol all u32 match u32 0 0 action mirred egress mirror dev eth4
+            tc qdisc add dev eth3 clsact
+            tc filter add dev eth3 egress protocol all u32 match u32 0 0 action mirred egress mirror dev eth4
+            tc qdisc add dev eth5 ingress
+            tc filter add dev eth5 parent ffff: protocol all u32 match u32 0 0 action mirred egress mirror dev eth4
+            tc qdisc add dev eth5 clsact
+            tc filter add dev eth5 egress protocol all u32 match u32 0 0 action mirred egress mirror dev eth4
+            
+            # 'tail -f /dev/null' WURDE HIER ENTFERNT
+            
+            echo "br_dmz Konfiguration abgeschlossen."
           '
 
     br_client:
