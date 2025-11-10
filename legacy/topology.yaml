@@ -1,0 +1,243 @@
+name: sun_dmz
+
+# Version 12: Behebt "Host is unreachable".
+# Ursache: Die 'br_*' Container (kind: linux) haben nicht 
+#          automatisch wie Switches (Bridges) agiert.
+# Lösung: Hinzufügen von 'exec'-Befehlen zu allen 'br_*' Knoten,
+#         um manuell eine Bridge 'br0' zu erstellen und alle
+#         Schnittstellen (ethX) zu dieser Bridge hinzuzufügen.
+#
+# + Race-Condition-Fix (while-Schleifen) für ALLE Knoten
+
+topology:
+  nodes:
+    # --- Zone 1: Internet ---
+    attacker:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # 1. Installiere netcat UND curl (FIX FÜR FEHLER 2)
+        - "apk update"
+        - "apk add netcat-openbsd curl"
+        # 2. Netzwerkkonfiguration
+        - "ip addr add 192.168.100.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 192.168.100.1"
+
+    # --- Zone 2: DMZ ---
+    waf:
+      kind: linux
+      image: sun-waf-image
+      exec:
+        - "ip addr add 10.10.1.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.1.1"
+          
+      binds:
+        - waf_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - waf_config/rules/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
+
+    ids:
+      kind: linux
+      image: jasonish/suricata:latest
+      
+      cap-add:
+        - NET_ADMIN
+        - NET_RAW
+        - SYS_NICE
+        
+      binds:
+        # DER DOKUMENTATIONS-ANSATZ:
+        # Mountet ein schreibbares Verzeichnis für die Konfiguration
+        - ids_config/etc_suricata:/etc/suricata
+        
+        # Mountet unsere Custom-Regel in den Ordner,
+        # den suricata-update erwartet
+        - ids_config/rules/custom.rules:/etc/suricata/rules/custom.rules:ro
+        - ids_config/logs:/var/log/suricata
+        - ids_config/start_ids.sh:/start_ids.sh:ro
+        
+      cmd: >
+        sh -c '
+          echo "Warte auf eth1..."
+          while [ ! -d /sys/class/net/eth1 ]; do 
+            sleep 0.1; 
+          done;
+          echo "eth1 gefunden. Starte /start_ids.sh"
+          /start_ids.sh
+        '
+
+    web:
+      kind: linux
+      image: nginx:alpine
+      exec:
+        
+        - "ip addr add 10.10.1.100/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.1.1"
+
+      binds:
+        - web_config/html:/var/www/html:ro
+        - web_config/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+     # --- Zone 3: Interne Netze ---
+    client:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # 1. ZUERST Pakete installieren
+        - "apk update"
+        - "apk add netcat-openbsd"
+        # 2. DANN auf eth1 warten & Netzwerk konfigurieren
+        
+        - "ip addr add 10.10.2.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.2.1"
+        
+    siem:
+      kind: linux
+      image: alpine:latest 
+      exec:
+        # WARTEN auf eth1
+        - "ip addr add 10.10.3.10/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.3.1"
+
+# --- Router / Firewalls ---
+    router_edge:
+      kind: linux
+      image: alpine:latest
+      cap-add:
+        - SYS_ADMIN
+      sysctls:
+        net.ipv4.ip_forward: 1
+      exec:
+        # 1. ZUERST Pakete installieren
+        - "apk update"
+        - "apk add nftables"
+        # 2. DANN auf BEIDE Interfaces (eth1, eth2) warten & konfigurieren
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ]; do sleep 0.1; done;
+            ip addr add 192.168.100.1/24 dev eth1;
+            ip addr add 10.10.1.1/24 dev eth2;
+            ip route add 10.10.0.0/16 via 10.10.1.2;
+            chmod +x /fw_config/configure_fw.sh;
+            /fw_config/configure_fw.sh;
+          '
+      binds:
+        - fw_config/edge/configure_fw.sh:/fw_config/configure_fw.sh
+
+    router_int:
+      kind: linux
+      image: alpine:latest
+      cap-add:
+        - SYS_ADMIN
+      sysctls:
+        net.ipv4.ip_forward: 1
+      exec:
+        # 1. ZUERST Pakete installieren
+        - "apk update"
+        - "apk add nftables"
+        # 2. DANN auf ALLE DREI Interfaces (eth1, eth2, eth3) warten & konfigurieren
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ]; do sleep 0.1; done;
+            ip addr add 10.10.1.2/24 dev eth1;
+            ip addr add 10.10.2.1/24 dev eth2;
+            ip addr add 10.10.3.1/24 dev eth3;
+            ip route del default;
+            ip route add default via 10.10.1.1;
+            chmod +x /fw_config/configure_fw.sh;
+            /fw_config/configure_fw.sh;
+          '
+      binds:
+        - fw_config/internal/configure_fw.sh:/fw_config/configure_fw.sh
+
+# --- Definition der Switches (V12-Stil mit Race-Condition-Fix) ---
+    br_internet:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # WARTET, bis eth1 UND eth2 existieren, DANN wird die Bridge gebaut
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ]; do sleep 0.1; done;
+            ip link add name br0 type bridge;
+            ip link set br0 up;
+            ip link set eth1 master br0;
+            ip link set eth2 master br0;
+            ip link set eth1 up;
+            ip link set eth2 up;
+          '
+
+    br_dmz:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # WARTET auf alle 5 Interfaces (eth1-eth5)
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ] || [ ! -d /sys/class/net/eth4 ] || [ ! -d /sys/class/net/eth5 ]; do sleep 0.1; done;
+            ip link add name br0 type bridge;
+            ip link set br0 up;
+            ip link set eth1 master br0;
+            ip link set eth2 master br0;
+            ip link set eth3 master br0;
+            ip link set eth4 master br0;
+            ip link set eth5 master br0;
+            ip link set eth1 up;
+            ip link set eth2 up;
+            ip link set eth3 up;
+            ip link set eth4 up;
+            ip link set eth5 up;
+          '
+
+    br_client:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # WARTET, bis eth1 UND eth2 existieren
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ]; do sleep 0.1; done;
+            ip link add name br0 type bridge;
+            ip link set br0 up;
+            ip link set eth1 master br0;
+            ip link set eth2 master br0;
+            ip link set eth1 up;
+            ip link set eth2 up;
+          '
+      
+    br_backend:
+      kind: linux
+      image: alpine:latest
+      exec:
+        # WARTET, bis eth1 UND eth2 existieren
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ]; do sleep 0.1; done;
+            ip link add name br0 type bridge;
+            ip link set br0 up;
+            ip link set eth1 master br0;
+            ip link set eth2 master br0;
+            ip link set eth1 up;
+            ip link set eth2 up;
+          '
+    
+  links:
+    # (Links Sektion bleibt unverändert)
+    - endpoints: ["attacker:eth1", "br_internet:eth1"]
+    - endpoints: ["router_edge:eth1", "br_internet:eth2"]
+
+    - endpoints: ["router_edge:eth2", "br_dmz:eth1"]
+    - endpoints: ["router_int:eth1", "br_dmz:eth2"]
+    - endpoints: ["waf:eth1", "br_dmz:eth3"]
+    - endpoints: ["ids:eth1", "br_dmz:eth4"]
+    - endpoints: ["web:eth1", "br_dmz:eth5"]
+        
+    - endpoints: ["router_int:eth2", "br_client:eth1"]
+    - endpoints: ["client:eth1", "br_client:eth2"]
+
+    - endpoints: ["router_int:eth3", "br_backend:eth1"]
+    - endpoints: ["siem:eth1", "br_backend:eth2"]
