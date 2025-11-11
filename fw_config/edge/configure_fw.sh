@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# === FW1 (Edge) NFTABLES SCRIPT (V45) ===
+# === FWE (Edge) NFTABLES SCRIPT (V45) ===
 # Verwendung von absoluten Pfaden (/usr/sbin/nft)
 
 NFT="/usr/sbin/nft"
@@ -17,9 +17,15 @@ $NFT add chain inet filter FORWARD { type filter hook forward priority 0\; polic
 $NFT add rule inet filter FORWARD ct state established,related accept
 $NFT add rule inet filter INPUT   ct state established,related accept
 
-# 2. 'Least Privilege' ACCEPT-Regeln
-$NFT add rule inet filter FORWARD iifname "eth1" oifname "eth2" \
-    ip daddr 10.10.1.10 tcp dport { 80, 443 } accept
+# F1 Attacker 1 (192.168.1.10) -> Rev Proxy (10.10.10.3) HTTP/HTTPS via eth-wan -> eth-dmz
+$NFT add rule inet filter FORWARD iifname "eth-wan" oifname "eth-dmz" \
+    ip saddr 192.168.1.10 ip daddr 10.10.10.3 meta l4proto { tcp, udp } th dport { 80, 443} \
+    log prefix \"FWE_ALLOW_ATT1_WAF_PROXY: \" accept
+
+# F(2,5,7,14,15) Internal Router (ALL Subnets) (10.10.60.0/24) -> Internet HTTP/HTTPS via eth-wan -> eth-dmz
+$NFT add rule inet filter FORWARD iifname "eth-transit" oifname "eth-wan" \
+    ip saddr 10.10.60.0/24 meta l4proto { tcp, udp } th dport { 80, 443 } \
+    log prefix "FWE_ALLOW_CLIENT_WEB: " accept
 
 # 3. Explizites 'Log & Drop' am Ende
-$NFT add rule inet filter FORWARD log prefix \"FW1_DENIED_FWD: \" drop
+$NFT add rule inet filter FORWARD log prefix \"FWE_DENIED_FWD: \" drop
