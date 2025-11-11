@@ -50,13 +50,16 @@ topology:
     # --- DMZ-Knoten (10.10.0.0/29) ---
     web_server:
       kind: linux
-      image: alpine:latest
+      image: nginx:alpine
       exec:
         - "ip addr add 10.10.10.4/29 dev eth10"
         - "ip addr add 10.10.10.5/29 dev eth1"
         - "ip addr add 10.10.60.3/28 dev ethmgmt"
         - "ip route del default"
         - "ip route add default via 10.10.10.2" # Gateway ist der Internal Router
+      binds:
+        - webserver_setup/html:/var/www/html:ro
+        - webserver_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
       
     reverse_proxy:
       kind: linux
