@@ -7,13 +7,13 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        - "ip addr add 10.10.1.1/29 dev ethdmz"
+        - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
         - "ip addr add 10.10.60.6/28 dev ethmgmt"
         - "ip addr add 192.168.1.1/24 dev ethwan"
 
-        - "ip route del default"
-        - "ip route add default via 10.10.50.2"
+        - "ip route add 10.10.0.0/16 via 10.10.50.2"
+        - "sysctl -w net.ipv4.ip_forward=1"
       
     internal_router:
       kind: linux
@@ -25,6 +25,9 @@ topology:
         - "ip addr add 10.10.30.1/29 dev ethsecurity"
         - "ip addr add 10.10.40.1/29 dev ethresource"
         - "ip addr add 10.10.10.2/29 dev ethdmz"
+        - "ip route delete default"
+        - "ip route add default via 10.10.50.1"
+        - "sysctl -w net.ipv4.ip_forward=1"
 
     # --- Externe/Angreifer-Knoten ---
     attacker_1:
@@ -59,7 +62,7 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        - "ip addr add 10.10.10.6/29 dev eth10"
+        - "ip addr add 10.10.10.3/29 dev eth10"
         - "ip addr add 10.10.60.2/28 dev ethmgmt"
         - "ip addr add 10.10.10.5/29 dev eth1"
         - "ip route del default"
@@ -68,6 +71,14 @@ topology:
     dmz_switch:
       kind: linux
       image: alpine:latest
+      exec:
+        - "apk add --no-cache bridge"
+        - "brctl addbr br0"
+        - "brctl addif br0 eth1"
+        - "brctl addif br0 eth2"
+        - "brctl addif br0 eth3"
+        - "brctl addif br0 eth4"
+        - "ip link set dev br0 up"
 
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
@@ -81,13 +92,20 @@ topology:
     client_switch:
       kind: linux
       image: alpine:latest
+      exec:
+        - "apk add --no-cache bridge"
+        - "brctl addbr br0"
+        - "brctl addif br0 eth1"
+        - "brctl addif br0 eth2"
+        - "brctl addif br0 eth3"
+        - "ip link set dev br0 up"
 
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
       kind: linux
       image: alpine:latest
       exec:
-        - "ip addr add 10.10.30.2/29 dev eth1"
+        - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
@@ -112,6 +130,14 @@ topology:
     security_switch:
       kind: linux
       image: alpine:latest
+      exec:
+        - "apk add --no-cache bridge"
+        - "brctl addbr br0"
+        - "brctl addif br0 eth1" 
+        - "brctl addif br0 eth2" 
+        - "brctl addif br0 eth3" 
+        - "brctl addif br0 eth4"
+        - "ip link set dev br0 up"
 
     # --- Internal-Resource-Knoten (10.10.40.0/29) ---
     database:
@@ -127,18 +153,35 @@ topology:
     resource_switch:
       kind: linux
       image: alpine:latest
+      exec:
+        - "apk add --no-cache bridge"
+        - "brctl addbr br0"
+        - "brctl addif br0 eth1"
+        - "brctl addif br0 eth2"
+        - "ip link set dev br0 up"
       
     # --- Management-Switch ---
     mgmt_switch:
       kind: linux
       image: alpine:latest
+      exec:
+        - "apk add --no-cache bridge"
+        - "brctl addbr br0"
+        - "brctl addif br0 eth1"
+        - "brctl addif br0 eth2"
+        - "brctl addif br0 eth3"
+        - "brctl addif br0 eth4"
+        - "brctl addif br0 eth5"
+        - "brctl addif br0 eth6"
+        - "brctl addif br0 eth7"
+        - "ip link set dev br0 up"
 
   links:
     # Internet Verbindung
     - endpoints: ["attacker_1:eth1", "edge_router:ethwan"]
 
     # Edge Router Verbindungen
-    - endpoints: ["edge_router:ethtransit", internal_router:ethtransit"]
+    - endpoints: ["edge_router:ethtransit", "internal_router:ethtransit"]
     - endpoints: ["edge_router:ethdmz", "dmz_switch:eth1"]
     - endpoints: ["edge_router:ethmgmt", "mgmt_switch:eth1"]
 
@@ -161,12 +204,12 @@ topology:
     - endpoints: ["client_switch:eth3", "attacker_2:eth10"]
 
     # Security Switch Verbindungen
-    - endpoints: ["security_switch:eth2", "siem:eth1"]
+    - endpoints: ["security_switch:eth2", "siem:eth10"]
     - endpoints: ["security_switch:eth3", "bastion:eth10"]
     - endpoints: ["security_switch:eth4", "timedns_server:eth10"]
 
     # Resource Switch Verbindungen
-    - endpoints: ["resource_switch:eth2", "database:eth1"]
+    - endpoints: ["resource_switch:eth2", "database:eth10"]
 
     # Management Switch Verbindungen
     - endpoints: ["mgmt_switch:eth2", "web_server:ethmgmt"]
