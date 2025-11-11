@@ -60,13 +60,16 @@ topology:
       
     reverse_proxy:
       kind: linux
-      image: alpine:latest
+      image: sun-waf-image
       exec:
         - "ip addr add 10.10.10.3/29 dev eth10"
         - "ip addr add 10.10.60.2/28 dev ethmgmt"
         - "ip addr add 10.10.10.5/29 dev eth1"
         - "ip route del default"
         - "ip route add default via 10.10.10.2" # Default Gateway ist der Internal Router
+      binds:
+        - waf_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - waf_setup/rules/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
       
     dmz_switch:
       kind: linux
