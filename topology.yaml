@@ -6,28 +6,64 @@ topology:
     edge_router:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.1.1/29 dev ethdmz"
+        - "ip addr add 10.10.50.1/24 dev ethtransit"
+        - "ip addr add 10.10.60.6/28 dev ethmgmt"
+        - "ip addr add 192.168.1.1/24 dev ethwan"
+
+        - "ip route del default"
+        - "ip route add default via 10.10.50.2"
       
     internal_router:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.50.2/24 dev ethtransit"
+        - "ip addr add 10.10.60.1/28 dev ethmgmt"
+        - "ip addr add 10.10.20.1/29 dev ethclient"
+        - "ip addr add 10.10.30.1/29 dev ethsecurity"
+        - "ip addr add 10.10.40.1/29 dev ethresource"
+        - "ip addr add 10.10.10.2/29 dev ethdmz"
 
     # --- Externe/Angreifer-Knoten ---
     attacker_1:
       kind: linux
       image: alpine:latest
-      
+      exec:
+        - "ip addr add 192.168.1.2/24 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 192.168.1.1"
+
+    # Zweiter Angreifer-Knoten im internen Netzwerk  
     attacker_2:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.20.3/29 dev eth10"
+        - "ip route del default"
+        - "ip route add default via 10.10.20.1"
 
     # --- DMZ-Knoten (10.10.0.0/29) ---
     web_server:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.10.4/29 dev eth10"
+        - "ip addr add 10.10.10.5/29 dev eth1"
+        - "ip addr add 10.10.60.3/28 dev ethmgmt"
+        - "ip route del default"
+        - "ip route add default via 10.10.10.2" # Gateway ist der Internal Router
       
     reverse_proxy:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.10.6/29 dev eth10"
+        - "ip addr add 10.10.60.2/28 dev ethmgmt"
+        - "ip addr add 10.10.10.5/29 dev eth1"
+        - "ip route del default"
+        - "ip route add default via 10.10.10.2" # Default Gateway ist der Internal Router
       
     dmz_switch:
       kind: linux
@@ -37,6 +73,10 @@ topology:
     admin:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.20.2/29 dev eth10"
+        - "ip route del default"
+        - "ip route add default via 10.10.20.1"
       
     client_switch:
       kind: linux
@@ -46,14 +86,28 @@ topology:
     siem:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.30.2/29 dev eth1"
+        - "ip addr add 10.10.60.5/28 dev ethmgmt"
+        - "ip route del default"
+        - "ip route add default via 10.10.30.1"
       
     bastion:
       kind: linux
       image: alpine:latest
-
+      exec:
+        - "ip addr add 10.10.30.3/29 dev eth10"
+        - "ip route del default"
+        - "ip route add default via 10.10.30.1"
+      
     timedns_server:
       kind: linux
       image: alpine:latest
+      exec:
+        - "ip addr add 10.10.30.4/29 dev eth10"
+        - "ip addr add 10.10.60.7/28 dev ethmgmt"
+        - "ip route del default"
+        - "ip route add default via 10.10.30.1"
       
     security_switch:
       kind: linux
@@ -62,7 +116,13 @@ topology:
     # --- Internal-Resource-Knoten (10.10.40.0/29) ---
     database:
       kind: linux
-      image: alpine:latest # Vereinheitlicht auf latest
+      image: alpine:latest
+      exec:
+        - "ip addr add 10.10.40.2/29 dev eth10"
+        - "ip addr add 10.10.60.4/28 dev ethmgmt"
+        - "ip route del default"
+        - "ip route add default via 10.10.40.1"
+
       
     resource_switch:
       kind: linux
@@ -87,23 +147,23 @@ topology:
     - endpoints: ["internal_router:ethclient", "client_switch:eth1"]
     - endpoints: ["internal_router:ethsecurity", "security_switch:eth1"]
     - endpoints: ["internal_router:ethresource", "resource_switch:eth1"]
-    - endpoints: ["internal_router:ethmgmt", "mgmt_switch:eth2"]
+    - endpoints: ["internal_router:ethmgmt", "mgmt_switch:eth7"]
 
     # DMZ Switch Verbindungen
-    - endpoints: ["dmz_switch:eth2", "web_server:eth0"]
-    - endpoints: ["dmz_switch:eth3", "reverse_proxy:eth0"]
+    - endpoints: ["dmz_switch:eth4", "web_server:eth10"]
+    - endpoints: ["dmz_switch:eth3", "reverse_proxy:eth10"]
 
     # Verbindung Webserver - WAF/Reverse Proxy
     - endpoints: ["web_server:eth1", "reverse_proxy:eth1"]
 
     # Client Switch Verbindungen
-    - endpoints: ["client_switch:eth2", "admin:eth1"]
-    - endpoints: ["client_switch:eth3", "attacker_2:eth1"]
+    - endpoints: ["client_switch:eth2", "admin:eth10"]
+    - endpoints: ["client_switch:eth3", "attacker_2:eth10"]
 
     # Security Switch Verbindungen
     - endpoints: ["security_switch:eth2", "siem:eth1"]
-    - endpoints: ["security_switch:eth3", "bastion:eth1"]
-    - endpoints: ["security_switch:eth4", "timedns_server:eth1"]
+    - endpoints: ["security_switch:eth3", "bastion:eth10"]
+    - endpoints: ["security_switch:eth4", "timedns_server:eth10"]
 
     # Resource Switch Verbindungen
     - endpoints: ["resource_switch:eth2", "database:eth1"]
