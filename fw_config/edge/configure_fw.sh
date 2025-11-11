@@ -25,7 +25,7 @@ $NFT add rule inet filter FORWARD iifname "eth-wan" oifname "eth-dmz" \
 # F(2,5,7,14,15) Internal Router (ALL Subnets) (10.10.60.0/24) -> Internet HTTP/HTTPS via eth-wan -> eth-dmz
 $NFT add rule inet filter FORWARD iifname "eth-transit" oifname "eth-wan" \
     ip saddr 10.10.60.0/24 meta l4proto { tcp, udp } th dport { 80, 443 } \
-    log prefix "FWE_ALLOW_CLIENT_WEB: " accept
+    log prefix "FWE_ALLOW_INTERNEL_TO_INTERNET: " accept
 
 # 3. Explizites 'Log & Drop' am Ende
 $NFT add rule inet filter FORWARD log prefix \"FWE_DENIED_FWD: \" drop
