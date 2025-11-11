@@ -1,0 +1,76 @@
+---
+admin:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.15
+attacker_1:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.10
+attacker_2:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.2
+bastion:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.11
+client_switch:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.14
+database:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.16
+dmz_switch:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.4
+edge_router:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.9
+internal_router:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.13
+mgmt_switch:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.5
+resource_switch:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.7
+reverse_proxy:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.12
+security_switch:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.8
+siem:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.3
+web_server:
+    username: 
+    password: 
+    platform: linux
+    hostname: 172.20.20.6

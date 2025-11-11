@@ -1,0 +1,456 @@
+[1 - Suricata-Main] 2025-11-10 15:38:23 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:22 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:22 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:22 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:22 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:22 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:23 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:23 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:23 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:23 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:23 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:23 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:23 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:23 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:23 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:23 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:23 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:23 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:24 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:24 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:24 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:24 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:24 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:24 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:24 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:24 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:24 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:25 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:25 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:25 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:25 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:25 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:25 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:25 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:25 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:25 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:26 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:26 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:26 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:26 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:26 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:26 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:26 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:26 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:26 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:28 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:28 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:28 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:28 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:28 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:28 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:28 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:29 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:29 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:32 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:32 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:32 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:32 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:32 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:32 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:32 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:32 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:32 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:39 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:39 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:39 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:39 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:39 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:39 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:39 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:39 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:39 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:38:52 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:38:52 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:38:52 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:38:52 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:38:52 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:38:52 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:38:52 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:38:52 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:38:52 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:39:17 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:39:17 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:39:17 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:39:17 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:39:18 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:39:18 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:39:18 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:39:18 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:39:18 Info: runmodes: eth1: creating 22 threads
+[16 - W#01-eth1] 2025-11-10 15:39:18 Error: af-packet: eth1: failed to find interface: No such device
+[16 - W#01-eth1] 2025-11-10 15:39:18 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:39:18 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:40:08 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:40:08 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:40:08 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:40:08 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:40:08 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:40:08 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:40:08 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:40:08 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:40:08 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:41:08 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:41:08 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:41:08 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:41:08 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:41:08 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:41:08 Info: runmodes: eth1: creating 22 threads
+[16 - W#01-eth1] 2025-11-10 15:41:08 Error: af-packet: eth1: failed to find interface: No such device
+[16 - W#01-eth1] 2025-11-10 15:41:08 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:41:08 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:42:07 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:42:07 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:42:07 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:42:07 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:42:07 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:42:07 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:42:07 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:42:07 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:42:07 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:43:07 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:43:07 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:43:07 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:43:07 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:43:07 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:43:07 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:43:07 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:43:07 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:43:07 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:44:06 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:44:06 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:44:06 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:44:06 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:44:06 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:44:06 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:44:06 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:44:06 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:44:06 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:45:06 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:45:06 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:45:06 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:45:06 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:45:06 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:45:06 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:45:06 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:45:06 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:45:06 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:46:05 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:46:05 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:46:05 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:46:05 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:46:05 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:46:05 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:46:05 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:46:05 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:46:05 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:47:05 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:47:05 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:47:05 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:47:05 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:47:05 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:47:05 Info: runmodes: eth1: creating 22 threads
+[18 - W#01-eth1] 2025-11-10 15:47:05 Error: af-packet: eth1: failed to find interface: No such device
+[18 - W#01-eth1] 2025-11-10 15:47:05 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:47:05 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:48:04 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:48:04 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:48:04 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:48:04 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:48:04 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:48:04 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:48:04 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:48:04 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:48:04 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:49:03 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:49:03 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:49:03 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:49:03 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:49:04 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:49:04 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:49:04 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:49:04 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:49:04 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:49:04 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:49:04 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:49:04 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:50:03 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:50:03 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:50:03 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:50:03 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:50:03 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:50:03 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:50:03 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:50:03 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:50:03 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:51:02 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:51:02 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:51:02 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:51:02 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:51:02 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:51:02 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:51:02 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:51:03 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:51:03 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:52:02 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:52:02 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:52:02 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:52:02 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:52:02 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:52:02 Info: runmodes: eth1: creating 22 threads
+[17 - W#01-eth1] 2025-11-10 15:52:02 Error: af-packet: eth1: failed to find interface: No such device
+[17 - W#01-eth1] 2025-11-10 15:52:02 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:52:02 Error: threads: thread "W#01-eth1" failed to start: flags 0422
+[1 - Suricata-Main] 2025-11-10 15:53:01 Notice: suricata: This is Suricata version 8.0.1 RELEASE running in SYSTEM mode
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: cpu: CPUs/cores online: 22
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: suricata: Setting engine mode to IDS mode by default
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: exception-policy: master exception-policy set to: auto
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: conf: Running in live mode, activating unix socket
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: logopenfile: fast output device (regular) initialized: fast.log
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: logopenfile: eve-log output device (regular) initialized: eve.json
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: logopenfile: stats output device (regular) initialized: stats.log
+[1 - Suricata-Main] 2025-11-10 15:53:01 Warning: detect: No rule files match the pattern /var/lib/suricata/rules/suricata.rules
+[1 - Suricata-Main] 2025-11-10 15:53:01 Warning: detect: 1 rule files specified, but no rules were loaded!
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: threshold-config: Threshold config parsed: 0 rule(s) found
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: detect: 0 signatures processed. 0 are IP-only rules, 0 are inspecting packet payload, 0 inspect application layer, 0 are decoder event only
+[1 - Suricata-Main] 2025-11-10 15:53:01 Notice: mpm-hs: Rule group caching - loaded: 0 newly cached: 0 total cacheable: 0
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: unix-manager: unix socket '/var/run/suricata/suricata-command.socket'
+[1 - Suricata-Main] 2025-11-10 15:53:01 Error: af-packet: eth1: failed to find interface type: No such device
+[1 - Suricata-Main] 2025-11-10 15:53:01 Info: runmodes: eth1: creating 22 threads
+[16 - W#01-eth1] 2025-11-10 15:53:02 Error: af-packet: eth1: failed to find interface: No such device
+[16 - W#01-eth1] 2025-11-10 15:53:02 Error: af-packet: eth1: failed to init socket for interface
+[1 - Suricata-Main] 2025-11-10 15:53:02 Error: threads: thread "W#01-eth1" failed to start: flags 0422

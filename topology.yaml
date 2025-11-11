@@ -1,0 +1,116 @@
+name: security_lab
+
+topology:
+  nodes:
+    # --- Router/Firewall-Knoten ---
+    edge_router:
+      kind: linux
+      image: alpine:latest
+      
+    internal_router:
+      kind: linux
+      image: alpine:latest
+
+    # --- Externe/Angreifer-Knoten ---
+    attacker_1:
+      kind: linux
+      image: alpine:latest
+      
+    attacker_2:
+      kind: linux
+      image: alpine:latest
+
+    # --- DMZ-Knoten (10.10.0.0/29) ---
+    web_server:
+      kind: linux
+      image: alpine:latest
+      
+    reverse_proxy:
+      kind: linux
+      image: alpine:latest
+      
+    dmz_switch:
+      kind: linux
+      image: alpine:latest
+
+    # --- Internal-Client-Knoten (10.10.20.0/29) ---
+    admin:
+      kind: linux
+      image: alpine:latest
+      
+    client_switch:
+      kind: linux
+      image: alpine:latest
+
+    # --- Internal-Security-Knoten (10.10.30.0/29) ---
+    siem:
+      kind: linux
+      image: alpine:latest
+      
+    bastion:
+      kind: linux
+      image: alpine:latest
+
+    timedns_server:
+      kind: linux
+      image: alpine:latest
+      
+    security_switch:
+      kind: linux
+      image: alpine:latest
+
+    # --- Internal-Resource-Knoten (10.10.40.0/29) ---
+    database:
+      kind: linux
+      image: alpine:latest # Vereinheitlicht auf latest
+      
+    resource_switch:
+      kind: linux
+      image: alpine:latest
+      
+    # --- Management-Switch ---
+    mgmt_switch:
+      kind: linux
+      image: alpine:latest
+
+  links:
+    # Internet Verbindung
+    - endpoints: ["attacker_1:eth1", "edge_router:ethwan"]
+
+    # Edge Router Verbindungen
+    - endpoints: ["edge_router:ethtransit", internal_router:ethtransit"]
+    - endpoints: ["edge_router:ethdmz", "dmz_switch:eth1"]
+    - endpoints: ["edge_router:ethmgmt", "mgmt_switch:eth1"]
+
+    # Internal Router Verbindungen
+    - endpoints: ["internal_router:ethdmz", "dmz_switch:eth2"]
+    - endpoints: ["internal_router:ethclient", "client_switch:eth1"]
+    - endpoints: ["internal_router:ethsecurity", "security_switch:eth1"]
+    - endpoints: ["internal_router:ethresource", "resource_switch:eth1"]
+    - endpoints: ["internal_router:ethmgmt", "mgmt_switch:eth2"]
+
+    # DMZ Switch Verbindungen
+    - endpoints: ["dmz_switch:eth2", "web_server:eth0"]
+    - endpoints: ["dmz_switch:eth3", "reverse_proxy:eth0"]
+
+    # Verbindung Webserver - WAF/Reverse Proxy
+    - endpoints: ["web_server:eth1", "reverse_proxy:eth1"]
+
+    # Client Switch Verbindungen
+    - endpoints: ["client_switch:eth2", "admin:eth1"]
+    - endpoints: ["client_switch:eth3", "attacker_2:eth1"]
+
+    # Security Switch Verbindungen
+    - endpoints: ["security_switch:eth2", "siem:eth1"]
+    - endpoints: ["security_switch:eth3", "bastion:eth1"]
+    - endpoints: ["security_switch:eth4", "timedns_server:eth1"]
+
+    # Resource Switch Verbindungen
+    - endpoints: ["resource_switch:eth2", "database:eth1"]
+
+    # Management Switch Verbindungen
+    - endpoints: ["mgmt_switch:eth2", "web_server:ethmgmt"]
+    - endpoints: ["mgmt_switch:eth3", "reverse_proxy:ethmgmt"]
+    - endpoints: ["mgmt_switch:eth4", "siem:ethmgmt"]
+    - endpoints: ["mgmt_switch:eth5", "timedns_server:ethmgmt"]
+    - endpoints: ["mgmt_switch:eth6", "database:ethmgmt"]
