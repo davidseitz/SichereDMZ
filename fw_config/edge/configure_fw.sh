@@ -27,5 +27,10 @@ $NFT add rule inet filter FORWARD iifname "eth-transit" oifname "eth-wan" \
     ip saddr 10.10.60.0/24 meta l4proto { tcp, udp } th dport { 80, 443 } \
     log prefix "FWE_ALLOW_INTERNEL_TO_INTERNET: " accept
 
+# F(TBD) Eage Router (10.10.50.1) -> Internet HTTP/HTTPS OUTBOUND -> eth-wan
+$NFT add rule inet filter OUTPUT oifname "eth-wan" \
+    meta l4proto { tcp, udp } th dport {80,443} \
+    log prefix "FWI_ALLOW_EAGE_ROUTER_INTERNET: " accept
+
 # 3. Explizites 'Log & Drop' am Ende
 $NFT add rule inet filter FORWARD log prefix \"FWE_DENIED_FWD: \" drop

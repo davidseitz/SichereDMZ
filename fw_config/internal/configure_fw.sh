@@ -100,6 +100,11 @@ $NFT add rule inet filter OUTPUT oifname "eth-security" \
     ip daddr 10.10.30.2 meta l4proto { tcp, udp } th dport 3100 \
     log prefix "FWI_ALLOW_ROUTER_LOGS_SIEM: " accept
 
+# F(TBD) Internal Router (10.10.50.2) -> Eage Router (Internet) (10.10.50.1) HTTP/HTTPS OUTBOUND -> eth-transit
+$NFT add rule inet filter OUTPUT oifname "eth-transit" \
+    ip daddr 10.10.50.1 meta l4proto { tcp, udp } th dport {80,443} \
+    log prefix "FWI_ALLOW_INTERNAL_ROUTER_INTERNET: " accept
+
 # F21 Web Server (10.10.10.4) -> SIEM (10.10.30.2) HTTP/HTTPS via eth-dmz -> eth-security
 $NFT add rule inet filter FORWARD iifname "eth-dmz" oifname "eth-security" \
     ip saddr 10.10.10.4 ip daddr 10.10.30.2 meta l4proto { tcp, udp } th dport 3100 \
