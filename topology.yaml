@@ -9,7 +9,7 @@ topology:
       exec:
         - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
-        - "ip addr add 10.10.60.6/28 dev ethmgmt"
+        - "ip addr add 10.10.60.6/28 dev eth-mgmt"
         - "ip addr add 192.168.1.1/24 dev ethwan"
 
         - "ip route add 10.10.0.0/16 via 10.10.50.2"
@@ -20,7 +20,7 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 10.10.50.2/24 dev ethtransit"
-        - "ip addr add 10.10.60.1/28 dev ethmgmt"
+        - "ip addr add 10.10.60.1/28 dev eth-mgmt"
         - "ip addr add 10.10.20.1/29 dev ethclient"
         - "ip addr add 10.10.30.1/29 dev ethsecurity"
         - "ip addr add 10.10.40.1/29 dev ethresource"
@@ -54,7 +54,7 @@ topology:
       exec:
         - "ip addr add 10.10.10.4/29 dev eth10"
         - "ip addr add 10.10.10.5/29 dev eth1"
-        - "ip addr add 10.10.60.3/28 dev ethmgmt"
+        - "ip addr add 10.10.60.3/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.10.2" # Gateway ist der Internal Router
       binds:
@@ -67,9 +67,9 @@ topology:
       exec:
         - >
           sh -c '
-            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/ethmgmt ]; do sleep 0.1; done;
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/eth-mgmt ]; do sleep 0.1; done;
             ip addr add 10.10.10.3/29 dev eth10
-            ip addr add 10.10.60.2/28 dev ethmgmt
+            ip addr add 10.10.60.2/28 dev eth-mgmt
             ip addr add 10.10.10.5/29 dev eth1
             ip route del default
             ip route add default via 10.10.10.2 # Default Gateway ist der Internal Router
@@ -122,7 +122,7 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 10.10.30.2/29 dev eth10"
-        - "ip addr add 10.10.60.5/28 dev ethmgmt"
+        - "ip addr add 10.10.60.5/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
       
@@ -141,7 +141,7 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 10.10.30.4/29 dev eth10"
-        - "ip addr add 10.10.60.7/28 dev ethmgmt"
+        - "ip addr add 10.10.60.7/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
       
@@ -163,7 +163,7 @@ topology:
       image: alpine:latest
       exec:
         - "ip addr add 10.10.40.2/29 dev eth10"
-        - "ip addr add 10.10.60.4/28 dev ethmgmt"
+        - "ip addr add 10.10.60.4/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.40.1"
 
@@ -201,14 +201,14 @@ topology:
     # Edge Router Verbindungen
     - endpoints: ["edge_router:ethtransit", "internal_router:ethtransit"]
     - endpoints: ["edge_router:ethdmz", "dmz_switch:eth1"]
-    - endpoints: ["edge_router:ethmgmt", "mgmt_switch:eth1"]
+    - endpoints: ["edge_router:eth-mgmt", "mgmt_switch:eth1"]
 
     # Internal Router Verbindungen
     - endpoints: ["internal_router:ethdmz", "dmz_switch:eth2"]
     - endpoints: ["internal_router:ethclient", "client_switch:eth1"]
     - endpoints: ["internal_router:ethsecurity", "security_switch:eth1"]
     - endpoints: ["internal_router:ethresource", "resource_switch:eth1"]
-    - endpoints: ["internal_router:ethmgmt", "mgmt_switch:eth7"]
+    - endpoints: ["internal_router:eth-mgmt", "mgmt_switch:eth7"]
 
     # DMZ Switch Verbindungen
     - endpoints: ["dmz_switch:eth4", "web_server:eth10"]
@@ -230,8 +230,8 @@ topology:
     - endpoints: ["resource_switch:eth2", "database:eth10"]
 
     # Management Switch Verbindungen
-    - endpoints: ["mgmt_switch:eth2", "web_server:ethmgmt"]
-    - endpoints: ["mgmt_switch:eth3", "reverse_proxy:ethmgmt"]
-    - endpoints: ["mgmt_switch:eth4", "siem:ethmgmt"]
-    - endpoints: ["mgmt_switch:eth5", "timedns_server:ethmgmt"]
-    - endpoints: ["mgmt_switch:eth6", "database:ethmgmt"]
+    - endpoints: ["mgmt_switch:eth2", "web_server:eth-mgmt"]
+    - endpoints: ["mgmt_switch:eth3", "reverse_proxy:eth-mgmt"]
+    - endpoints: ["mgmt_switch:eth4", "siem:eth-mgmt"]
+    - endpoints: ["mgmt_switch:eth5", "timedns_server:eth-mgmt"]
+    - endpoints: ["mgmt_switch:eth6", "database:eth-mgmt"]
