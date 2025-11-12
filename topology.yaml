@@ -65,26 +65,34 @@ topology:
       kind: linux
       image: sun-waf-image
       exec:
-        - "ip addr add 10.10.10.3/29 dev eth10"
-        - "ip addr add 10.10.60.2/28 dev ethmgmt"
-        - "ip addr add 10.10.10.5/29 dev eth1"
-        - "ip route del default"
-        - "ip route add default via 10.10.10.2" # Default Gateway ist der Internal Router
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/ethmgmt ]; do sleep 0.1; done;
+            ip addr add 10.10.10.3/29 dev eth10
+            ip addr add 10.10.60.2/28 dev ethmgmt
+            ip addr add 10.10.10.5/29 dev eth1
+            ip route del default
+            ip route add default via 10.10.10.2 # Default Gateway ist der Internal Router
+          '
       binds:
-        - waf_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
-        - waf_setup/rules/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
+        - waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
       
     dmz_switch:
       kind: linux
       image: alpine:latest
       exec:
-        - "apk add --no-cache bridge"
-        - "brctl addbr br0"
-        - "brctl addif br0 eth1"
-        - "brctl addif br0 eth2"
-        - "brctl addif br0 eth3"
-        - "brctl addif br0 eth4"
-        - "ip link set dev br0 up"
+       - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ]|| [ ! -d /sys/class/net/eth4 ]; do sleep 0.1; done;
+              apk add --no-cache bridge
+              brctl addbr br0
+              brctl addif br0 eth1
+              brctl addif br0 eth2
+              brctl addif br0 eth3
+              brctl addif br0 eth4
+              ip link set dev br0 up
+          '
+        
 
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
