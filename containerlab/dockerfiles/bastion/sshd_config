@@ -1,0 +1,21 @@
+# NEW: Listen on our non-standard port
+Port 3025
+
+Protocol 2
+
+# --- CRITICAL SECURITY ---
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+
+# --- BASTION HOST BEST PRACTICE ---
+# Only allow the 'admin' user to log in.
+# All other users are rejected.
+AllowUsers admin@10.10.20.2
+
+# Log to stderr
+LogLevel INFO
+UsePAM no
+X11Forwarding no
+AllowTcpForwarding no

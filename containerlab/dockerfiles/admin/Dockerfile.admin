@@ -1,0 +1,11 @@
+FROM alpine:latest
+
+RUN apk add --no-cache openssh-client
+
+RUN addgroup -g 1001 admin && \
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
+
+USER admin
+WORKDIR /home/admin
+
+CMD ["/bin/sh"]
