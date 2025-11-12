@@ -97,11 +97,13 @@ topology:
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
       kind: linux
-      image: alpine:latest
+      image: admin-client-image
       exec:
         - "ip addr add 10.10.20.2/29 dev eth10"
         - "ip route del default"
         - "ip route add default via 10.10.20.1"
+      binds:
+        - "admin/sshkey/sshkey:/root/.ssh/id_rsa:ro"
       
     client_switch:
       kind: linux
