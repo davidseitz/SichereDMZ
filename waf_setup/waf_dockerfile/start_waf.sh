@@ -1,25 +1,23 @@
 #!/bin/bash
 
-# --- Pfad zur Konfig-Datei ---
-SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
-
 # --- 1. Host-Keys generieren (nur falls nötig) ---
+#    Wir prüfen nur noch auf die Keys. Die Konfig ist jetzt im Image.
 if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
-    echo "INFO: Host keys not found. Generating new ones..."
+    
+    echo "INFO: SSH host keys not found (empty /etc/ssh volume?)."
+    echo "INFO: Initializing SSHD..."
+    
+    # 1a. Stelle sicher, dass das Verzeichnis existiert
+    mkdir -p /etc/ssh
+    
+    # 1b. Generiere die Host-Keys
     ssh-keygen -A
 fi
 
-# --- 2. Konfiguration erzwingen (UNCONDITIONALLY) ---
-echo "INFO: Forcing SSH configuration..."
-sed -i 's/^#*Port .*/Port 3025/' $SSHD_CONFIG_FILE
-sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' $SSHD_CONFIG_FILE
-sed -i 's/^#*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' $SSHD_CONFIG_FILE
-sed -i 's/^#*PermitRootLogin .*/PermitRootLogin prohibit-password/' $SSHD_CONFIG_FILE
-
-# --- 3. Starte den SSH-Daemon ---
-echo "INFO: Starte /usr/sbin/sshd..."
+# --- 2. Starte den SSH-Daemon ---
+echo "INFO: Starte /usr/sbin/sshd (config is baked into image)..."
 /usr/sbin/sshd
 
-# --- 4. Rufe das originale Entrypoint-Skript für Nginx auf ---
+# --- 3. Rufe das originale Entrypoint-Skript für Nginx auf ---
 echo "INFO: Übergebe an Nginx-Entrypoint..."
 exec /docker-entrypoint.sh nginx -g 'daemon off;'
