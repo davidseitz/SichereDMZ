@@ -5,6 +5,8 @@ USER root
 # Installiere den SSH-Server und räume danach auf
 RUN apt-get update && \
     apt-get install -y openssh-server && \
+    apt-get install -y openssh-server iproute2 && \
+    apt-get install -y openssh-server iproute2 curl && \
     rm -rf /var/lib/apt/lists/*
 
 RUN ssh-keygen -A
