@@ -11,8 +11,8 @@ $NFT add table inet filter
 
 # --- Chains & policies ---
 $NFT add chain inet filter INPUT   { type filter hook input priority 0\; policy drop\; }
-$NFT add chain inet filter OUTPUT  { type filter hook output priority 0\; policy accept\; }
-$NFT add chain inet filter FORWARD { type filter hook forward priority 0\; policy accept\; }
+$NFT add chain inet filter OUTPUT  { type filter hook output priority 0\; policy drop\; }
+$NFT add chain inet filter FORWARD { type filter hook forward priority 0\; policy drop\; }
 
 # --- 1. Allow established/related traffic ---
 $NFT add rule inet filter FORWARD ct state established,related accept

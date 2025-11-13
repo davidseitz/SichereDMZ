@@ -4,7 +4,7 @@ FROM owasp/modsecurity-crs:nginx
 USER root
 # Installiere den SSH-Server und räume danach auf
 RUN apt-get update && \
-    apt-get install -y openssh-server iproute2 curl && \
+    apt-get install -y openssh-server iproute2 curl nftables && \
     rm -rf /var/lib/apt/lists/*
 
 # --- NEUE SSH-Konfiguration ---
