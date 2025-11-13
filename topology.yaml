@@ -14,6 +14,8 @@ topology:
 
         - "ip route add 10.10.0.0/16 via 10.10.50.2"
         - "sysctl -w net.ipv4.ip_forward=1"
+      binds:
+        - "setup/aide/aide.conf:/etc/aide.conf:ro"
       
     internal_router:
       kind: linux
@@ -28,6 +30,8 @@ topology:
         - "ip route delete default"
         - "ip route add default via 10.10.50.1"
         - "sysctl -w net.ipv4.ip_forward=1"
+      binds:
+        - "setup/aide/aide.conf:/etc/aide.conf:ro"
 
     # --- Externe/Angreifer-Knoten ---
     attacker_1:
@@ -144,6 +148,8 @@ topology:
         - "ip addr add 10.10.60.7/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
+      binds:
+        - "setup/aide/aide.conf:/etc/aide.conf:ro"
       
     security_switch:
       kind: linux
