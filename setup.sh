@@ -4,7 +4,7 @@
 # === Master-Setup-Skript für das SUN DMZ-Projekt (V21) ===
 #
 # Führt alle Schritte aus:
-# 1. Baut das WAF-Docker-Image (intelligent).
+# 1. Baut die Docker-Images.
 # 2. Startet/Stoppt/Testet das Containerlab.
 #
 # ./setup.sh [start|stop|restart|test]
@@ -66,8 +66,11 @@ case "$1" in
         exit 1
         fi
         
-        # Führt das Skript als aktueller Benutzer aus
-        bash $BUILD_SCRIPT_PATH
+        # Führt das Skript als aktueller Benutzer aus bircht ab falls built fehlschlägt
+        if ! bash $BUILD_SCRIPT_PATH; then
+            echo -e "${RED}Build-Skript fehlgeschlagen! Abbruch.${NC}"
+            exit 1
+        fi
 
         deploy_lab
         echo -e "${GREEN}=== Lab gestartet ===${NC}"
@@ -88,8 +91,11 @@ case "$1" in
         exit 1
         fi
         
-        # Führt das Skript als aktueller Benutzer aus
-        bash $BUILD_SCRIPT_PATH
+        # Führt das Skript als aktueller Benutzer aus und bricht ab falls build fehlschlägt
+        if ! bash $BUILD_SCRIPT_PATH; then
+            echo -e "${RED}Build-Skript fehlgeschlagen! Abbruch.${NC}"
+            exit 1
+        fi
 
         deploy_lab
         echo -e "${GREEN}=== Lab neu gestartet ===${NC}"
