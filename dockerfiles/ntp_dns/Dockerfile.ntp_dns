@@ -35,6 +35,13 @@ RUN addgroup -g 1001 admin && \
 RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide" > /etc/sudoers.d/admin-rules && \
     chmod 0440 /etc/sudoers.d/admin-rules
 
+    # The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
 # --- Create the daily 'aide' check script ---
 RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
     echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
@@ -47,6 +54,9 @@ RUN mkdir -p /var/run/sshd
 # --- Setup Entrypoint ---
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
 
 # Expose all service ports
 EXPOSE 3025

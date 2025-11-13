@@ -6,7 +6,7 @@ set -e
 DB_PATH="/var/lib/aide/aide.db.gz"
 if [ ! -f "$DB_PATH" ]; then
     echo "AIDE database not found. Initializing..."
-    /usr/bin/aide --init
+    /usr/bin/aide --init --config="/etc/aide.conf"
     echo "AIDE database initialized. Copying to $DB_PATH..."
     mv /var/lib/aide/aide.db.new.gz "$DB_PATH"
 else

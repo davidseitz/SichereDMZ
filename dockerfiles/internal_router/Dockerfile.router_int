@@ -57,6 +57,17 @@ RUN mkdir -p /var/run/sshd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide/ && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.new && \
+    chmod 640 /var/lib/aide/aide.db.new && \
+    touch /var/lib/aide/aide.db.new.gz && \
+    chmod 640 /var/lib/aide/aide.db.new
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
+
 # --- Expose All Required Ports ---
 EXPOSE 3025/tcp
 EXPOSE 80/tcp

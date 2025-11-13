@@ -50,7 +50,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Create the data directory and give the 'mysql' user ownership
 RUN mkdir -p /var/lib/mysql && \
     chown -R mysql:mysql /var/lib/mysql
-    
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
+
 # Expose ports
 EXPOSE 3025
 EXPOSE 3306

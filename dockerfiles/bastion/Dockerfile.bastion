@@ -26,6 +26,13 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
 
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
 # --- Configure sudo for admin ---
 # Allow 'admin' to run package updates and HIDS checks
 RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide" > /etc/sudoers.d/admin-bastion-rules && \
@@ -42,6 +49,9 @@ RUN mkdir -p /var/run/sshd
 # --- Setup Entrypoint ---
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
 
 # NEW: Expose your non-standard port
 EXPOSE 3025
