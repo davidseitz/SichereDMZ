@@ -1,10 +1,13 @@
 # Start from the Kali base image
 FROM kalilinux/kali-last-release
 
-# Install the SSH client and nothing else
+# Install the WGET client and Openvas else
 RUN apt update && \
     apt -y install kali-linux-headless && \
-    apt -y install wget
+    apt -y install wget && \
+    apt -y install gvm && \
+    gvm-setup 
+
 
 # The default command for Alpine is to run a shell, which is perfect.
 CMD ["/bin/sh"]
