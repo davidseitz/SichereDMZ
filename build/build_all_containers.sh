@@ -22,6 +22,7 @@ BLUE="\033[0;34m"
 NC="\033[0m"
 
 echo -e "${BLUE}=== Starte intelligenten Parallelen-Build-Prozess ===${NC}"
+echo "Dies kann einige Minuten dauern..."
 echo "Maximale parallele Jobs: $MAX_JOBS"
 
 # Erstelle Log-Verzeichnis
