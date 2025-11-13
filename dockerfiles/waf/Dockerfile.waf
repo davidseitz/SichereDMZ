@@ -48,5 +48,7 @@ RUN mkdir -p /run/sshd
 COPY start_waf.sh /start_waf.sh
 RUN chmod +x /start_waf.sh
 
+EXPOSE 3025
+
 # Setze das neue Start-Skript als Standardbefehl
 CMD ["/start_waf.sh"]

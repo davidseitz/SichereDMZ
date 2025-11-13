@@ -22,6 +22,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       openssh-server \
       openssh-client \
       sudo \
+      nftables \
       aide@testing \
       dcron \
       fluent-bit@testing
