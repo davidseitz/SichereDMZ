@@ -8,9 +8,9 @@
 # back to the host.
 
 # --- CONFIGURATION ---
-CONTAINER_NAME="clab-security_lab-attacker_1"
+CONTAINER_NAME="clab-security_lab-attacker_2"
 TARGET_SUBNET="10.10.10.0/25"
-REPORT_NAME="attacks/reports/dmz_vuln_scan_outside_$(date +%Y-%m-%d_%H-%M).txt"
+REPORT_NAME="attacks/reports/dmz_vuln_scan_inside_$(date +%Y-%m-%d_%H-%M).txt"
 # This is the path *inside the container*
 CONTAINER_REPORT_PATH="/tmp/$REPORT_NAME"
 # ---
@@ -40,6 +40,7 @@ echo "[Step 2/3] Running Nmap vulnerability scan. This will take several minutes
 # --script=vulners: Run the vulners NSE script to check for known CVEs
 # -oN: Output the scan in Normal format to the specified file
 docker exec -i "$CONTAINER_NAME" mkdir -p /tmp/attacks/reports
+docker exec -i "$CONTAINER_NAME" touch "$CONTAINER_REPORT_PATH"
 docker exec -i "$CONTAINER_NAME" nmap -sV --script=vulners -oN "$CONTAINER_REPORT_PATH" "$TARGET_SUBNET"
 
 if [ $? -ne 0 ]; then
