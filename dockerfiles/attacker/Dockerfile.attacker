@@ -1,9 +1,10 @@
 # Start from the Kali base image
 FROM kalilinux/kali-rolling
 
-# Install the WGET client and Openvas else
+# Install utils
 RUN apt update && \
     apt -y install kali-linux-headless && \
+    apt install inetutils-ping -y && \
     apt -y install wget 
 
 

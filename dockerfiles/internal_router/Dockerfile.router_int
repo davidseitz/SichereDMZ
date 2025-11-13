@@ -31,6 +31,7 @@ RUN apt-get update && \
       suricata \
       fluent-bit \
     && \
+    apt install iproute2 -y && \
     # Clean up
     apt-get autoremove -y && \
     apt-get clean && \

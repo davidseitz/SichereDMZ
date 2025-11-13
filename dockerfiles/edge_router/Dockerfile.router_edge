@@ -31,6 +31,7 @@ RUN apt-get update && \
       suricata \
       fluent-bit \
     && \
+    apt install iproute2 -y && \
     # Clean up
     apt-get autoremove -y && \
     apt-get clean && \
@@ -67,7 +68,7 @@ RUN mkdir -p /var/lib/aide/ && \
     chmod 640 /var/lib/aide/aide.db.new && \
     touch /var/lib/aide/aide.db.new.gz && \
     chmod 640 /var/lib/aide/aide.db.new
-    
+
 # --- Expose All Required Ports ---
 EXPOSE 3025/tcp
 EXPOSE 80/tcp
