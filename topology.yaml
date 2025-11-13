@@ -5,7 +5,7 @@ topology:
     # --- Router/Firewall-Knoten ---
     edge_router:
       kind: linux
-      image: alpine:latest
+      image: router_edge-image
       exec:
         - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
@@ -17,7 +17,7 @@ topology:
       
     internal_router:
       kind: linux
-      image: alpine:latest
+      image: router_int-image
       exec:
         - "ip addr add 10.10.50.2/24 dev ethtransit"
         - "ip addr add 10.10.60.1/28 dev eth-mgmt"
@@ -63,7 +63,7 @@ topology:
       
     reverse_proxy:
       kind: linux
-      image: sun-waf-image
+      image: waf-image
       exec:
         - >
           sh -c '
@@ -97,7 +97,7 @@ topology:
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
       kind: linux
-      image: admin-client-image
+      image: admin-image
       exec:
         - "ip addr add 10.10.20.2/29 dev eth10"
         - "ip route del default"
@@ -128,7 +128,7 @@ topology:
       
     bastion:
       kind: linux
-      image: admin-client-image # Temporarily use admin image scince it got an ssh client
+      image: bastion-image
       exec:
         - "ip addr add 10.10.30.3/29 dev eth10"
         - "ip route del default"
@@ -138,7 +138,7 @@ topology:
       
     timedns_server:
       kind: linux
-      image: alpine:latest
+      image: ntp_dns-image
       exec:
         - "ip addr add 10.10.30.4/29 dev eth10"
         - "ip addr add 10.10.60.7/28 dev eth-mgmt"

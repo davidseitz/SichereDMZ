@@ -1,12 +1,10 @@
 # Start from the Kali base image
-FROM kalilinux/kali-last-release
+FROM kalilinux/kali-rolling
 
 # Install the WGET client and Openvas else
 RUN apt update && \
     apt -y install kali-linux-headless && \
-    apt -y install wget && \
-    apt -y install gvm && \
-    gvm-setup 
+    apt -y install wget 
 
 
 # The default command for Alpine is to run a shell, which is perfect.

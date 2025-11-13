@@ -23,11 +23,22 @@ RUN mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh
 
 # 2. Kopiere den Key
-COPY ../../sshkey/sshkey.pub /root/.ssh/authorized_keys
+# Erkläre, dass wir ein Build-Argument namens SSH_KEY_PUB erwarten
+ARG SSH_KEY_PUB
+
+# Führe diesen Block nur aus, wenn das Argument auch übergeben wurde
+# (damit der Build nicht fehlschlägt, wenn die Datei fehlt)
+RUN if [ -n "$SSH_KEY_PUB" ]; then \
+        mkdir -p /root/.ssh && \
+        echo "$SSH_KEY_PUB" > /root/.ssh/authorized_keys && \
+        chmod 600 /root/.ssh/authorized_keys && \
+        chown root:root /root/.ssh/authorized_keys; \
+    else \
+        echo "Kein SSH_KEY_PUB-Argument übergeben, überspringe Key-Erstellung."; \
+    fi
 
 # 3. Setze die strikten SSH-Rechte
-RUN chmod 600 /root/.ssh/authorized_keys && \
-    chown root:root /root/.ssh/authorized_keys
+
 
 # Erstelle die Verzeichnisse, die sshd zum Starten braucht
 RUN mkdir -p /var/run/sshd

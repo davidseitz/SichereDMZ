@@ -46,6 +46,8 @@ FAILURES=0
 
 # Wir definieren die Build-Logik als Funktion
 # Dies macht die Schleife unten viel sauberer
+# Wir definieren die Build-Logik als Funktion
+# Dies macht die Schleife unten viel sauberer
 run_build_job() {
     DOCKERFILE_PATH=$1
     
@@ -88,8 +90,16 @@ run_build_job() {
     echo "Starte Image-Build aus '$DOCKERFILE_DIR'..."
     docker image rm $IMAGE_NAME > /dev/null 2>&1 || true
     
+    # Pfad zum Key, relativ zum Projekt-Stammverzeichnis
+    # (Das Skript läuft aus 'dockerfiles', also eine Ebene hoch)
+    KEY_FILE_PATH="../sshkey/sshkey.pub"
+
     # Der eigentliche Build-Befehl
-    docker build -t $IMAGE_NAME -f $DOCKERFILE_PATH $DOCKERFILE_DIR 
+    docker build \
+        --build-arg="SSH_KEY_PUB=$(cat "$KEY_FILE_PATH")" \
+        -t "$IMAGE_NAME" \
+        -f "$DOCKERFILE_PATH" \
+        "$DOCKERFILE_DIR"
 
     echo "Image '$IMAGE_NAME' erfolgreich gebaut."
 }
