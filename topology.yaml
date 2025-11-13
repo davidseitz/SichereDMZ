@@ -7,20 +7,36 @@ topology:
       kind: linux
       image: router_edge-image
       exec:
+        - "apk update"
+        - "apk add nftables"
+
         - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
         - "ip addr add 10.10.60.6/28 dev eth-mgmt"
         - "ip addr add 192.168.1.1/24 dev ethwan"
+        - "ip link set ethwan up"
 
+        - "nft add table ip nat"
+        - "nft 'add chain ip nat postrouting { type nat hook postrouting priority 100; }'"
+        - "nft add rule ip nat postrouting oifname 'eth0' masquerade"
+
+        - "ip route delete default"
+        - "ip route add default via 192.168.1.1 dev ethwan"
         - "ip route add 10.10.0.0/16 via 10.10.50.2"
         - "sysctl -w net.ipv4.ip_forward=1"
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
       binds:
-        - "setup/aide/aide.conf:/etc/aide.conf:ro"
+        - fw_config/edge/edge_configure_fw.sh:/fw_config/configure_fw.sh
+        - setup/aide/aide.conf:/etc/aide.conf:ro
       
     internal_router:
       kind: linux
       image: router_int-image
       exec:
+        - "apk update"
+        - "apk add nftables"
+
         - "ip addr add 10.10.50.2/24 dev ethtransit"
         - "ip addr add 10.10.60.1/28 dev eth-mgmt"
         - "ip addr add 10.10.20.1/29 dev ethclient"
@@ -30,8 +46,12 @@ topology:
         - "ip route delete default"
         - "ip route add default via 10.10.50.1"
         - "sysctl -w net.ipv4.ip_forward=1"
+
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
       binds:
-        - "setup/aide/aide.conf:/etc/aide.conf:ro"
+        - fw_config/internal/internal_configure_fw.sh:/fw_config/configure_fw.sh
+        - setup/aide/aide.conf:/etc/aide.conf:ro
 
     # --- Externe/Angreifer-Knoten ---
     attacker_1:
@@ -56,14 +76,19 @@ topology:
       kind: linux
       image: nginx:alpine
       exec:
+        - "apk update"
+        - "apk add nftables"
         - "ip addr add 10.10.10.4/29 dev eth10"
         - "ip addr add 10.10.10.5/29 dev eth1"
         - "ip addr add 10.10.60.3/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.10.2" # Gateway ist der Internal Router
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
       binds:
         - setup/webserver_setup/html:/var/www/html:ro
         - setup/webserver_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
       
     reverse_proxy:
       kind: linux
@@ -77,9 +102,13 @@ topology:
             ip addr add 10.10.10.5/29 dev eth1
             ip route del default
             ip route add default via 10.10.10.2 # Default Gateway ist der Internal Router
+            ip route add 192.168.1.0/24 via 10.10.10.1 # Routing externe Verbindungen über den Edge Router
           '
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
       binds:
         - setup/waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
+        - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
       
     dmz_switch:
       kind: linux
@@ -96,7 +125,6 @@ topology:
               brctl addif br0 eth4
               ip link set dev br0 up
           '
-        
 
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
@@ -125,10 +153,16 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
+        - "apk update"
+        - "apk add nftables"
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
+      binds:
+        - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
       
     bastion:
       kind: linux
@@ -145,12 +179,17 @@ topology:
       kind: linux
       image: ntp_dns-image
       exec:
+        - "apk update"
+        - "apk add nftables"
         - "ip addr add 10.10.30.4/29 dev eth10"
         - "ip addr add 10.10.60.7/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.30.1"
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
       binds:
-        - "setup/aide/aide.conf:/etc/aide.conf:ro"
+        - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
+        - setup/aide/aide.conf:/etc/aide.conf:ro
       
     security_switch:
       kind: linux
@@ -169,10 +208,16 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
+        - "apk update"
+        - "apk add nftables"
         - "ip addr add 10.10.40.2/29 dev eth10"
         - "ip addr add 10.10.60.4/28 dev eth-mgmt"
         - "ip route del default"
         - "ip route add default via 10.10.40.1"
+        - "chmod +x /fw_config/configure_fw.sh"
+        - "/fw_config/configure_fw.sh"
+      binds:
+        - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
 
       
     resource_switch:
@@ -190,6 +235,7 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
+        - "apk update"
         - "apk add --no-cache bridge"
         - "brctl addbr br0"
         - "brctl addif br0 eth1"
@@ -200,7 +246,6 @@ topology:
         - "brctl addif br0 eth6"
         - "brctl addif br0 eth7"
         - "ip link set dev br0 up"
-
   links:
     # Internet Verbindung
     - endpoints: ["attacker_1:eth1", "edge_router:ethwan"]
