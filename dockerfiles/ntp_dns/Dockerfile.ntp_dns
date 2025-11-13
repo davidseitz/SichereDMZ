@@ -1,0 +1,69 @@
+# Start from a specific, stable Alpine version
+FROM alpine:3.22 AS final
+
+USER root
+
+# 1. Enable community and testing repos
+# 2. Update package lists
+# 3. Install all required packages:
+#    - coredns: The DNS server
+#    - chrony: The Time server
+#    - openssh-server/client: For management
+#    - sudo: For privileged admin tasks
+#    - aide: For HIDS
+#    - dcron: For periodic 'aide' checks
+#    - fluent-bit: Installing now, will run later
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories && \
+    echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache \
+      coredns \
+      chrony \
+      openssh-server \
+      openssh-client \
+      sudo \
+      aide@testing \
+      dcron \
+      fluent-bit@testing
+
+# --- Add a dedicated admin user ---
+RUN addgroup -g 1001 admin && \
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
+
+# --- Configure sudo for admin ---
+# Allow 'admin' to run updates and HIDS checks
+RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide" > /etc/sudoers.d/admin-rules && \
+    chmod 0440 /etc/sudoers.d/admin-rules
+
+    # The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
+# --- Create the daily 'aide' check script ---
+RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
+    echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
+    chmod +x /etc/periodic/daily/aide-check
+
+# --- Harden SSH ---
+COPY sshd_config /etc/ssh/sshd_config
+RUN mkdir -p /var/run/sshd
+
+# --- Setup Entrypoint ---
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
+
+# Expose all service ports
+EXPOSE 3025
+EXPOSE 53/tcp
+EXPOSE 53/udp
+EXPOSE 123/udp
+
+# --- Run ---
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/bin/sh", "-c", "trap : TERM INT; sleep infinity & wait"]

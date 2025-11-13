@@ -1,0 +1,12 @@
+# Start from the Kali base image
+FROM kalilinux/kali-rolling
+
+# Install utils
+RUN apt update && \
+    apt -y install kali-linux-headless && \
+    apt install inetutils-ping -y && \
+    apt -y install wget 
+
+
+# The default command for Alpine is to run a shell, which is perfect.
+CMD ["/bin/sh"]

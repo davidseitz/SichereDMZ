@@ -1,0 +1,85 @@
+# Start from a stable, slim Debian base
+FROM debian:12-slim AS final
+
+# Set non-interactive mode for apt to prevent it from hanging
+ENV DEBIAN_FRONTEND=noninteractive
+
+# --- 1. Install Base Dependencies ---
+# Includes 'ca-certificates' to fix the SSL/TLS error
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      gnupg \
+      sudo \
+      openssh-server \
+      nftables \
+      aide \
+      cron \
+      suricata
+
+# --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
+RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg' && \
+    codename=$(grep -oP '(?<=VERSION_CODENAME=).*' /etc/os-release 2>/dev/null || lsb_release -cs 2>/dev/null) && \
+    echo "deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/debian/$codename $codename main" | tee /etc/apt/sources.list.d/fluent-bit.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends fluent-bit
+
+# --- 3. Install 3rd-Party Packages ---
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      suricata \
+      fluent-bit \
+    && \
+    apt install iproute2 -y && \
+    # Clean up
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Add a dedicated admin user ---
+RUN addgroup --gid 1001 admin && \
+    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin
+
+# --- Configure sudo for admin ---
+RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade, /usr/bin/aide, /usr/sbin/nft, /usr/bin/suricata" > /etc/sudoers.d/admin-router-rules && \
+    chmod 0440 /etc/sudoers.d/admin-router-rules
+
+# --- Create the daily 'aide' check script ---
+RUN echo '#!/bin/sh' > /etc/cron.daily/aide-check && \
+    echo '/usr/bin/aide --check' >> /etc/cron.daily/aide-check && \
+    chmod +x /etc/cron.daily/aide-check
+
+# --- Harden SSH ---
+COPY sshd_config /etc/ssh/sshd_config
+RUN mkdir -p /var/run/sshd
+
+# --- Setup Entrypoint ---
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Generate SSH host keys if not present
+RUN ssh-keygen -A
+
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide/ && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.new && \
+    chmod 640 /var/lib/aide/aide.db.new && \
+    touch /var/lib/aide/aide.db.new.gz && \
+    chmod 640 /var/lib/aide/aide.db.new
+
+# --- Expose All Required Ports ---
+EXPOSE 3025/tcp
+EXPOSE 80/tcp
+EXPOSE 80/udp
+EXPOSE 443/tcp
+EXPOSE 443/udp
+EXPOSE 53/udp
+EXPOSE 123/udp
+EXPOSE 3100/tcp
+EXPOSE 3100/udp
+
+# --- Run ---
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/bin/sh", "-c", "trap : TERM INT; sleep infinity & wait"]
