@@ -3,8 +3,9 @@ FROM kalilinux/kali-rolling
 
 # Install utils
 RUN apt update && \
-    apt -y install kali-linux-headless && \
+    # apt -y install kali-linux-headless && \
     apt install inetutils-ping -y && \
+    apt install nmap -y && \
     apt -y install wget 
 
 
