@@ -1,17 +1,9 @@
 #!/bin/bash
 
 # =================================================================
-# === Intelligenter Docker-Build-Prozess (Alles-in-Einem) ===
+# === Intelligenter Docker-Build-Prozess (ALLES-IN-EINEM, PARALLEL) ===
 #
-# Sucht dynamisch nach Dockerfiles und baut sie nur,
-# wenn sie neuer als das existierende Image sind.
-#
-# ERWARTETE STRUKTUR:
-# dockerfiles/
-# └── attacker/
-#     └── Dockerfile.attacker
-# └── web/
-#     └── Dockerfile.web
+# Sucht dynamisch nach Dockerfiles und baut sie parallel.
 #
 # NAMENS-KONVENTION:
 # Dockerfile.<name> -> wird zu Image-Tag <name>-image
@@ -19,6 +11,9 @@
 
 # --- Konfiguration ---
 BASE_SEARCH_DIR="dockerfiles"
+# Anzahl der parallelen Builds (Standard: Anzahl der CPU-Kerne)
+MAX_JOBS=$(nproc) 
+LOG_DIR="build/build_logs"
 
 # --- Farben ---
 GREEN="\033[0;32m"
@@ -26,80 +21,130 @@ RED="\033[0;31m"
 BLUE="\033[0;34m"
 NC="\033[0m"
 
-echo -e "${BLUE}=== Starte intelligenten Docker-Build-Prozess ===${NC}"
+echo -e "${BLUE}=== Starte intelligenten Parallelen-Build-Prozess ===${NC}"
+echo "Maximale parallele Jobs: $MAX_JOBS"
 
+# Erstelle Log-Verzeichnis
+mkdir -p "$LOG_DIR"
+echo "Log-Dateien werden in '$LOG_DIR' gespeichert."
+
+# --- WICHTIG: Wechsle in das Projekt-Hauptverzeichnis ---
+# (Dorthin, wo das 'dockerfiles'-Verzeichnis liegt)
+# Dies muss VOR der 'find'-Schleife passieren!
+cd "$(dirname "$0")/.." || exit 1
+echo "Wechsle in das Projekt-Hauptverzeichnis: $PWD"
+
+# Wechsle in das Such-Verzeichnis
 cd $BASE_SEARCH_DIR || { echo -e "${RED}Fehler: Konnte nicht ins Basisverzeichnis wechseln.${NC}"; exit 1; }
 echo "Suche nach Dockerfiles in '$PWD'..."
 
 
-# Stoppt bei dem ersten Fehler
-set -e
-BUILD_COUNT=0
-SKIP_COUNT=0
+# NICHT 'set -e' hier verwenden, da wir Jobs im Hintergrund verwalten.
+JOB_COUNT=0
+FAILURES=0
 
-# Finde alle Dockerfiles, die der Konvention entsprechen (z.B. Dockerfile.attacker)
-# -print0 und read -d '' sorgen dafür, dass auch Namen mit Leerzeichen funktionieren
-#
-# KORREKTUR: Prozesssubstitution (< <(...) anstelle von Pipe)
-#
-while IFS= read -r -d '' DOCKERFILE_PATH; do
+# Wir definieren die Build-Logik als Funktion
+# Dies macht die Schleife unten viel sauberer
+run_build_job() {
+    DOCKERFILE_PATH=$1
+    
+    # set -e *innerhalb* der Sub-Shell. 
+    # Wenn hier etwas fehlschlägt, stoppt nur dieser Job, nicht alle.
+    set -e 
 
     # --- 1. Variablen dynamisch ableiten ---
     DOCKERFILE_DIR=$(dirname "$DOCKERFILE_PATH")
     DOCKERFILE_BASENAME=$(basename "$DOCKERFILE_PATH")
-
-    # Extrahiere den Namen aus "Dockerfile.attacker" -> "attacker"
-    # Shell-Parameter-Expansion: Entfernt "Dockerfile." vom Anfang
     SERVICE_NAME="${DOCKERFILE_BASENAME#Dockerfile.}" 
-    
-    # Baue den Image-Namen "attacker" -> "attacker-image"
     IMAGE_NAME="${SERVICE_NAME}-image"
 
-    echo -e "\n--- Verarbeite Service: ${BLUE}$SERVICE_NAME${NC} ---"
+    echo "--- Verarbeite Service: $SERVICE_NAME ---"
     echo "  Dockerfile: $DOCKERFILE_PATH"
     echo "  Kontext-Dir: $DOCKERFILE_DIR"
     echo "  Image-Name: $IMAGE_NAME"
 
-   # --- 2. Build-Logik (aus deinem Skript kopiert) ---
-    echo -e "${BLUE}Prüfe Status des Images ('$IMAGE_NAME')...${NC}"
+    # --- 2. Build-Logik ---
+    echo "Prüfe Status des Images ('$IMAGE_NAME')..."
     
-    # KORREKTUR: Hänge "|| true" an, um set -e zu befriedigen, 
-    # falls das Image nicht existiert.
+    # || true verhindert, dass set -e auslöst, wenn das Image nicht existiert
     IMAGE_TIMESTAMP_STR=$(docker image inspect -f '{{.Created}}' $IMAGE_NAME 2>/dev/null || true)
 
     if [ -z "$IMAGE_TIMESTAMP_STR" ]; then
         echo "Image nicht gefunden. Build wird gestartet."
     else
-        # date -r (für Linux) holt den Timestamp der Datei
         IMAGE_TIMESTAMP=$(date -d "$IMAGE_TIMESTAMP_STR" +%s)
         DOCKERFILE_TIMESTAMP=$(date -r "$DOCKERFILE_PATH" +%s)
         
         if [ $DOCKERFILE_TIMESTAMP -gt $IMAGE_TIMESTAMP ]; then
             echo "Dockerfile ist neuer als das existierende Image. Neubau wird gestartet."
         else
-            echo -e "${GREEN}Image ist bereits vorhanden und aktuell. Build wird übersprungen.${NC}"
-            SKIP_COUNT=$((SKIP_COUNT + 1))
-            continue # Springe zum nächsten Dockerfile in der 'find'-Schleife
+            echo "Image ist bereits vorhanden und aktuell. Build wird übersprungen."
+            exit 0 # Job erfolgreich beendet (übersprungen)
         fi
     fi
 
     # --- 3. Build-Ausführung ---
-    echo -e "${BLUE}Starte Image-Build aus '$DOCKERFILE_DIR'...${NC}"
+    echo "Starte Image-Build aus '$DOCKERFILE_DIR'..."
     docker image rm $IMAGE_NAME > /dev/null 2>&1 || true
     
-    # Benötigt jetzt KEIN "< /dev/null" mehr
+    # Der eigentliche Build-Befehl
     docker build -t $IMAGE_NAME -f $DOCKERFILE_PATH $DOCKERFILE_DIR 
 
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Fehler beim Bauen des Images '$IMAGE_NAME'. Abbruch.${NC}"
-        exit 1 # Der 'set -e' Befehl oben sollte dies bereits tun, aber zur Sicherheit
+    echo "Image '$IMAGE_NAME' erfolgreich gebaut."
+}
+
+
+# --- HAUPTSCHLEIFE: Job-Verwaltung ---
+
+# Prozesssubstitution, um 'stdin'-Konflikte zu vermeiden
+while IFS= read -r -d '' DOCKERFILE_PATH; do
+
+    # --- Job-Pool-Verwaltung ---
+    # Warte, bis die Anzahl der laufenden Jobs unter dem Maximum liegt
+    while (( $(jobs -p | wc -l) >= MAX_JOBS )); do
+        sleep 1
+    done
+
+    # --- Service-Namen für das Log holen ---
+    SERVICE_NAME=$(basename "$DOCKERFILE_PATH")
+    SERVICE_NAME="${SERVICE_NAME#Dockerfile.}"
+    LOG_FILE="../$LOG_DIR/${SERVICE_NAME}.log" # Pfad relativ zum Hauptverzeichnis
+
+    echo -e "${BLUE}Starte Build-Job für: $SERVICE_NAME${NC} (Log: $LOG_FILE)"
+
+    # --- Starte den Job im Hintergrund ---
+    # Wir rufen die Funktion 'run_build_job' in einer Sub-Shell auf
+    # und leiten STDOUT und STDERR in die Log-Datei um.
+    (
+        run_build_job "$DOCKERFILE_PATH"
+    ) > "$LOG_FILE" 2>&1 &
+
+    JOB_COUNT=$((JOB_COUNT + 1))
+
+done < <(find -type f -name "Dockerfile.*" -print0)
+
+# --- Aufräumen ---
+echo -e "\n${BLUE}Alle Build-Jobs gestartet ($JOB_COUNT). Warte auf Fertigstellung...${NC}"
+
+# Warte auf *alle* Hintergrund-Jobs, die in dieser Shell gestartet wurden
+wait
+
+echo -e "${GREEN}=== Alle Docker-Builds abgeschlossen ===${NC}"
+
+# --- Fehler-Zusammenfassung ---
+echo "Prüfe Logs auf Fehler..."
+for logfile in ../$LOG_DIR/*.log; do
+    # 'tail -n 1' holt die letzte Zeile, 'grep -q' prüft leise
+    if ! tail -n 1 "$logfile" | grep -q -E "erfolgreich gebaut|übersprungen"; then
+        SERVICE_NAME=$(basename "$logfile" .log)
+        echo -e "${RED}FEHLER im Build für: $SERVICE_NAME${NC} (Siehe $logfile)"
+        FAILURES=$((FAILURES + 1))
     fi
-    
-    echo -e "${GREEN}Image '$IMAGE_NAME' erfolgreich gebaut.${NC}"
-    BUILD_COUNT=$((BUILD_COUNT + 1))
+done
 
-done < <(find -type f -name "Dockerfile.*" -print0) # <-- KORREKTUR: Pipe von 'find' wird hier angehängt
-
-echo -e "\n${GREEN}=== Alle Docker-Builds abgeschlossen ===${NC}"
-echo -e "  ${GREEN}Gebaut/Aktualisiert:${NC} $BUILD_COUNT"
-echo -e "  ${GREEN}Übersprungen (aktuell):${NC} $SKIP_COUNT"
+if [ $FAILURES -eq 0 ]; then
+    echo -e "${GREEN}Alle Builds erfolgreich (oder übersprungen).${NC}"
+else
+    echo -e "${RED}$FAILURES Build(s) sind fehlgeschlagen.${NC}"
+    exit 1
+fi
