@@ -2,11 +2,13 @@
 FROM kalilinux/kali-rolling
 
 # Install utils
+#nmap, ping, iproute2, wafw00f, wget
 RUN apt update && \
     # apt -y install kali-linux-headless && \
     apt install inetutils-ping -y && \
     apt install nmap -y && \
     apt install iproute2 -y && \
+    apt install wafw00f -y && \ 
     apt -y install wget 
 
 
