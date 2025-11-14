@@ -4,14 +4,10 @@ set -e
 
 # --- 1. AIDE (HIDS) Initialization ---
 DB_PATH="/var/lib/aide/aide.db.gz"
-if [ ! -f "$DB_PATH" ]; then
-    echo "AIDE database not found. Initializing..."
-    /usr/bin/aide --init --config="/etc/aide.conf"
-    echo "AIDE database initialized. Copying to $DB_PATH..."
-    mv /var/lib/aide/aide.db.new.gz "$DB_PATH"
-else
-    echo "AIDE database already exists."
-fi
+echo "AIDE database not found. Initializing..."
+/usr/bin/aide --init --config="/etc/aide.conf"
+echo "AIDE database initialized. Copying to $DB_PATH..."
+mv /var/lib/aide/aide.db.new "$DB_PATH"
 
 # --- 2. Start Services ---
 echo "Starting sshd service on port 3025..."

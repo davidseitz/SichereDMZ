@@ -3,15 +3,14 @@
 set -e
 
 # --- 1. AIDE (HIDS) Initialization ---
-DB_PATH="/var/lib/aide/aide.db.gz"
-if [ ! -f "$DB_PATH" ]; then
-    echo "AIDE database not found. Initializing..."
-    /usr/bin/aide --init
-    echo "AIDE database initialized. Copying to $DB_PATH..."
-    mv /var/lib/aide/aide.db.new.gz "$DB_PATH"
-else
-    echo "AIDE database already exists."
-fi
+# Check if the AIDE database exists. If not, create it.
+# This is the "first-run" task you correctly identified.
+echo "AIDE database. Initializing..."
+echo "This may take a minute..."
+/usr/bin/aide --init
+echo "AIDE database initialized. Copyingm..."
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
+
 
 # --- 2. Start Services ---
 echo "Starting sshd service on port 3025..."

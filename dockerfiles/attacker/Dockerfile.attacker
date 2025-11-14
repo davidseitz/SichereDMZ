@@ -9,6 +9,7 @@ RUN apt update && \
     apt install nmap -y && \
     apt install iproute2 -y && \
     apt install wafw00f -y && \ 
+    apt install netcat-traditional -y && \
     apt -y install wget 
 
 
