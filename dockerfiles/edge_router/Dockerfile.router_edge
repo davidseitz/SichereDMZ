@@ -16,6 +16,7 @@ RUN apt-get update && \
       nftables \
       aide \
       cron \
+      inetutils-ping \
       suricata
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
