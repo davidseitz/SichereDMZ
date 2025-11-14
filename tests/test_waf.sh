@@ -114,5 +114,30 @@ else
     TEST_FAILED=1
 fi
 
+# --- Test 6: HTTP zu HTTPS Umleitungs-Test ---
+echo -n "Test 6: HTTP-Anfragen werden auf HTTPS umgeleitet ... "
+
+# Führe wget auf HTTP aus, erwarte 301
+# -S --spider: Zeige Server-Antwort-Header, lade nichts herunter
+# 2>&1: Leite stderr (wo wget's Header-Infos sind) auf stdout um
+HTTP_URL="http://${WAF_IP}/"
+EXPECTED_LOCATION="https://${WAF_IP}/"
+
+WGET_OUTPUT=$(docker exec $ATTACKER_CONTAINER wget -S --spider --max-redirect=0 "$HTTP_URL" 2>&1)
+# 1. Prüfen, ob ein 301 Redirect gesendet wurde
+# (Wir benutzen 'grep -c' um die Anzahl der Treffer zu zählen)
+CHECK_301=$(echo "$WGET_OUTPUT" | grep -c "HTTP/1.1 301 Moved Permanently")
+
+# 2. Prüfen, ob das Umleitungs-Ziel exakt HTTPS ist
+CHECK_LOCATION=$(echo "$WGET_OUTPUT" | grep -c "Location: ${EXPECTED_LOCATION}")
+
+if [ "$CHECK_301" -eq 1 ] && [ "$CHECK_LOCATION" -eq 2 ]; then # Check_Location gibt 2 zurück wegen doppeltem Header-Ausdruck
+    echo -e "${GREEN}ERFOLG${NC}: HTTP leitet korrekt auf HTTPS (301) um."
+else
+    echo -e "${RED}FEHLER${NC}: HTTP-Umleitung ist fehlerhaft (301 oder Location-Header stimmt nicht)."
+    echo "DEBUG-Output: $WGET_OUTPUT" # Zeige den Output im Fehlerfall
+    TEST_FAILED=1
+fi
+
 echo "=== WAF/Proxy-Tests abgeschlossen ==="
 exit $TEST_FAILED
