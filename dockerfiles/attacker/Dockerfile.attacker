@@ -1,5 +1,8 @@
 # Start from the Kali base image
-FROM kalilinux/kali-rolling
+#FROM kalilinux/kali-rolling
+
+# Use a ubuntu base image for a smaller footprint
+FROM ubuntu:latest
 
 # Install utils
 #nmap, ping, iproute2, wafw00f, wget
