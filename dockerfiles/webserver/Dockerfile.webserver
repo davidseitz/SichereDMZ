@@ -1,0 +1,25 @@
+FROM python:3.11-alpine
+
+# Install system dependencies for wheels
+RUN apk update
+RUN apk add --no-cache gcc musl-dev libgcc libstdc++ nftables
+
+WORKDIR /app
+
+# Install dependencies and copy app as before
+COPY webserver_setup/requirements.txt /app/requirements.txt
+#OPY webserver_setup/start_webserver.sh /app/start_webserver.sh
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+COPY webserver_setup/app/ /app/
+
+# Expose HTTP
+EXPOSE 80
+
+#COPY start_webserver.sh /app/start_webserver.sh
+#COPY webserver_setup/start_webserver.sh /app/start_webserver.sh
+#RUN chmod +x /app/start_webserver.sh
+
+CMD ["gunicorn", "-b", "0.0.0.0:80", "app:app", "--workers", "2", "--timeout", "120"]
+
+

@@ -20,6 +20,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       mariadb-client \
       openssh-server \
       sudo \
+      su-exec \
       nftables \
       aide@testing \
       dcron \
@@ -82,6 +83,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # --- MariaDB Configuration ---
 # Create the data directory and give the 'mysql' user ownership
+# Create the runtime directory for MariaDB
+RUN mkdir -p /run/mysqld && chown -R mysql:mysql /run/mysqld
 RUN mkdir -p /var/lib/mysql && \
     chown -R mysql:mysql /var/lib/mysql
 

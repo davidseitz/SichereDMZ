@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; }
+    .container { max-width: 800px; margin: 50px auto; padding: 30px; background: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1);}
+    h2 { color: #007bff; margin-bottom: 20px;}
+    form input, form textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; }
+    form button { padding: 12px 25px; background: #007bff; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.3s; }
+    form button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table th, table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    table th { background: #007bff; color: #fff; }
+    .flash { background: #ffe0e0; color: #b00000; padding: 10px; border-radius: 6px; margin-bottom: 15px; }
+    a.logout { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; }
+    a.logout:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Dashboard - {{ username }}</h2>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+        <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <textarea name="content" placeholder="Add a new entry..." rows="3" required></textarea>
+        <button type="submit">Add Entry</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Content</th>
+            <th>Created At</th>
+        </tr>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.username }}</td>
+            <td>{{ entry.content }}</td>
+            <td>{{ entry.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>

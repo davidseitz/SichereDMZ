@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Welcome - SUN DMZ Webserver</title>
+<style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; }
+    .container { max-width: 600px; margin: 100px auto; text-align: center; padding: 40px; background: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);}
+    h1 { color: #007bff; }
+    a { display: inline-block; margin: 15px; padding: 12px 25px; background: #007bff; color: #fff; text-decoration: none; border-radius: 6px; transition: background 0.3s;}
+    a:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to SUN DMZ Webserver</h1>
+    <p>Access your secure web application.</p>
+    <a href="{{ url_for('auth_choice') }}">Sign In / Sign Up</a>
+</div>
+</body>
+</html>

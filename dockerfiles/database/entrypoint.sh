@@ -21,6 +21,9 @@ if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
     ssh-keygen -A
 fi
 
+# Ensure data directory ownership
+chown -R mysql:mysql /var/lib/mysql
+
 # --- 4. Start services ---
 echo "Starting sshd..."
 /usr/sbin/sshd
@@ -30,6 +33,17 @@ echo "Starting crond..."
 
 echo "Starting MariaDB..."
 su-exec mysql /usr/bin/mysqld_safe --datadir=/var/lib/mysql &
+
+# Wait a few seconds to make sure it starts
+sleep 5
+
+# Initialize database & user if not exists
+mysql -u root <<EOF
+CREATE DATABASE IF NOT EXISTS webapp;
+CREATE USER IF NOT EXISTS 'webuser'@'%' IDENTIFIED BY 'VerySecureP@ssword123!';
+GRANT ALL PRIVILEGES ON webapp.* TO 'webuser'@'%';
+FLUSH PRIVILEGES;
+EOF
 
 # --- 5. Keep container alive (important!) ---
 echo "Database server is running. Keeping container alive."
