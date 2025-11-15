@@ -30,18 +30,51 @@ RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
 
 # --- Configure sudo for admin ---
-# Allow 'admin' to run updates, HIDS checks, and manage mariadb
-RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
+# Allow 'admin' to run updates, HIDS checks, and manage mariadb          | /usr/bin/aide,
+RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
     chmod 0440 /etc/sudoers.d/admin-db-rules
 
-# --- Create the daily 'aide' check script ---
-RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
-    echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
-    chmod +x /etc/periodic/daily/aide-check
+# --- NEUE SSH-Konfiguration ---
+# Schreibe die Konfiguration direkt in die Datei im Image.
+RUN echo "Port 3025" > /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "PermitRootLogin prohibit-password" >> /etc/ssh/sshd_config && \
+    echo "Subsystem sftp /usr/lib/openssh/sftp-server" >> /etc/ssh/sshd_config && \
+    # ÄNDERUNG: Beschränke Logins auf EINE EINZIGE IP-Adresse
+    echo "AllowUsers root@10.10.30.3" >> /etc/ssh/sshd_config
 
-# --- Harden SSH ---
-COPY sshd_config /etc/ssh/sshd_config
+# --- SSH-Key-Setup (wie zuvor) ---
+# 1. Erstelle das .ssh Verzeichnis mit den richtigen Rechten
+RUN mkdir -p /root/.ssh && \
+    chmod 700 /root/.ssh
+
+# 2. Kopiere den Key
+# Erkläre, dass wir ein Build-Argument namens SSH_KEY_PUB erwarten
+ARG SSH_KEY_PUB
+
+# Führe diesen Block nur aus, wenn das Argument auch übergeben wurde
+# (damit der Build nicht fehlschlägt, wenn die Datei fehlt)
+RUN if [ -n "$SSH_KEY_PUB" ]; then \
+        mkdir -p /root/.ssh && \
+        echo "$SSH_KEY_PUB" > /root/.ssh/authorized_keys && \
+        chmod 600 /root/.ssh/authorized_keys && \
+        chown root:root /root/.ssh/authorized_keys; \
+    else \
+        echo "Kein SSH_KEY_PUB-Argument übergeben, überspringe Key-Erstellung."; \
+    fi
+
+# 3. Setze die strikten SSH-Rechte
+
+
+# Erstelle die Verzeichnisse, die sshd zum Starten braucht
 RUN mkdir -p /var/run/sshd
+RUN mkdir -p /run/sshd
+
+# --- Create the daily 'aide' check script ---
+#RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
+    #echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
+    #chmod +x /etc/periodic/daily/aide-check
 
 # --- Setup Entrypoint ---
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh

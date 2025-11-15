@@ -45,8 +45,8 @@ $NFT add rule inet filter INPUT iifname "ethsecurity" \
     ip saddr 10.10.30.3 ip daddr 10.10.60.1 tcp dport 3025 \
     log prefix "FWI_ALLOW_BASTION_INTERNAL_ROUTER: " accept
 
-# F9 Bastion (10.10.30.3) -> Database (10.10.60.4) SSH via ethresource -> ethmgmt
-$NFT add rule inet filter FORWARD iifname "ethresource" oifname "ethmgmt" \
+# F9 Bastion (10.10.30.3) -> Database (10.10.60.4) SSH via ethsecurity -> ethmgmt
+$NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethmgmt" \
     ip saddr 10.10.30.3 ip daddr 10.10.60.4 tcp dport 3025 \
     log prefix \"FWI_ALLOW_BASTION_DATABASE: \" accept
 
