@@ -16,11 +16,14 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
     echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk update && \
     apk add --no-cache \
+      openrc \
       mariadb \
       mariadb-client \
       openssh-server \
       sudo \
       nftables \
+      su-exec \
+      netcat-openbsd \
       aide@testing \
       dcron \
       fluent-bit@testing

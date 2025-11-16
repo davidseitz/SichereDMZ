@@ -17,7 +17,7 @@ def get_db_conn():
         host=DB_HOST,
         port=DB_PORT,
         user=DB_USER,
-        password=DB_PASSWORD,
+        password=DB_PASS,
         database=DB_NAME,
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=True
@@ -32,17 +32,6 @@ def init_db():
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL
-            )
-        """)
-        # Create any other tables here if needed
-        # Example: logs table
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS logs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT NOT NULL,
-                action VARCHAR(255),
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
     conn.close()

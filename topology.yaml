@@ -7,7 +7,6 @@ topology:
       kind: linux
       image: router_edge-image
       exec:
-
         - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
         - "ip addr add 10.10.60.6/28 dev ethmgmt"
@@ -76,11 +75,11 @@ topology:
         - >
           sh -c '
             while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/ethmgmt ]; do sleep 0.1; done;
-            "ip addr add 10.10.10.4/29 dev eth10"
-            "ip addr add 10.10.10.5/29 dev eth1"
-            "ip addr add 10.10.60.3/28 dev ethmgmt"
-            "ip route del default"
-            "ip route add default via 10.10.10.2"
+            ip addr add 10.10.10.4/29 dev eth10
+            ip addr add 10.10.10.5/29 dev eth1
+            ip addr add 10.10.60.3/28 dev ethmgmt
+            ip route del default
+            ip route add default via 10.10.10.2
           '
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
