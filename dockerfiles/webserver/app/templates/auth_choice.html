@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Authentication Choice</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; text-align: center; padding-top: 100px; }
+  a { display: block; margin: 20px auto; width: 200px; padding: 12px; background: #28a745; color: #fff; text-decoration: none; border-radius: 6px; transition: background 0.3s;}
+  a:hover { background: #218838; }
+</style>
+</head>
+<body>
+<h1>Wähle Anmeldeoption</h1>
+<a href="{{ url_for('signin') }}">Sign In</a>
+<a href="{{ url_for('signup') }}">Sign Up</a>
+</body>
+</html>

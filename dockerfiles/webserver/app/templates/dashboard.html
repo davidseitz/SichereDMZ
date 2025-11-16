@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Dashboard</title>
+<style>
+  body { font-family:'Segoe UI', sans-serif; background:#f0f2f5; margin:0; }
+  .container { max-width:800px; margin:50px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.1);}
+  h1 { color:#007bff; }
+  a { display:inline-block; margin-top:20px; padding:10px 20px; background:#dc3545; color:#fff; text-decoration:none; border-radius:6px; }
+  a:hover { background:#c82333; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Hallo {{ user }}!</h1>
+<p>Du bist eingeloggt.</p>
+<a href="{{ url_for('logout') }}">Logout</a>
+</div>
+</body>
+</html>

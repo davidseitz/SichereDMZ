@@ -1,0 +1,32 @@
+FROM python:3.11-alpine as py
+
+# Install system dependencies including nftables
+RUN apk update && apk add --no-cache gcc musl-dev libgcc libstdc++ ncurses-dev bash curl nftables
+
+WORKDIR /app
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ /app/
+COPY start_webserver.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# --------------------------
+# NGINX FRONTEND
+# --------------------------
+FROM nginx:alpine
+
+# Copy Python runtime from builder
+COPY --from=py /usr/local /usr/local
+COPY --from=py /app /app
+
+# Replace default nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy fallback static error page
+COPY error.html /usr/share/nginx/html/fallback.html
+
+EXPOSE 80
+
+CMD ["/app/start.sh"]
