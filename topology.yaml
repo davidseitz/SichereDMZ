@@ -156,6 +156,7 @@ topology:
     siem:
       kind: linux
       image: siem-image:latest
+      mgmt-ipv4: 172.20.20.2
       exec:
         - "apk update"
         - "apk add nftables"
