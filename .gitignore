@@ -1,3 +1,4 @@
 clab-security_lab/
 build/build_logs/
 attacks/reports/
+siem-demo/loki/data/*

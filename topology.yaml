@@ -1,5 +1,8 @@
 name: security_lab
 
+mgmt:
+  network: "clab-mgmt"
+
 topology:
   nodes:
     # --- Router/Firewall-Knoten ---
@@ -23,7 +26,9 @@ topology:
       binds:
         - fw_config/edge/edge_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/router/aide.conf:/etc/aide.conf:ro
-      
+      network-mode: none
+
+
     internal_router:
       kind: linux
       image: router_int-image
@@ -43,6 +48,7 @@ topology:
       binds:
         - fw_config/internal/internal_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/router/aide.conf:/etc/aide.conf:ro
+      network-mode: none
 
     # --- Externe/Angreifer-Knoten ---
     attacker_1:
@@ -52,6 +58,7 @@ topology:
         - "ip addr add 192.168.1.2/24 dev eth1"
         - "ip route del default"
         - "ip route add default via 192.168.1.1"
+      network-mode: none
 
     # Zweiter Angreifer-Knoten im internen Netzwerk  
     attacker_2:
@@ -61,6 +68,7 @@ topology:
         - "ip addr add 10.10.20.3/29 dev eth10"
         - "ip route del default"
         - "ip route add default via 10.10.20.1"
+      network-mode: none
 
     # --- DMZ-Knoten (10.10.0.0/29) ---
     web_server:
@@ -80,7 +88,8 @@ topology:
         - config/webserver_setup/html:/var/www/html:ro
         - config/webserver_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
-      
+      network-mode: none
+
     reverse_proxy:
       kind: linux
       image: waf-image
@@ -100,7 +109,8 @@ topology:
       binds:
         - config/waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
-      
+      network-mode: none
+
     dmz_switch:
       kind: linux
       image: alpine:latest
@@ -116,6 +126,7 @@ topology:
               brctl addif br0 eth4
               ip link set dev br0 up
           '
+      network-mode: none
 
     # --- Internal-Client-Knoten (10.10.20.0/29) ---
     admin:
@@ -127,7 +138,8 @@ topology:
         - "ip route add default via 10.10.20.1"
       binds:
         - "sshkey/sshkey:/root/.ssh/id_rsa:ro"
-      
+      network-mode: none
+
     client_switch:
       kind: linux
       image: alpine:latest
@@ -138,6 +150,7 @@ topology:
         - "brctl addif br0 eth2"
         - "brctl addif br0 eth3"
         - "ip link set dev br0 up"
+      network-mode: none
 
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
@@ -155,7 +168,7 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml
-
+        - siem-demo/loki/data:/tmp/loki
 
     bastion:
       kind: linux
@@ -167,7 +180,8 @@ topology:
       binds:
         - "sshkey/sshkey:/root/.ssh/id_rsa:ro"
         - "config/aide/bastion/aide.conf:/etc/aide.conf:ro"
-      
+      network-mode: none
+
     timedns_server:
       kind: linux
       image: ntp_dns-image
@@ -181,18 +195,20 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/ntp_dns/aide.conf:/etc/aide.conf:ro
-      
+      network-mode: none
+
     security_switch:
       kind: linux
       image: alpine:latest
       exec:
         - "apk add --no-cache bridge"
         - "brctl addbr br0"
-        - "brctl addif br0 eth1" 
-        - "brctl addif br0 eth2" 
-        - "brctl addif br0 eth3" 
+        - "brctl addif br0 eth1"
+        - "brctl addif br0 eth2"
+        - "brctl addif br0 eth3"
         - "brctl addif br0 eth4"
         - "ip link set dev br0 up"
+      network-mode: none
 
     # --- Internal-Resource-Knoten (10.10.40.0/29) ---
     database:
@@ -208,8 +224,9 @@ topology:
       binds:
         - "config/aide/database/aide.conf:/etc/aide.conf:ro"
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
+      network-mode: none
 
-      
+
     resource_switch:
       kind: linux
       image: alpine:latest
@@ -219,7 +236,8 @@ topology:
         - "brctl addif br0 eth1"
         - "brctl addif br0 eth2"
         - "ip link set dev br0 up"
-      
+      network-mode: none
+
     # --- Management-Switch ---
     mgmt_switch:
       kind: linux
@@ -236,6 +254,9 @@ topology:
         - "brctl addif br0 eth6"
         - "brctl addif br0 eth7"
         - "ip link set dev br0 up"
+      network-mode: none
+
+
   links:
     # Internet Verbindung
     - endpoints: ["attacker_1:eth1", "edge_router:ethwan"]
