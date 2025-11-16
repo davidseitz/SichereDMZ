@@ -29,7 +29,9 @@ echo "Starting sshd service on port 3025..."
 echo "Starting crond service for daily HIDS checks..."
 /usr/sbin/crond
 
-# (fluent-bit is installed but not started, per our plan)
+#    This runs it in the background using a config file we will provide.
+echo "Starting fluent-bit service..."
+/usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
 # Start MariaDB. 'su-exec' drops privileges to the 'mysql' user.
 echo "Starting MariaDB service..."

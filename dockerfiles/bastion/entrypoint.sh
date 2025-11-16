@@ -20,7 +20,10 @@ echo "Starting sshd service on port 3025..."
 echo "Starting crond service for daily HIDS checks..."
 /usr/sbin/crond
 
-# (When ready, we will add 'fluent-bit' here)
+#    This runs it in the background using a config file we will provide.
+echo "Starting fluent-bit service..."
+/usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+
 
 # --- 3. Keep Container Alive ---
 echo "Bastion host is running. Awaiting connections."

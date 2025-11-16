@@ -25,7 +25,9 @@ echo "Starting chronyd (NTP) service..."
 echo "Starting CoreDNS service..."
 /usr/sbin/coredns -conf /etc/coredns/Corefile &
 
-# (fluent-bit is installed but not started, per our plan)
+#    This runs it in the background using a config file we will provide.
+echo "Starting fluent-bit service..."
+/usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
 # --- 3. Keep Container Alive ---
 echo "DNS/NTP server is running. Awaiting connections."

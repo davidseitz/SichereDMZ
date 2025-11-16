@@ -142,7 +142,7 @@ topology:
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
       kind: linux
-      image: alpine:latest
+      image: siem-image:latest
       exec:
         - "apk update"
         - "apk add nftables"
@@ -154,7 +154,9 @@ topology:
         - "/fw_config/configure_fw.sh"
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
-      
+        - config/siem/loki-config.yaml:/etc/loki/config.yml
+
+
     bastion:
       kind: linux
       image: bastion-image
