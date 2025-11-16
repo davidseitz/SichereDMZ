@@ -66,17 +66,22 @@ topology:
     web_server:
       kind: linux
       image: webserver-image
+      env:
+        DB_HOST: "10.10.40.2"
+        DB_USER: "webuser"
+        DB_PASS: "VerySecureP@ssword123!"
+        DB_NAME: "webapp"
+        FLASK_SECRET: "VerySecureP@ssword123!"
       exec:
-        - "sh -c 'export DB_HOST=10.10.40.2 && \
-              export DB_USER=webuser && \
-              export DB_PASS=VerySecureP@ssword123! && \
-              export DB_NAME=webapp && \
-              export FLASK_SECRET=VerySecureP@ssword123!'"
-        - "ip addr add 10.10.10.4/29 dev eth10"
-        - "ip addr add 10.10.10.5/29 dev eth1"
-        - "ip addr add 10.10.60.3/28 dev ethmgmt"
-        - "ip route del default"
-        - "ip route add default via 10.10.10.2" # Gateway ist der Internal Router
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/ethmgmt ]; do sleep 0.1; done;
+            "ip addr add 10.10.10.4/29 dev eth10"
+            "ip addr add 10.10.10.5/29 dev eth1"
+            "ip addr add 10.10.60.3/28 dev ethmgmt"
+            "ip route del default"
+            "ip route add default via 10.10.10.2"
+          '
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
@@ -133,12 +138,16 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        - "apk add --no-cache bridge"
-        - "brctl addbr br0"
-        - "brctl addif br0 eth1"
-        - "brctl addif br0 eth2"
-        - "brctl addif br0 eth3"
-        - "ip link set dev br0 up"
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ]; do sleep 0.1; done;
+              apk add --no-cache bridge
+              brctl addbr br0
+              brctl addif br0 eth1
+              brctl addif br0 eth2
+              brctl addif br0 eth3
+              ip link set dev br0 up
+          '
 
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
@@ -185,13 +194,17 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        - "apk add --no-cache bridge"
-        - "brctl addbr br0"
-        - "brctl addif br0 eth1" 
-        - "brctl addif br0 eth2" 
-        - "brctl addif br0 eth3" 
-        - "brctl addif br0 eth4"
-        - "ip link set dev br0 up"
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ]|| [ ! -d /sys/class/net/eth4 ]; do sleep 0.1; done;
+              apk add --no-cache bridge
+              brctl addbr br0
+              brctl addif br0 eth1
+              brctl addif br0 eth2
+              brctl addif br0 eth3
+              brctl addif br0 eth4
+              ip link set dev br0 up
+          '
 
     # --- Internal-Resource-Knoten (10.10.40.0/29) ---
     database:
@@ -213,28 +226,35 @@ topology:
       kind: linux
       image: alpine:latest
       exec:
-        - "apk add --no-cache bridge"
-        - "brctl addbr br0"
-        - "brctl addif br0 eth1"
-        - "brctl addif br0 eth2"
-        - "ip link set dev br0 up"
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ]; do sleep 0.1; done;
+              apk add --no-cache bridge
+              brctl addbr br0
+              brctl addif br0 eth1
+              brctl addif br0 eth2
+              ip link set dev br0 up
+          '
       
     # --- Management-Switch ---
     mgmt_switch:
       kind: linux
       image: alpine:latest
       exec:
-        - "apk update"
-        - "apk add --no-cache bridge"
-        - "brctl addbr br0"
-        - "brctl addif br0 eth1"
-        - "brctl addif br0 eth2"
-        - "brctl addif br0 eth3"
-        - "brctl addif br0 eth4"
-        - "brctl addif br0 eth5"
-        - "brctl addif br0 eth6"
-        - "brctl addif br0 eth7"
-        - "ip link set dev br0 up"
+        - >
+          sh -c '
+            while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth2 ] || [ ! -d /sys/class/net/eth3 ]|| [ ! -d /sys/class/net/eth4 ]|| [ ! -d /sys/class/net/eth5 ]|| [ ! -d /sys/class/net/eth6 ]|| [ ! -d /sys/class/net/eth7 ]; do sleep 0.1; done;
+              apk add --no-cache bridge
+              brctl addbr br0
+              brctl addif br0 eth1
+              brctl addif br0 eth2
+              brctl addif br0 eth3
+              brctl addif br0 eth4
+              brctl addif br0 eth5
+              brctl addif br0 eth6
+              brctl addif br0 eth7
+              ip link set dev br0 up
+          '
   links:
     # Internet Verbindung
     - endpoints: ["attacker_1:eth1", "edge_router:ethwan"]
