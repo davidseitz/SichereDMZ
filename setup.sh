@@ -23,6 +23,9 @@ NC="\033[0m"
 
 # Funktion zum Starten des Labs
 function deploy_lab {
+    #Erstelle Verzeichnis für Loki
+    mkdir -p ./siem-demo/loki/data
+    
     echo -e "${BLUE}Deploye Containerlab-Topologie ($TOPOLOGY_FILE)...${NC}"
     # Ruft containerlab auf
     containerlab deploy -t $TOPOLOGY_FILE

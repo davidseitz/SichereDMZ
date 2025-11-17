@@ -14,6 +14,7 @@ RUN apt update && \
     apt install wafw00f -y && \ 
     apt install netcat-traditional -y && \
     apt install curl -y && \
+    apt install nftables -y && \
     apt -y install wget 
 
 
