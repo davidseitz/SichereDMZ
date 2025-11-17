@@ -7,6 +7,8 @@ topology:
     edge_router:
       kind: linux
       image: router_edge-image
+      cap-add:
+        - NET_ADMIN
       exec:
 
         - "ip addr add 10.10.10.1/29 dev ethdmz"
@@ -29,6 +31,8 @@ topology:
     internal_router:
       kind: linux
       image: router_int-image
+      cap-add:
+        - NET_ADMIN
       exec:
         - "ip addr add 10.10.50.2/24 dev ethtransit"
         - "ip addr add 10.10.60.1/28 dev ethmgmt"

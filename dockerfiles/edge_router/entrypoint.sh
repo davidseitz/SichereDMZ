@@ -37,10 +37,10 @@ else
 fi
 
 # C. Suricata (IDS/IPS)
-echo "Starting Suricata on eth0..."
+echo "Starting Suricata... (Interfaces defined in suricata.yaml)"
 # -D runs it as a daemon (background)
-# -i eth0 tells it which interface to listen on
-/usr/bin/suricata -c /etc/suricata/suricata.yaml -i eth0 -D
+# Interfaces are auto-loaded from the af-packet config
+/usr/bin/suricata -c /etc/suricata/suricata.yaml -D
 
 
 # --- 3. Keep Container Alive ---

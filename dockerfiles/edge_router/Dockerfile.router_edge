@@ -16,8 +16,10 @@ RUN apt-get update && \
       nftables \
       aide \
       cron \
-      inetutils-ping \
-      suricata
+      inetutils-ping 
+
+RUN apt-get update && \
+    apt-get install -y suricata
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
 RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg' && \
@@ -37,6 +39,17 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+    # --- 4. Configure Suricata ---
+# Copy our custom, multi-interface configuration
+COPY suricata.yaml /etc/suricata/suricata.yaml
+RUN chown root:root /etc/suricata/suricata.yaml && \
+    chmod 644 /etc/suricata/suricata.yaml
+
+# --- 5. Download Initial Suricata Rules ---
+# This reads /etc/suricata/suricata.yaml, sees the 'rule-files' section,
+# downloads the default ET Open ruleset, and builds the 'suricata.rules' file.
+RUN suricata-update
 
 # --- Add a dedicated admin user ---
 RUN addgroup --gid 1001 admin && \
