@@ -74,6 +74,12 @@ topology:
     web_server:
       kind: linux
       image: webserver-image
+      env:
+        DB_HOST: "10.10.40.2"
+        DB_USER: "webuser"
+        DB_PASS: "VerySecureP@ssword123!"
+        DB_NAME: "webapp"
+        FLASK_SECRET: "VerySecureP@ssword123!"
       exec:
         - "ip addr add 10.10.10.4/29 dev eth10"
         - "ip addr add 10.10.10.5/29 dev eth1"
@@ -150,11 +156,13 @@ topology:
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
       kind: linux
-      image: siem-image
+      image: alpine:latest
       exec:
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
         - "ip route add default via 10.10.30.1"
+        - "apk update"
+        - "apk add nftables"
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:

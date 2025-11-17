@@ -12,6 +12,7 @@ COPY app/ /app/
 COPY start_webserver.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
+
 # --------------------------
 # NGINX FRONTEND
 # --------------------------

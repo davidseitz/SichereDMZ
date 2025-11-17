@@ -6,4 +6,4 @@ until nc -z $DB_HOST $DB_PORT; do
 done
 
 echo "Starting Gunicorn..."
-exec gunicorn -b 0.0.0.0:5000 app:app --workers 2 --timeout 120
+exec gunicorn -b 0.0.0.0:80 app:app --workers 2 --timeout 120
