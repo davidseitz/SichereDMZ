@@ -40,8 +40,7 @@ fi
 echo "Starting Suricata... (Interfaces defined in suricata.yaml)"
 # -D runs it as a daemon (background)
 # Interfaces are auto-loaded from the af-packet config
-/usr/bin/suricata -c /etc/suricata/suricata.yaml -D
-
+exec /usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet
 
 # --- 3. Keep Container Alive ---
 echo "Edge-Router is running. Awaiting connections."
