@@ -170,6 +170,7 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml
         - siem-demo/loki/data:/tmp/loki
+        - "config/aide/siem/aide.conf:/etc/aide.conf:ro"
 
     bastion:
       kind: linux
