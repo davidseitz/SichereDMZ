@@ -46,6 +46,15 @@ RUN mkdir -p /var/lib/aide && \
 # Run AIDE every 10 minutes (output handled by report_url in aide.conf)
 RUN echo "*/10 * * * * /usr/bin/aide --check" >> /etc/crontabs/root
 
+# coredns config
+RUN mkdir -p /etc/coredns
+COPY Corefile /etc/coredns/Corefile
+
+# chrony config
+RUN mkdir -p etc/chrony
+COPY chrony.conf /etc/chrony/chrony.conf
+
+
 # --- Harden SSH ---
 COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd

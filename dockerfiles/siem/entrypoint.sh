@@ -5,6 +5,21 @@ set -e
 # 1. Generate SSH host keys
 ssh-keygen -A
 
+# ---  AIDE (HIDS) Initialization ---
+# Check if the AIDE database exists. If not, create it.
+# This is the "first-run" task you correctly identified.
+echo "AIDE database. Initializing..."
+echo "This may take a minute..."
+/usr/bin/aide --init
+echo "AIDE database initialized. Copyingm..."
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
+
+# Start the 'cron' daemon in the foreground (it forks itself)
+# This will run our daily 'aide --check' script
+echo "Starting crond service for daily HIDS checks..."
+/usr/sbin/crond
+
+
 # 2. Start the OpenSSH server daemon
 echo "Starting sshd service on port 3025..."
 /usr/sbin/sshd
