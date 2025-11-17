@@ -19,6 +19,13 @@ RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade" > /etc/
 COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
 # Run AIDE every 10 minutes (output handled by report_url in aide.conf)
 RUN echo "*/10 * * * * /usr/bin/aide --check" >> /etc/crontabs/root
 
