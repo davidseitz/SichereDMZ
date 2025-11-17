@@ -41,10 +41,8 @@ RUN mkdir -p /var/lib/aide && \
     chmod 640 /var/lib/aide/aide.db.gz
 
 
-# --- Create the daily 'aide' check script ---
-RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
-    echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
-    chmod +x /etc/periodic/daily/aide-check
+# Run AIDE every 10 minutes (output handled by report_url in aide.conf)
+RUN echo "*/10 * * * * /usr/bin/aide --check" >> /etc/crontabs/root
 
 # --- Harden SSH ---
 COPY sshd_config /etc/ssh/sshd_config

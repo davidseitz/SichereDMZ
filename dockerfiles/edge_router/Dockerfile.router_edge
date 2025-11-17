@@ -46,10 +46,8 @@ RUN addgroup --gid 1001 admin && \
 RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade, /usr/bin/aide, /usr/sbin/nft, /usr/bin/suricata" > /etc/sudoers.d/admin-router-rules && \
     chmod 0440 /etc/sudoers.d/admin-router-rules
 
-# --- Create the daily 'aide' check script ---
-RUN echo '#!/bin/sh' > /etc/cron.daily/aide-check && \
-    echo '/usr/bin/aide -c /etc/aide.conf --check' >> /etc/cron.daily/aide-check && \
-    chmod +x /etc/cron.daily/aide-check
+# AIDE every 10 min
+RUN echo "*/10 * * * * root /usr/bin/aide --check" >> /etc/crontab
 
 # --- Harden SSH ---
 COPY sshd_config /etc/ssh/sshd_config
