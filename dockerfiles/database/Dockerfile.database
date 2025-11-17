@@ -34,10 +34,15 @@ RUN addgroup -g 1001 admin && \
 RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
     chmod 0440 /etc/sudoers.d/admin-db-rules
 
-# --- Create the daily 'aide' check script ---
-RUN echo '#!/bin/sh' > /etc/periodic/daily/aide-check && \
-    echo '/usr/bin/aide --check' >> /etc/periodic/daily/aide-check && \
-    chmod +x /etc/periodic/daily/aide-check
+# Create AIDE dependencies
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
+# Run AIDE every 10 minutes (output handled by report_url in aide.conf)
+RUN echo "*/10 * * * * /usr/bin/aide --check" >> /etc/crontabs/root
 
 # --- Harden SSH ---
 COPY sshd_config /etc/ssh/sshd_config
