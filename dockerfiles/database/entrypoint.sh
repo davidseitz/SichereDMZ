@@ -13,11 +13,11 @@ mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
 
 
 # --- 2. MariaDB Initialization ---
-# Check if the data directory is empty (first run)
+mkdir -p /run/mysqld
+chown -R mysql:mysql /run/mysqld
 if [ -z "$(ls -A /var/lib/mysql)" ]; then
     echo "MariaDB data directory is empty. Initializing database..."
-    # 'mysql_install_db' creates the default system tables
-    mysql_install_db --user=mysql --datadir=/var/lib/mysql
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
 else
     echo "MariaDB database already exists."
 fi
@@ -33,9 +33,15 @@ echo "Starting crond service for daily HIDS checks..."
 echo "Starting fluent-bit service..."
 /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
-# Start MariaDB. 'su-exec' drops privileges to the 'mysql' user.
-echo "Starting MariaDB service..."
-su-exec mysql /usr/bin/mysqld_safe --datadir=/var/lib/mysql &
+# --- Start MariaDB ---
+echo "Starting MariaDB..."
+exec /usr/bin/mariadbd \
+  --user=mysql \
+  --datadir=/var/lib/mysql \
+  --skip-name-resolve \
+  --bind-address=0.0.0.0 \
+  --skip-networking=0 \
+  --port=3306
 
 # --- 4. Keep Container Alive ---
 echo "Database server is running. Awaiting connections."
