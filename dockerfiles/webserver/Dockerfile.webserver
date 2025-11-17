@@ -24,6 +24,11 @@ COPY --from=py /app /app
 # Replace default nginx.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
+COPY --from=py /sbin /sbin
+COPY --from=py /usr/sbin /usr/sbin
+
+COPY --from=py /lib /lib
+COPY --from=py /usr/lib /usr/lib
 # Copy fallback static error page
 COPY error.html /usr/share/nginx/html/fallback.html
 

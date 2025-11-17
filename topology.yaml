@@ -8,37 +8,21 @@ topology:
       kind: linux
       image: router_edge-image
       exec:
+
         - "ip addr add 10.10.10.1/29 dev ethdmz"
         - "ip addr add 10.10.50.1/24 dev ethtransit"
         - "ip addr add 10.10.60.6/28 dev ethmgmt"
         - "ip addr add 192.168.1.1/24 dev ethwan"
         - "ip link set ethwan up"
 
-        # --- ADDED: Default route to the internet via attacker_1 (192.168.1.2) ---
-        - "ip route add default via 192.168.1.2"
-        # REMOVED: "ip route add default via 192.168.1.1 dev ethwan" (This was incorrect)
+        - "ip route add default via 192.168.1.1 dev ethwan"
         - "ip route add 10.10.0.0/16 via 10.10.50.2"
         - "sysctl -w net.ipv4.ip_forward=1"
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
-
-        # --- ADDED: NAT & FORWARDING RULES ---
-        # Create NAT table and postrouting chain
-        - "nft add table ip nat"
-        - "nft add chain ip nat postrouting { type nat hook postrouting priority 100 ; }"
-        # Masquerade (NAT) traffic from any internal network going out ethwan
-        - "nft add rule ip nat postrouting oifname \"ethwan\" masquerade"
-        
-        # Assume 'filter' table and 'forward' chain exist from script
-        # Allow traffic from internal router to go to the "internet"
-        - "nft add rule ip filter forward iifname \"ethtransit\" oifname \"ethwan\" accept"
-        # Allow return traffic from the "internet" back to the internal router
-        - "nft add rule ip filter forward iifname \"ethwan\" oifname \"ethtransit\" ct state related,established accept"
-        # --- END OF ADDED RULES ---
-
       binds:
         - fw_config/edge/edge_configure_fw.sh:/fw_config/configure_fw.sh
-        - config/aide/router/aide.conf:/etc/aide.conf:ro
+        - config/aide/aide.conf:/etc/aide.conf:ro
       network-mode: none
 
 
@@ -52,7 +36,6 @@ topology:
         - "ip addr add 10.10.30.1/29 dev ethsecurity"
         - "ip addr add 10.10.40.1/29 dev ethresource"
         - "ip addr add 10.10.10.2/29 dev ethdmz"
-        - "ip route delete default"
         - "ip route add default via 10.10.50.1"
         - "sysctl -w net.ipv4.ip_forward=1"
 
@@ -167,10 +150,8 @@ topology:
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
       kind: linux
-      image: alpine:latest
+      image: siem-image
       exec:
-        - "apk update"
-        - "apk add nftables"
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
         - "ip route add default via 10.10.30.1"
@@ -180,6 +161,7 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml
         - siem-demo/loki/data:/tmp/loki
+      network-mode: none
 
     bastion:
       kind: linux
@@ -299,6 +281,6 @@ topology:
     # Management Switch Verbindungen
     - endpoints: ["mgmt_switch:eth2", "web_server:ethmgmt"]
     - endpoints: ["mgmt_switch:eth3", "reverse_proxy:ethmgmt"]
-    - endpoints: ["mgmt_switch:eth4", "siem:mgmt"]
+    - endpoints: ["mgmt_switch:eth4", "siem:ethmgmt"]
     - endpoints: ["mgmt_switch:eth5", "timedns_server:ethmgmt"]
     - endpoints: ["mgmt_switch:eth6", "database:ethmgmt"]

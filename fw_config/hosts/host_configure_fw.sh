@@ -5,7 +5,7 @@
 # but blocks any *outgoing* traffic over the management interface.
 # Verwendung von absoluten Pfaden (/usr/sbin/nft)
 
-NFT="/usr/sbin/nft"
+NFT="nft"
 
 # --- Reset & create table ---
 $NFT flush ruleset

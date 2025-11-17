@@ -8,11 +8,11 @@ server:
 
 common:
   instance_addr: 127.0.0.1
-  path_prefix: /tmp/loki
+  path_prefix: /data/loki  # <-- Corrected
   storage:
     filesystem:
-      chunks_directory: /tmp/loki/chunks
-      rules_directory: /tmp/loki/rules
+      chunks_directory: /data/loki/chunks  # <-- Corrected
+      rules_directory: /data/loki/rules   # <-- Corrected
   replication_factor: 1
   ring:
     kvstore:
@@ -45,7 +45,7 @@ pattern_ingester:
 # -----------------------------------------
 
 compactor:
-  working_directory: /tmp/loki/data/retention
+  working_directory: /data/loki/data/retention  # <-- Corrected
   compaction_interval: 10m
   retention_enabled: true
   retention_delete_delay: 2h
@@ -61,6 +61,11 @@ limits_config:
 
 ruler:
   alertmanager_url: http://localhost:9093
+  storage:
+    type: local
+    local:
+      # This path was already correct
+      directory: /data/loki/rules
 
 frontend:
   encoding: protobuf
