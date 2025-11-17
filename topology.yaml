@@ -108,6 +108,7 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - certs/cert.pem:/etc/nginx/ssl/cert.pem:ro
         - certs/key.pem:/etc/nginx/ssl/key.pem:ro
+      network-mode: none
       
     dmz_switch:
       kind: linux
@@ -150,7 +151,7 @@ topology:
     # --- Internal-Security-Knoten (10.10.30.0/29) ---
     siem:
       kind: linux
-      image: siem-image
+      image: alpine:latest
       exec:
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
@@ -161,6 +162,7 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml
         - siem-demo/loki/data:/tmp/loki
+        - config/aide/siem/aide.conf:/etc/aide.conf:ro
       network-mode: none
 
     bastion:
