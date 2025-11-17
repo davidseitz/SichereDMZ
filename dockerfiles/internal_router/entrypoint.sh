@@ -17,7 +17,30 @@ echo "Starting crond service for daily HIDS checks..."
 # 'cron' is the Debian daemon name
 /usr/sbin/cron
 
-# (fluent-bit, suricata, nftables are installed but not started)
+# A. Nftables (Firewall)
+# Note: Container must run with --cap-add=NET_ADMIN
+echo "Loading Nftables rules..."
+if [ -f /etc/nftables.conf ]; then
+    /usr/sbin/nft -f /etc/nftables.conf
+else
+    echo "WARNING: /etc/nftables.conf not found. No firewall rules loaded."
+fi
+
+# B. Fluent-bit (Logging)
+echo "Starting Fluent-bit..."
+# Official Debian package installs to /opt/fluent-bit/bin/
+if [ -f /opt/fluent-bit/bin/fluent-bit ]; then
+    /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+else
+    # Fallback for standard repo install
+    /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+fi
+
+# C. Suricata (IDS/IPS)
+echo "Starting Suricata on eth0..."
+# -D runs it as a daemon (background)
+# -i eth0 tells it which interface to listen on
+/usr/bin/suricata -c /etc/suricata/suricata.yaml -i eth0 -D
 
 # --- 3. Keep Container Alive ---
 echo "Edge-Router is running. Awaiting connections."
