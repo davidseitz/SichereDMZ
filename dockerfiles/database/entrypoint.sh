@@ -95,6 +95,10 @@ for i in {10..0}; do
     sleep 1
 done
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
+
 # --- 4. Final Start MariaDB (Foreground) ---
 echo "Starting MariaDB in the foreground..."
 exec /usr/bin/mariadbd \

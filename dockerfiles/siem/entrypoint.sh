@@ -19,6 +19,8 @@ mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
 echo "Starting crond service for daily HIDS checks..."
 /usr/sbin/crond
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
 
 # 2. Start the OpenSSH server daemon
 echo "Starting sshd service on port 3025..."
