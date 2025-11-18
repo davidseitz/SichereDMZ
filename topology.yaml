@@ -1,6 +1,5 @@
 name: security_lab
 
-
 topology:
   nodes:
     # --- Router/Firewall-Knoten ---
@@ -115,7 +114,7 @@ topology:
         - certs/cert.pem:/etc/nginx/ssl/cert.pem:ro
         - certs/key.pem:/etc/nginx/ssl/key.pem:ro
       network-mode: none
-      
+
     dmz_switch:
       kind: linux
       image: switch-image
@@ -158,6 +157,7 @@ topology:
     siem:
       kind: linux
       image: siem-image
+      mgmt-ipv4: 172.20.20.2
       exec:
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
