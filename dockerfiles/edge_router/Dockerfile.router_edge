@@ -12,6 +12,7 @@ RUN apt-get update && \
       curl \
       gnupg \
       sudo \
+      chrony \
       openssh-server \
       nftables \
       aide \
