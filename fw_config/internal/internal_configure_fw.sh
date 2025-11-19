@@ -150,12 +150,12 @@ $NFT add rule inet filter FORWARD iifname "ethdmz" oifname "ethsecurity" \
     ip saddr 10.10.10.3 ip daddr 10.10.30.4 udp dport { 53, 123} \
     log prefix \"FWI_ALLOW_WAF_PROXY_DNS: \" accept
 
-# F34a Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethdmz -> ethsecurity
+# F34a Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethsecurity -> ethtransit
 $NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethtransit" \
     ip saddr 10.10.30.4 ip daddr 10.10.50.1 l4proto { tcp, udp } th dport { 80, 443} \
     log prefix \"FWI_ALLOW_DNS_INTERNET_UPDATE: \" accept
 
-# F34b Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethdmz -> ethsecurity
+# F34b Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethsecurity -> ethtransit
 $NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethtransit" \
     ip saddr 10.10.30.4 ip daddr 10.10.50.1 udp th dport { 53, 123} \
     log prefix \"FWI_ALLOW_DNS_INTERNET_DNS_TIME: \" accept

@@ -80,6 +80,7 @@ topology:
       env:
         DB_HOST: "10.10.40.2"
         DB_USER: "webuser"
+        DB_PORT: 3306
         DB_PASS: "VerySecureP@ssword123!"
         DB_NAME: "webapp"
         FLASK_SECRET: "VerySecureP@ssword123!"
@@ -101,6 +102,7 @@ topology:
     reverse_proxy:
       kind: linux
       image: waf-image
+      mgmt-ipv4: 172.20.20.3
       exec:
         - >
           sh -c '
@@ -121,7 +123,7 @@ topology:
         - certs/key.pem:/etc/nginx/ssl/key.pem:ro
         - config/dns/resolv.conf:/etc/resolv.conf
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf
-      network-mode: none
+      #network-mode: none
 
     dmz_switch:
       kind: linux
