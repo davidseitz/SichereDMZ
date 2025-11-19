@@ -1,23 +1,25 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, url_for
 import pymysql
 import bcrypt
 import os
-from functools import wraps # Import for the decorator
+from functools import wraps
+from time import sleep
 
+# --- Application Setup ---
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET", "devsecret")
+# WICHTIG: Dies sollte in einer Produktionsumgebung sicher gesetzt werden.
+app.secret_key = os.getenv("FLASK_SECRET", "super-secure-dev-secret-key-01234") 
 
+# Datenbankkonfiguration
 DB_HOST = os.getenv("DB_HOST", "10.10.40.2")
 DB_PORT = int(os.getenv("DB_PORT", 3306))
 DB_USER = os.getenv("DB_USER", "webuser")
 DB_PASS = os.getenv("DB_PASS", "webpass")
 DB_NAME = os.getenv("DB_NAME", "webapp")
 
-# --- GLOBAL DATABASE STATE FLAG ---
-DB_AVAILABLE = False 
 
 def get_db_conn():
-    """Attempts to return a database connection, raising OperationalError on failure."""
+    """Gibt eine Datenbankverbindung zurück. Kann pymysql.err.OperationalError auslösen."""
     return pymysql.connect(
         host=DB_HOST,
         port=DB_PORT,
@@ -29,49 +31,81 @@ def get_db_conn():
     )
 
 def init_db():
-    """Initializes the database schema and sets the global DB_AVAILABLE flag."""
-    global DB_AVAILABLE
-    retry = 10
-    while retry > 0:
-        try:
-            conn = get_db_conn()
-            with conn.cursor() as cur:
-                # Create users table
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(50) UNIQUE NOT NULL,
-                        password_hash VARCHAR(255) NOT NULL
-                    )
-                """)
+    """
+    Initialisiert das Datenbankschema. 
+    Wird vom externen Setup-Skript aufgerufen, um sicherzustellen, dass die Tabellen existieren.
+    """
+    print("Executing Database Schema Initialization...")
+    conn = None
+    try:
+        conn = get_db_conn()
+        with conn.cursor() as cur:
+            # Erstellt die Benutzertabelle, falls sie noch nicht existiert
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) UNIQUE NOT NULL,
+                    password_hash VARCHAR(255) NOT NULL
+                )
+            """)
+        print("Database schema successfully verified/created.")
+    except pymysql.err.OperationalError as e:
+        print(f"ERROR: Could not initialize database schema. Connection failed: {e}")
+        # Wir lassen den Fehler hier durch, damit das externe Skript ihn fangen kann.
+        raise
+    except Exception as e:
+        print(f"ERROR: An unexpected error occurred during DB schema initialization: {e}")
+        raise
+    finally:
+        if conn:
             conn.close()
-            DB_AVAILABLE = True
-            print("Database initialized and connection confirmed.")
-            break
-        except pymysql.err.OperationalError as e:
-            retry -= 1
-            print(f"Database connection failed during init. Retry {retry}")
-    if DB_AVAILABLE != True:
-        print("Couln't establish connection!")
-    
-    
 
-# --- DECORATOR TO CHECK DATABASE AVAILABILITY ---
+
+# --- DEKORATOR ZUR PRÜFUNG DER DB-VERFÜGBARKEIT (Dynamische Prüfung) ---
 def check_db_availability(f):
-    """If the DB is not available, render error.html with 503 status."""
+    """Prüft die DB-Verbindung dynamisch vor jedem geschützten Request."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not DB_AVAILABLE:
-            # Service Unavailable (503) is the correct code for dependency failure
-            return render_template("error.html"), 503 
+        conn = None
+        try:
+            # Versuch, eine Verbindung herzustellen und eine einfache Abfrage durchzuführen.
+            conn = get_db_conn()
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1") 
+            # Wenn erfolgreich, fahre mit der Route fort
+            return f(*args, **kwargs)
+        except pymysql.err.OperationalError as e:
+            # Fängt Fehler bei Verbindung, Authentifizierung oder Netzwerk
+            print(f"Database connection failed during request: {e}")
+            return render_template("error_init.html"), 503 
+        except Exception as e:
+            # Fängt andere unerwartete Fehler
+            print(f"An unexpected error occurred during DB check: {e}")
+            return render_template("error_500.html", error_message="Interner Fehler bei der Datenbankprüfung."), 500
+        finally:
+            if conn:
+                conn.close() # Stelle sicher, dass die Verbindung geschlossen wird
+    return decorated_function
+
+
+# --- DEKORATOR ZUR PRÜFUNG DER AUTHENTIFIZIERUNG ---
+def login_required(f):
+    """Leitet zu signin um, wenn der Benutzer nicht in der Session ist."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            return redirect(url_for('signin'))
         return f(*args, **kwargs)
     return decorated_function
 
-# --- ROUTE HANDLERS ---
+
+# --- ROUTEN ---
 
 @app.route("/")
 @check_db_availability
 def index():
+    if "user" in session:
+        return redirect(url_for('dashboard'))
     return render_template("index.html")
 
 @app.route("/auth")
@@ -87,30 +121,29 @@ def signup():
         password = request.form.get("password", "")
 
         if not username or not password:
-            return render_template("signup.html", error="All fields required.")
+            return render_template("signup.html", error="Alle Felder sind erforderlich.")
+        
+        if len(password) < 8:
+            return render_template("signup.html", error="Das Passwort muss mindestens 8 Zeichen lang sein.")
 
-        pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        conn = None # Initialize conn
+        pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        conn = None 
 
         try:
             conn = get_db_conn()
             with conn.cursor() as cur:
-                # IMPORTANT: Corrected 'password' to 'password_hash' to match table schema
                 cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s)", 
-                            (username, pw_hash))
-                # commit is usually done automatically with autocommit=True, but harmless here
-                conn.commit() 
+                            (username, pw_hash.decode('utf-8')))
         except pymysql.err.IntegrityError:
-            # Handle unique constraint violation (username already exists)
-            return render_template("signup.html", error="Username already exists.")
-        except Exception:
-            # Catch any other database error during insert
-             return render_template("error.html"), 500
+            return render_template("signup.html", error="Benutzername existiert bereits. Bitte wählen Sie einen anderen.")
+        except Exception as e:
+             print(f"Database error during signup: {e}")
+             return render_template("error_500.html", error_message="Fehler bei der Registrierung."), 500
         finally:
             if conn:
                 conn.close()
 
-        return redirect("/signin")
+        return redirect(url_for('signin'))
 
     return render_template("signup.html")
 
@@ -121,55 +154,58 @@ def signin():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         
+        if not username or not password:
+            return render_template("signin.html", error="Alle Felder sind erforderlich.")
+
+        user = None
+        conn = None
         try:
             conn = get_db_conn()
             with conn.cursor() as cur:
                 cur.execute("SELECT password_hash FROM users WHERE username=%s", (username,))
                 user = cur.fetchone()
             conn.close()
-        except Exception:
-            # Catch any other database error during insert
-             return render_template("error.html"), 500
+        except Exception as e:
+            print(f"Database error during signin: {e}")
+            return render_template("error_500.html", error_message="Fehler beim Anmeldevorgang."), 500
 
-        # IMPORTANT: Corrected user['password'] to user['password_hash']
-        if user and bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
+        # Prüfen, ob Benutzer existiert und Passwort übereinstimmt
+        if user and bcrypt.checkpw(password.encode('utf-8'), user["password_hash"].encode('utf-8')):
             session["user"] = username
-            return redirect("/dashboard")
+            return redirect(url_for('dashboard'))
         else:
-            return render_template("signin.html", error="Invalid credentials.")
+            return render_template("signin.html", error="Ungültige Anmeldedaten.")
 
     return render_template("signin.html")
 
 @app.route("/dashboard")
+@check_db_availability
+@login_required
 def dashboard():
-    # Since dashboard usually relies on user session, we can skip the DB check 
-    # unless the dashboard itself performs a DB query. Let's add the check anyway
-    # for consistency, though session access doesn't require the DB.
-    if not DB_AVAILABLE:
-        return render_template("error.html"), 503
-        
-    if "user" not in session:
-        return redirect("/signin")
-        
     return render_template("dashboard.html", user=session["user"])
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/")
+    return redirect(url_for('index'))
 
-# --- ERROR HANDLERS ---
+# --- FEHLER-HANDLER ---
 
-# Use 503 (Service Unavailable) for database failure, not 502 (Bad Gateway)
 @app.errorhandler(503)
-@app.errorhandler(502) # Keep 502 just in case, but 503 is correct for dependency failure
 def service_unavailable_error(e):
-    return render_template("error.html"), e.code if hasattr(e, 'code') else 503
+    return render_template("error_init.html"), 503
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("error_404.html"), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    # Zeigt eine generische Meldung an, da die Fehlerursache intern ist
+    return render_template("error_500.html", error_message="Ein interner Serverfehler ist aufgetreten."), 500
 
 
 if __name__ == "__main__":
-    # 1. Attempt to initialize the database (this sets the DB_AVAILABLE flag)
-    init_db()
-    
-    # 2. Start the application
-    app.run(host="0.0.0.0", port=80)
+    # In einem Gunicorn/Worker-Setup wird dieser Block nicht ausgeführt. 
+    # Die Initialisierung sollte über das externe Skript erfolgen, das init_db() aufruft.
+    pass
