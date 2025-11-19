@@ -22,10 +22,15 @@ $NFT add rule inet filter FORWARD iifname "ethwan" oifname "ethdmz" \
     ip saddr 192.168.1.2 ip daddr 10.10.10.3 meta l4proto { tcp, udp } th dport { 80, 443} \
     log prefix \"FWE_ALLOW_ATT1_WAF_PROXY: \" accept
 
-# F(2,5,7,14,15) Internal Router (ALL Subnets) (10.10.60.0/24) -> Internet HTTP/HTTPS via ethwan -> ethdmz
+# F(2,5,7,14,15) Internal Router (ALL Subnets) (10.10.0.0/16) -> Internet HTTP/HTTPS via ethwan -> ethdmz
 $NFT add rule inet filter FORWARD iifname "ethtransit" oifname "ethwan" \
-    ip saddr 10.10.60.0/24 meta l4proto { tcp, udp } th dport { 80, 443 } \
+    ip saddr 10.10.0.0/16 meta l4proto { tcp, udp } th dport { 80, 443 } \
     log prefix "FWE_ALLOW_INTERNEL_TO_INTERNET: " accept
+
+# F34 DNS Time Server -> Internet HTTP/HTTPS via ethwan -> ethdmz
+$NFT add rule inet filter FORWARD iifname "ethtransit" oifname "ethwan" \
+    ip saddr 10.10.30.4 udp dport { 53, 123 } \
+    log prefix "FWE_ALLOW_INTERNEL_DNS: " accept
 
 # F(TBD) Edge Router (10.10.50.1) -> Internet HTTP/HTTPS OUTBOUND -> ethwan
 $NFT add rule inet filter OUTPUT oifname "ethwan" \
