@@ -62,7 +62,7 @@ topology:
         - "nft add table ip nat"
         - "nft add chain ip nat postrouting { type nat hook postrouting priority 100 ; }"
         - "nft add rule ip nat postrouting oifname \"eth0\" masquerade"
-      # REMOVED: network-mode: none (This allows it to connect to Docker's bridge for internet)
+      network-mode: none
 
     # Zweiter Angreifer-Knoten im internen Netzwerk  
     attacker_2:
