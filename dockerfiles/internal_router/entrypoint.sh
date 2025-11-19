@@ -42,6 +42,10 @@ echo "Starting Suricata on eth0..."
 # -i eth0 tells it which interface to listen on
 /usr/bin/suricata -c /etc/suricata/suricata.yaml -i eth0 -D
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
+
 # --- 3. Keep Container Alive ---
 echo "Edge-Router is running. Awaiting connections."
 exec "$@"

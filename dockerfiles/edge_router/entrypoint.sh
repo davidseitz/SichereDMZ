@@ -42,6 +42,10 @@ echo "Starting Suricata... (Interfaces defined in suricata.yaml)"
 # Interfaces are auto-loaded from the af-packet config
 exec /usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet
 
+# D. Chrony (NTP Client)
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
 # --- 3. Keep Container Alive ---
 echo "Edge-Router is running. Awaiting connections."
 exec "$@"

@@ -19,6 +19,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       mariadb \
       mariadb-client \
       openssh-server \
+      chrony \
       sudo \
       nftables \
       aide@testing \

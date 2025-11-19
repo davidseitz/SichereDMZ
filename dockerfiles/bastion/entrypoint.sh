@@ -24,6 +24,9 @@ echo "Starting crond service for daily HIDS checks..."
 echo "Starting fluent-bit service..."
 /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
 
 # --- 3. Keep Container Alive ---
 echo "Bastion host is running. Awaiting connections."
