@@ -100,7 +100,7 @@ $NFT add rule inet filter OUTPUT oifname "ethsecurity" \
     ip daddr 10.10.30.2 meta l4proto { tcp, udp } th dport 3100 \
     log prefix "FWI_ALLOW_ROUTER_LOGS_SIEM: " accept
 
-# F(TBD) Internal Router (10.10.50.2) -> Edge Router (Internet) (10.10.50.1) HTTP/HTTPS OUTBOUND -> ethtransit
+# F33 Internal Router (10.10.50.2) -> Edge Router (Internet) (10.10.50.1) HTTP/HTTPS OUTBOUND -> ethtransit
 $NFT add rule inet filter OUTPUT oifname "ethtransit" \
     ip daddr 10.10.50.1 meta l4proto { tcp, udp } th dport {80,443} \
     log prefix "FWI_ALLOW_INTERNAL_ROUTER_INTERNET: " accept
@@ -150,6 +150,15 @@ $NFT add rule inet filter FORWARD iifname "ethdmz" oifname "ethsecurity" \
     ip saddr 10.10.10.3 ip daddr 10.10.30.4 udp dport { 53, 123} \
     log prefix \"FWI_ALLOW_WAF_PROXY_DNS: \" accept
 
+# F34a Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethdmz -> ethsecurity
+$NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethtransit" \
+    ip saddr 10.10.30.4 ip daddr 10.10.50.1 l4proto { tcp, udp } th dport { 80, 443} \
+    log prefix \"FWI_ALLOW_DNS_INTERNET_UPDATE: \" accept
+
+# F34b Time/DNS (10.10.30.4) -> Edge Router (10.10.50.1) HTTP/HTTPS/DNS/ntp via ethdmz -> ethsecurity
+$NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethtransit" \
+    ip saddr 10.10.30.4 ip daddr 10.10.50.1 udp th dport { 53, 123} \
+    log prefix \"FWI_ALLOW_DNS_INTERNET_DNS_TIME: \" accept
 
 # --- 3. Log & Drop remaining forward traffic ---
 $NFT add rule inet filter FORWARD log prefix \"FWI_DENIED_FWD: \" drop
