@@ -183,7 +183,6 @@ topology:
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
-      network-mode: none
 
     bastion:
       kind: linux
