@@ -92,8 +92,6 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
-        - config/webserver_setup/html:/var/www/html:ro
-        - config/webserver_setup/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
@@ -183,7 +181,6 @@ topology:
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
-      network-mode: none
 
     bastion:
       kind: linux
