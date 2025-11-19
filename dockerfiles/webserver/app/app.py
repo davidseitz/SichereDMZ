@@ -31,25 +31,30 @@ def get_db_conn():
 def init_db():
     """Initializes the database schema and sets the global DB_AVAILABLE flag."""
     global DB_AVAILABLE
-    try:
-        conn = get_db_conn()
-        with conn.cursor() as cur:
-            # Create users table
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    username VARCHAR(50) UNIQUE NOT NULL,
-                    password_hash VARCHAR(255) NOT NULL
-                )
-            """)
-        conn.close()
-        DB_AVAILABLE = True
-        print("Database initialized and connection confirmed.")
-    except pymysql.err.OperationalError as e:
-        DB_AVAILABLE = False
-        print(f"Database connection failed during init: {e}")
-    # Alias get_db_conn for use in routes
-get_db = get_db_conn
+    retry = 10
+    while retry > 0:
+        try:
+            conn = get_db_conn()
+            with conn.cursor() as cur:
+                # Create users table
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        password_hash VARCHAR(255) NOT NULL
+                    )
+                """)
+            conn.close()
+            DB_AVAILABLE = True
+            print("Database initialized and connection confirmed.")
+            break
+        except pymysql.err.OperationalError as e:
+            retry -= 1
+            print(f"Database connection failed during init. Retry {retry}")
+    if DB_AVAILABLE != True:
+        print("Couln't establish connection!")
+    
+    
 
 # --- DECORATOR TO CHECK DATABASE AVAILABILITY ---
 def check_db_availability(f):
@@ -88,7 +93,7 @@ def signup():
         conn = None # Initialize conn
 
         try:
-            conn = get_db()
+            conn = get_db_conn()
             with conn.cursor() as cur:
                 # IMPORTANT: Corrected 'password' to 'password_hash' to match table schema
                 cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s)", 
@@ -116,11 +121,15 @@ def signin():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         
-        conn = get_db()
-        with conn.cursor() as cur:
-            cur.execute("SELECT password_hash FROM users WHERE username=%s", (username,))
-            user = cur.fetchone()
-        conn.close()
+        try:
+            conn = get_db_conn()
+            with conn.cursor() as cur:
+                cur.execute("SELECT password_hash FROM users WHERE username=%s", (username,))
+                user = cur.fetchone()
+            conn.close()
+        except Exception:
+            # Catch any other database error during insert
+             return render_template("error.html"), 500
 
         # IMPORTANT: Corrected user['password'] to user['password_hash']
         if user and bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
