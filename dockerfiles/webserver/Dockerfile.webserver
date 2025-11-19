@@ -35,4 +35,6 @@ COPY error.html /usr/share/nginx/html/fallback.html
 
 EXPOSE 80
 
+WORKDIR /app
+
 CMD ["/app/start.sh"]
