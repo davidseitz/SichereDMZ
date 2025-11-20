@@ -23,8 +23,8 @@ NTP_DNS_IP="10.10.60.7"
 USER="admin"
 # Note: WAF uses port 3025 in your original script.
 # Assuming other internal nodes use standard port 22. Change if needed.
-PORT_WAF="3025"
-PORT_STD="22"
+PORT_SSH="3025"
+
 
 # Path to keys INSIDE the containers
 KEY_BASTION="/home/admin/.ssh/id_rsa" # Key used BY Bastion
@@ -50,14 +50,15 @@ run_test() {
     echo -n "Testing: $name ($src -> $dst:$port)... "
 
     # Construct command
-    # -o StrictHostKeyChecking=no: Ignore known_hosts prompts
-    # -o ConnectTimeout=5: Fail fast if network is blocked
-    # -o BatchMode=yes: Never ask for password (keys only)
-    local cmd="ssh -p $port -i $key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
+    # -o LogLevel=ERROR: Suppresses "Warning: Permanently added..." messages
+    # -o StrictHostKeyChecking=no: Auto-accept new keys
+    # -o UserKnownHostsFile=/dev/null: Don't save keys to a real file
+    # -o BatchMode=yes: Fail instead of asking for passwords
+    local cmd="ssh -p $port -i $key -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
 
     if [ -z "$key" ]; then
         # If no key provided (e.g. attackers), don't use -i
-        cmd="ssh -p $port -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
+        cmd="ssh -p $port -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
     fi
 
     # Execute inside container
@@ -91,25 +92,25 @@ echo "=== Starting Expanded Connectivity Tests ==="
 echo "--- 1. Bastion -> Internal Infrastructure ---"
 
 # Bastion -> WAF (Port 3025 based on previous script)
-run_test $BASTION $WAF_IP $PORT_WAF $KEY_BASTION "PASS" "Bastion -> WAF"
+run_test $BASTION $WAF_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> WAF"
 
 # Bastion -> Webserver
-run_test $BASTION $WEBSERVER_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> Webserver"
+run_test $BASTION $WEBSERVER_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> Webserver"
 
 # Bastion -> SIEM
-run_test $BASTION $SIEM_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> SIEM"
+run_test $BASTION $SIEM_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> SIEM"
 
 # Bastion -> Database
-run_test $BASTION $DB_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> Database"
+run_test $BASTION $DB_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> Database"
 
 # Bastion -> Internal Router
-run_test $BASTION $INT_RTR_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> Int. Router"
+run_test $BASTION $INT_RTR_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> Int. Router"
 
 # Bastion -> Edge Router
-run_test $BASTION $EDGE_RTR_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> Edge Router"
+run_test $BASTION $EDGE_RTR_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> Edge Router"
 
 # Bastion -> NTP/DNS
-run_test $BASTION $NTP_DNS_IP $PORT_STD $KEY_BASTION "PASS" "Bastion -> NTP/DNS"
+run_test $BASTION $NTP_DNS_IP $PORT_SSH $KEY_BASTION "PASS" "Bastion -> NTP/DNS"
 
 
 # ---------------------------------------------------------
@@ -119,15 +120,15 @@ echo "--- 2. Access to Bastion Host ---"
 
 # Admin -> Bastion (Should SUCCEED)
 # Admin container has key mounted at /root/.ssh/id_rsa
-run_test $ADMIN $BASTION_IP $PORT_STD $KEY_ADMIN "PASS" "Admin -> Bastion"
+run_test $ADMIN $BASTION_IP $PORT_SSH $KEY_ADMIN "PASS" "Admin -> Bastion"
 
 # Attacker 1 -> Bastion (External) (Should FAIL)
 # Attacker 1 has no keys mounted in topology
-run_test $ATTACKER_1 $BASTION_IP $PORT_STD "" "FAIL" "Attacker 1 (Ext) -> Bastion"
+run_test $ATTACKER_1 $BASTION_IP $PORT_SSH "" "FAIL" "Attacker 1 (Ext) -> Bastion"
 
 # Attacker 2 -> Bastion (Internal Client Net) (Should FAIL)
 # Attacker 2 has no keys mounted in topology
-run_test $ATTACKER_2 $BASTION_IP $PORT_STD "" "FAIL" "Attacker 2 (Int) -> Bastion"
+run_test $ATTACKER_2 $BASTION_IP $PORT_SSH "" "FAIL" "Attacker 2 (Int) -> Bastion"
 
 
 echo "---------------------------------------------------------"
