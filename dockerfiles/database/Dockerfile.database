@@ -29,7 +29,9 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 
 # --- Add a dedicated admin user ---
 RUN addgroup -g 1001 admin && \
-    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
+
 
     
 # --- Configure sudo for admin ---
@@ -55,7 +57,7 @@ RUN mkdir -p /var/run/sshd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# --- MariaDB Configuration ---
+# --- MariaDB Configuration --- 
 # Create the data directory and give the 'mysql' user ownership
 RUN mkdir -p /var/lib/mysql && \
     chown -R mysql:mysql /var/lib/mysql

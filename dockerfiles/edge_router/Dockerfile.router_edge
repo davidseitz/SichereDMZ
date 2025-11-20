@@ -13,13 +13,16 @@ RUN apt-get update && \
       curl \
       gnupg \
       sudo \
+      gpg \
       openssh-server \
       nftables \
       jq \
       aide \
       cron \
-      inetutils-ping \
-      suricata
+      inetutils-ping 
+
+RUN apt-get update && \
+    apt-get install -y suricata
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
 RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg' && \
@@ -40,9 +43,32 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# --- Add a dedicated admin user ---
+    # --- 4. Configure Suricata ---
+# Copy our custom, multi-interface configuration
+COPY suricata.yaml /etc/suricata/suricata.yaml
+RUN chown root:root /etc/suricata/suricata.yaml && \
+    chmod 644 /etc/suricata/suricata.yaml
+
+# --- Create Suricata User and Directories ---
+RUN addgroup --system --gid 1002 suricata && \
+    adduser --system --uid 1002 --gid 1002 --no-create-home --disabled-password --gecos "" --home /var/lib/suricata suricata && \
+    mkdir -p /var/log/suricata /var/lib/suricata && \
+    chown -R suricata:suricata /var/log/suricata /var/lib/suricata
+
+# --- 5. Download Initial Suricata Rules ---
+# This reads /etc/suricata/suricata.yaml, sees the 'rule-files' section,
+# downloads the default ET Open ruleset, and builds the 'suricata.rules' file.
+# Switch to suricata user to run update, ensuring correct file permissions
+USER suricata
+RUN suricata-update --no-test
+# Switch back to root for subsequent build steps 
+USER root
+
+# --- Add a dedicated admin user --- 
 RUN addgroup --gid 1001 admin && \
-    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin
+    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
+
 
 # --- Configure sudo for admin ---
 RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade, /usr/bin/aide, /usr/sbin/nft, /usr/bin/suricata" > /etc/sudoers.d/admin-router-rules && \

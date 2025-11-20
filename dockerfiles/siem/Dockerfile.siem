@@ -10,7 +10,8 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 COPY --from=builder /usr/bin/loki /usr/bin/loki
 
 RUN addgroup -g 1001 admin && \
-    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
 
 RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-apk-updates && \
     chmod 0440 /etc/sudoers.d/admin-apk-updates
@@ -18,7 +19,7 @@ RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade" > /etc/
 COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
-# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+# The AIDE package doesn't create this, but aide --init needs it to write the DB. 
 RUN mkdir -p /var/lib/aide && \
     chmod 750 /var/lib/aide && \
     touch /var/lib/aide/aide.db.gz && \

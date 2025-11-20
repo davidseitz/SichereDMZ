@@ -7,6 +7,7 @@ ADMIN_CONTAINER="clab-security_lab-admin"
 WEB_CONTAINER="clab-security_lab-web_server"
 WAF_IP="10.10.60.2"
 SIEM_IP="10.10.30.2"
+DB_IP="10.10.60.4"
 TIME_DNS_IP="10.10.30.4"
 SSH_PORT="3025"
 PRIVATE_KEY_PATH="/root/.ssh/id_rsa"
@@ -31,7 +32,7 @@ fi
 
 # --- Test 2: Bastion -> Database SSH (FORWARD) ---
 echo -n "Test 2: Bastion -> Database SSH ... "
-docker exec $BASTION_CONTAINER nc -z -w 2 10.10.60.4 $SSH_PORT >/dev/null 2>&1
+docker exec $BASTION_CONTAINER ssh -p $SSH_PORT -i $PRIVATE_KEY_PATH -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$DB_IP "echo SSH_SUCCESS" >/dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}SUCCESS${NC}"
 else

@@ -43,7 +43,8 @@ RUN apt-get update && \
 
 # --- Add a dedicated admin user ---
 RUN addgroup --gid 1001 admin && \
-    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin
+    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
 
 # --- Configure sudo for admin ---
 RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade, /usr/bin/aide, /usr/sbin/nft, /usr/bin/suricata" > /etc/sudoers.d/admin-router-rules && \
@@ -60,7 +61,7 @@ RUN mkdir -p /var/run/sshd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.  
 RUN mkdir -p /var/lib/aide/ && \
     chmod 750 /var/lib/aide && \
     touch /var/lib/aide/aide.db.new && \
