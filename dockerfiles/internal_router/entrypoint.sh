@@ -10,6 +10,10 @@ echo "Starting crond service for daily HIDS checks..."
 # 'cron' is the Debian daemon name
 /usr/sbin/cron
 
+# Starte den rsyslog-Daemon im Hintergrund
+echo "Starting rsyslogd..."
+/usr/sbin/rsyslogd -n &
+
 # A. Nftables (Firewall)
 # Note: Container must run with --cap-add=NET_ADMIN
 echo "Loading Nftables rules..."
