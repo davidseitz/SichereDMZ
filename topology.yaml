@@ -218,6 +218,7 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/ntp_dns/aide.conf:/etc/aide.conf:ro
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
     security_switch:
