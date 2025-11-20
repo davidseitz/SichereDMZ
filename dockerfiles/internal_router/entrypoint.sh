@@ -22,9 +22,12 @@ fi
 # --- 2. AIDE (HIDS) Initialization ---
 DB_PATH="/var/lib/aide/aide.db.gz"
 echo "AIDE database not found. Initializing..."
-/usr/bin/aide --init --config="/etc/aide.conf"
+/usr/bin/aide --init --config="/etc/aide.conf" > /dev/null
 echo "AIDE database initialized. Copying to $DB_PATH..."
 mv /var/lib/aide/aide.db.new "$DB_PATH"
+
+echo "Running baseline AIDE check..."
+/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
 
 # B. Fluent-bit (Logging)
 echo "Starting Fluent-bit..."

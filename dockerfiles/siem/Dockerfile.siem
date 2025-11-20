@@ -5,7 +5,7 @@ FROM alpine:3.22 AS final
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories && \
     echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache openssh-server su-exec sudo fluent-bit@testing aide@testing dcron chrony nftables
+    apk add --no-cache openssh-server su-exec sudo fluent-bit@testing aide@testing dcron chrony nftables jq
 
 COPY --from=builder /usr/bin/loki /usr/bin/loki
 
@@ -26,7 +26,7 @@ RUN mkdir -p /var/lib/aide && \
 
 
 # Run AIDE every 10 minutes (output handled by report_url in aide.conf)
-RUN echo "*/10 * * * * /usr/bin/aide --check" >> /etc/crontabs/root
+RUN echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontabs/root
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
