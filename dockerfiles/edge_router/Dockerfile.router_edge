@@ -4,6 +4,7 @@ FROM debian:12-slim AS final
 # Set non-interactive mode for apt to prevent it from hanging
 ENV DEBIAN_FRONTEND=noninteractive
 
+
 # --- 1. Install Base Dependencies ---
 # Includes 'ca-certificates' to fix the SSL/TLS error
 RUN apt-get update && \
