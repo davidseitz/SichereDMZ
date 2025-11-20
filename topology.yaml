@@ -155,7 +155,7 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         # MOUNT PRIVATE KEY
-        - sshkeys/sshkey:/root/.ssh/id_rsa
+        - sshkeys/admin/admin_key:/home/admin/.ssh/id_rsa
       network-mode: none
 
     client_switch:
@@ -195,16 +195,13 @@ topology:
       exec:
         - "ip addr add 10.10.30.3/29 dev eth10"
         - "ip route add default via 10.10.30.1"
-        # FIX PERMISSIONS FOR KEYS
-        - "chown -R admin:admin /home/admin/.ssh"
-        - "chmod 600 /home/admin/.ssh/id_rsa"
-        - "chmod 600 /home/admin/.ssh/authorized_keys"
       binds:
         - "config/aide/bastion/aide.conf:/etc/aide.conf:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         # MOUNT KEYS
-        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - sshkeys/admin/admin_key.pub:/home/admin/.ssh/authorized_keys:ro
+        # - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - sshkeys/sshkey:/home/admin/.ssh/id_rsa
       network-mode: none
 

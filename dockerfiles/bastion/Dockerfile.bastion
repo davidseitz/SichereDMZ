@@ -18,7 +18,8 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 
 # --- Add a dedicated admin user ---
 RUN addgroup -g 1001 admin && \
-    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
 
 # AIDE Setup
 RUN mkdir -p /var/lib/aide && \
