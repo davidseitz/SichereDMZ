@@ -55,6 +55,9 @@ COPY Corefile /etc/coredns/Corefile
 RUN mkdir -p etc/chrony
 COPY chrony.conf /etc/chrony/chrony.conf
 
+RUN mkdir -p /var/log/coredns && \
+    touch /var/log/coredns/query.log && \
+    chmod 666 /var/log/coredns/query.log
 
 # --- Harden SSH ---
 COPY sshd_config /etc/ssh/sshd_config

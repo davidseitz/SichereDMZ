@@ -25,7 +25,7 @@ echo "Starting chronyd (NTP) service..."
 /usr/sbin/chronyd -f /etc/chrony/chrony.conf
 
 echo "Starting CoreDNS service..."
-/usr/bin/coredns -conf /etc/coredns/Corefile &
+/usr/bin/coredns -conf /etc/coredns/Corefile >> /var/log/coredns/query.log 2>&1 &
 
 #    This runs it in the background using a config file we will provide.
 echo "Starting fluent-bit service..."

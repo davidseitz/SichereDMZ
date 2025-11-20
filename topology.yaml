@@ -222,7 +222,7 @@ topology:
         - config/fluent-bit/ntp_dns/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/ntp_dns/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/ntp_dns/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
-      network-mode: none
+#      network-mode: none
 
     security_switch:
       kind: linux
