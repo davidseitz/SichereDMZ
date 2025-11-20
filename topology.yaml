@@ -121,7 +121,7 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         # MOUNT PUBLIC KEY
-        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
 
     dmz_switch:
       kind: linux
@@ -200,7 +200,7 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         # MOUNT KEYS
-        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - sshkeys/sshkey:/home/admin/.ssh/id_rsa
       network-mode: none
 
@@ -245,6 +245,8 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+
       network-mode: none
 
     resource_switch:
