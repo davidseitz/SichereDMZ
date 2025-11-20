@@ -63,6 +63,13 @@ RUN mkdir -p /var/lib/mysql && \
 # Generate SSH host keys if not present
 RUN ssh-keygen -A
 
+# Create log dir for mariadb
+RUN mkdir -p /var/log/mysql
+RUN chown mysql:mysql /var/log/mysql
+RUN chmod 755 /var/log/mysql
+
+
+
 # Expose ports
 EXPOSE 3025
 EXPOSE 3306
