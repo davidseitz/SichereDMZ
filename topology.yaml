@@ -147,7 +147,7 @@ topology:
         - "ip addr add 10.10.20.2/29 dev eth10"
         - "ip route add default via 10.10.20.1"
       binds:
-        - "sshkey/sshkey:/root/.ssh/id_rsa:ro"
+        - "sshkey/sshkey:/home/admin/.ssh/id_rsa:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
       network-mode: none
@@ -193,6 +193,7 @@ topology:
         - "config/aide/bastion/aide.conf:/etc/aide.conf:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/bastion/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
       network-mode: none
 
     timedns_server:

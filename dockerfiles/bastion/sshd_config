@@ -16,6 +16,8 @@ AllowUsers admin@10.10.20.2
 
 # Log to stderr
 LogLevel INFO
+SyslogFacility AUTH
+
 # UsePAM no
 X11Forwarding no
 AllowTcpForwarding no
