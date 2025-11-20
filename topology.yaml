@@ -24,6 +24,7 @@ topology:
         - config/aide/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
     internal_router:
@@ -47,6 +48,7 @@ topology:
         - config/aide/router/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
     # --- Externe/Angreifer-Knoten ---
