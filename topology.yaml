@@ -24,6 +24,9 @@ topology:
         - config/aide/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/edge_router/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/edge_router/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/edge_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
       network-mode: none
 
 
@@ -47,6 +50,9 @@ topology:
         - config/aide/router/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/internal_router/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/internal_router/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/internal_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
       network-mode: none
 
     # --- Externe/Angreifer-Knoten (Now the REAL Internet Gateway) ---
@@ -248,6 +254,7 @@ topology:
         - config/fluent-bit/database/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/database/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/database/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
+        - config/database/my.cnf:/etc/my.cnf:ro
       network-mode: none
 
 
