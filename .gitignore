@@ -1,5 +1,6 @@
 clab-security_lab/
 build/build_logs/
+fluent-bit-build-plugins/
 attacks/reports/
 siem-demo/loki/data/*
 cleanup.sh
