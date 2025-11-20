@@ -14,7 +14,7 @@ RUN mkdir -p /var/run/sshd
 
 # --- Add a dedicated admin user ---
 RUN addgroup --gid 1001 admin && \
-    adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin && \
+    adduser --uid 1000 --gid 1001 --gecos "" --home /home/admin admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd
 
 # --- Prepare SSH Directory for Mounting ---
