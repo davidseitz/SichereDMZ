@@ -54,7 +54,7 @@ RUN mkdir -p /var/run/sshd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# --- MariaDB Configuration ---
+# --- MariaDB Configuration --- 
 # Create the data directory and give the 'mysql' user ownership
 RUN mkdir -p /var/lib/mysql && \
     chown -R mysql:mysql /var/lib/mysql

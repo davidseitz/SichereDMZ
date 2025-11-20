@@ -1,3 +1,4 @@
+import time
 from flask import Flask, render_template, request, redirect, session
 import pymysql
 import bcrypt
@@ -51,6 +52,7 @@ def init_db():
         except pymysql.err.OperationalError as e:
             retry -= 1
             print(f"Database connection failed during init. Retry {retry}")
+            time.sleep(5)
     if DB_AVAILABLE != True:
         print("Couln't establish connection!")
     

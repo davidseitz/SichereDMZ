@@ -62,7 +62,7 @@ RUN suricata-update --no-test
 # Switch back to root for subsequent build steps 
 USER root
 
-# --- Add a dedicated admin user ---
+# --- Add a dedicated admin user --- 
 RUN addgroup --gid 1001 admin && \
     adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin
 

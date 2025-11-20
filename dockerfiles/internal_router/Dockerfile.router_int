@@ -56,7 +56,7 @@ RUN mkdir -p /var/run/sshd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+# The AIDE package doesn't create this, but aide --init needs it to write the DB.  
 RUN mkdir -p /var/lib/aide/ && \
     chmod 750 /var/lib/aide && \
     touch /var/lib/aide/aide.db.new && \

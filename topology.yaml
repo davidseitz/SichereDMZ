@@ -240,6 +240,7 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - "sshkey/sshkey:/root/.ssh/id_rsa:ro"
       network-mode: none
 
 

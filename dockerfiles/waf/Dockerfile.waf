@@ -52,5 +52,5 @@ EXPOSE 80
 EXPOSE 443
 EXPOSE 3025
 
-# Setze das neue Start-Skript als Standardbefehl
+# Setze das neue Start-Skript als Standardbefehl 
 CMD ["/start_waf.sh"]

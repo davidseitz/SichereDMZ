@@ -27,7 +27,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin
 
-# The AIDE package doesn't create this, but aide --init needs it to write the DB.
+# The AIDE package doesn't create this, but aide --init needs it to write the DB. 
 RUN mkdir -p /var/lib/aide && \
     chmod 750 /var/lib/aide && \
     touch /var/lib/aide/aide.db.gz && \
