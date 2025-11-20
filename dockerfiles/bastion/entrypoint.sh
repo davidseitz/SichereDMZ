@@ -7,13 +7,16 @@ set -e
 # This is the "first-run" task you correctly identified.
 echo "AIDE database. Initializing..."
 echo "This may take a minute..."
-/usr/bin/aide --init
+/usr/bin/aide --init > /dev/null
 echo "AIDE database initialized. Copyingm..."
 mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
 
+echo "Running baseline AIDE check..."
+/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
+
 # Start the OpenSSH server daemon
 echo "Starting sshd service on port 3025..."
-/usr/sbin/sshd
+/usr/sbin/sshd -e 2>> /var/log/ssh-custom.log
 
 # Start the 'cron' daemon in the foreground (it forks itself)
 # This will run our daily 'aide --check' script

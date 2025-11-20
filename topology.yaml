@@ -24,6 +24,9 @@ topology:
         - config/aide/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/edge_router/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/edge_router/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/edge_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
@@ -48,6 +51,9 @@ topology:
         - config/aide/router/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/internal_router/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/internal_router/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/internal_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
@@ -152,6 +158,7 @@ topology:
         # FIX PERMISSIONS FOR PRIVATE KEY
         - "chmod 600 /root/.ssh/id_rsa"
       binds:
+        - "sshkey/sshkey:/home/admin/.ssh/id_rsa:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         # MOUNT PRIVATE KEY
@@ -187,6 +194,9 @@ topology:
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/siem/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/siem/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/siem/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
 
     bastion:
@@ -199,6 +209,9 @@ topology:
         - "config/aide/bastion/aide.conf:/etc/aide.conf:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/bastion/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
+        - config/fluent-bit/bastion/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/bastion/parsers:/etc/fluent-bit/parsers:ro
         # MOUNT KEYS
         - sshkeys/admin/admin_key.pub:/home/admin/.ssh/authorized_keys:ro
         # - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
@@ -217,6 +230,9 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/ntp_dns/aide.conf:/etc/aide.conf:ro
+        - config/fluent-bit/ntp_dns/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/ntp_dns/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/ntp_dns/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
       network-mode: none
 
@@ -247,6 +263,10 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/database/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/database/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/database/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
+        - config/database/my.cnf:/etc/my.cnf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
 
       network-mode: none

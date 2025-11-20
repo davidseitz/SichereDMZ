@@ -2,14 +2,7 @@
 # This script runs as root
 set -e
 
-# --- 1. AIDE (HIDS) Initialization ---
-DB_PATH="/var/lib/aide/aide.db.gz"
-echo "AIDE database not found. Initializing..."
-/usr/bin/aide --init --config="/etc/aide.conf"
-echo "AIDE database initialized. Copying to $DB_PATH..."
-mv /var/lib/aide/aide.db.new "$DB_PATH"
-
-# --- 2. Start Services ---
+# --- 1. Start Services ---
 echo "Starting sshd service on port 3025..."
 /usr/sbin/sshd
 
@@ -25,6 +18,16 @@ if [ -f /etc/nftables.conf ]; then
 else
     echo "WARNING: /etc/nftables.conf not found. No firewall rules loaded."
 fi
+
+# --- 2. AIDE (HIDS) Initialization ---
+DB_PATH="/var/lib/aide/aide.db.gz"
+echo "AIDE database not found. Initializing..."
+/usr/bin/aide --init --config="/etc/aide.conf" > /dev/null
+echo "AIDE database initialized. Copying to $DB_PATH..."
+mv /var/lib/aide/aide.db.new "$DB_PATH"
+
+echo "Running baseline AIDE check..."
+/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
 
 # B. Fluent-bit (Logging)
 echo "Starting Fluent-bit..."
