@@ -17,7 +17,7 @@ COPY start_webserver.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 # Expose port 80, which Gunicorn will now bind to 
-EXPOSE 80
+EXPOSE 80 
 
 # The CMD runs the startup script, which execs Gunicorn on port 80
 CMD ["/app/start.sh"]

@@ -4,7 +4,7 @@
 BASTION_CONTAINER="clab-security_lab-bastion" # <-- WICHTIG: Bitte anpassen!
 ADMIN_CONTAINER="clab-security_lab-admin"     # Behalten für Test 3 
 WAF_MGMT_IP="10.10.60.2"                      # The WAF's management IP 
-PRIVATE_KEY_PATH="/root/.ssh/id_rsa"          # 
+PRIVATE_KEY_PATH="/home/admin/.ssh/id_rsa"          # 
 SSH_PORT="3025"                               # 
 
 # --- Farben für die Ausgabe ---
@@ -21,7 +21,7 @@ echo -n "Test 1: (BASTION) Zugriff mit privatem SSH-Key ... "
 
 # -p = Port, -i = identity, -o StrictHostKeyChecking=no
 # Test wird jetzt vom BASTION_CONTAINER ausgeführt
-OUTPUT=$(docker exec $BASTION_CONTAINER ssh -p $SSH_PORT -i $PRIVATE_KEY_PATH -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$WAF_MGMT_IP "echo SSH_KEY_SUCCESS" 2>/dev/null) 
+OUTPUT=$(docker exec $BASTION_CONTAINER ssh -p $SSH_PORT -i $PRIVATE_KEY_PATH -o StrictHostKeyChecking=no -o ConnectTimeout=5 admin@$WAF_MGMT_IP "echo SSH_KEY_SUCCESS" 2>/dev/null) 
 
 if [ $? -eq 0 ] && [[ "$OUTPUT" == *"SSH_KEY_SUCCESS"* ]]; then 
     echo -e "${GREEN}ERFOLG${NC}: SSH-Login vom Bastion-Host war erfolgreich." 
@@ -35,7 +35,7 @@ fi
 echo -n "Test 2: (BASTION) Zugriff mit Passwort-Authentifizierung ... " 
 
 # Test wird jetzt vom BASTION_CONTAINER ausgeführt
-docker exec $BASTION_CONTAINER ssh -p $SSH_PORT -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=3 root@$WAF_MGMT_IP "echo SSH_PASS_FAIL" > /dev/null 2>&1 
+docker exec $BASTION_CONTAINER ssh -p $SSH_PORT -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=3 admin@$WAF_MGMT_IP "echo SSH_PASS_FAIL" > /dev/null 2>&1 
 
 if [ $? -ne 0 ]; then 
     echo -e "${GREEN}ERFOLG${NC}: Server hat Passwort-Authentifizierung (vom Bastion) wie erwartet abgewiesen." 
@@ -48,9 +48,9 @@ fi
 # Wir prüfen, ob der Login vom ADMIN-HOST (falsche IP) fehlschlägt.
 echo -n "Test 3: (ADMIN)   Direkt-Zugriff von Admin-Host ... "
 
-# Dieser Test sollte fehlschlagen, da die sshd_config "AllowUsers root@10.10.30.3" vorschreibt.
+# Dieser Test sollte fehlschlagen, da die sshd_config "AllowUsers admin@10.10.30.3" vorschreibt.
 # Wir verwenden den Key, der fehlschlagen MUSS, da die Quell-IP falsch ist.
-docker exec $ADMIN_CONTAINER ssh -p $SSH_PORT -i $PRIVATE_KEY_PATH -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$WAF_MGMT_IP "echo SSH_ADMIN_FAIL" > /dev/null 2>&1
+docker exec $ADMIN_CONTAINER ssh -p $SSH_PORT -i $PRIVATE_KEY_PATH -o StrictHostKeyChecking=no -o ConnectTimeout=5 admin@$WAF_MGMT_IP "echo SSH_ADMIN_FAIL" > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
     echo -e "${GREEN}ERFOLG${NC}: Server hat Verbindung von nicht autorisierter IP (Admin) wie erwartet abgewiesen."
