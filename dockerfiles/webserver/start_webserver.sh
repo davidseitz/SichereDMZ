@@ -9,6 +9,26 @@ MAX_RETRIES=30
 RETRY_INTERVAL=2
 count=0
 
+#--- SSHD Setup ---
+# --- 1. Host-Keys generieren (nur falls nötig) ---
+#    Wir prüfen nur noch auf die Keys. Die Konfig ist jetzt im Image.
+if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
+    
+    echo "INFO: SSH host keys not found (empty /etc/ssh volume?)."
+    echo "INFO: Initializing SSHD..."
+    
+    # 1a. Stelle sicher, dass das Verzeichnis existiert
+    mkdir -p /etc/ssh
+    
+    # 1b. Generiere die Host-Keys
+    ssh-keygen -A
+fi
+
+# --- 2. Starte den SSH-Daemon ---
+echo "INFO: Starte /usr/sbin/sshd (config is baked into image)..."
+/usr/sbin/sshd
+
+#--- Main Web Server Startup ---
 echo "--- Starting Gunicorn Only Web Server Setup ---"
 
 # --- 1. Wait for MariaDB ---

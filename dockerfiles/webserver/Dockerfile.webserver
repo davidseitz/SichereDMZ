@@ -4,7 +4,7 @@ FROM python:3.11-alpine
 # Install system dependencies including netcat (nc) for the wait loop
 # Also install bash, as some shell features might require it over sh
 # We use netcat-openbsd as the 'nc' command
-RUN apk update && apk add --no-cache gcc musl-dev libgcc libstdc++ bash netcat-openbsd
+RUN apk update && apk add --no-cache gcc musl-dev libgcc libstdc++ bash netcat-openbsd openssh-server
 
 WORKDIR /app
 
@@ -15,6 +15,26 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ /app/
 COPY start_webserver.sh /app/start.sh
 RUN chmod +x /app/start.sh
+
+
+# --- SSH-Konfiguration ---
+# Copy configuration
+COPY sshd_config /etc/ssh/sshd_config
+RUN mkdir -p /var/run/sshd
+
+# --- Add a dedicated admin user ---
+RUN addgroup -g 1001 admin && \
+    adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd
+
+# --- Prepare SSH Directory for Mounting ---
+# We create the directory here so we can set permissions before mounting
+RUN mkdir -p /home/admin/.ssh && \
+    chmod 700 /home/admin/.ssh && \
+    chown admin:admin /home/admin/.ssh
+
+# Expose port for SSH
+EXPOSE 3025
 
 # Expose port 80, which Gunicorn will now bind to 
 EXPOSE 80 
