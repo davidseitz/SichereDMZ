@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Interner Serverfehler (500)</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; }
+  .container { background:#fff; padding:40px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.1); width: 400px; text-align: center; }
+  h1 { color: #dc3545; font-size: 2.5em; margin-bottom: 10px; }
+  h2 { color: #333; font-size: 1.5em; margin-bottom: 20px; }
+  p { color: #555; margin-bottom: 20px; }
+  .error-code { font-size: 4em; font-weight: bold; color: #dc3545; line-height: 1; }
+  a { display: inline-block; padding: 10px 20px; background: #007bff; color: #fff; text-decoration: none; border-radius: 6px; transition: background 0.3s;}
+  a:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="error-code">500</div>
+    <h1>Interner Serverfehler</h1>
+    <h2>Ein unerwarteter Fehler ist aufgetreten.</h2>
+    <p>{{ error_message }}</p>
+    <a href="{{ url_for('index') }}">Zur Startseite</a>
+</div>
+</body>
+</html>
