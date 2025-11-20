@@ -181,6 +181,9 @@ topology:
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/siem/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/siem/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/siem/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
 
     bastion:
       kind: linux
@@ -210,6 +213,9 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/ntp_dns/aide.conf:/etc/aide.conf:ro
+        - config/fluent-bit/ntp_dns/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/ntp_dns/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/ntp_dns/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
       network-mode: none
 
     security_switch:
@@ -239,6 +245,9 @@ topology:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/fluent-bit/database/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/database/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/database/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
       network-mode: none
 
 
