@@ -194,6 +194,8 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         - config/fluent-bit/bastion/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
+        - config/fluent-bit/bastion/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/bastion/parsers:/etc/fluent-bit/parsers:ro
       network-mode: none
 
     timedns_server:
