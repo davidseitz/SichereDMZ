@@ -1,4 +1,5 @@
 .:53 {
+    bind 10.10.30.4
     forward . 1.1.1.1 8.8.8.8
     log /var/log/coredns/query.log . {
         class all
