@@ -50,11 +50,11 @@ RUN echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >>
 
 # coredns config
 RUN mkdir -p /etc/coredns
-COPY Corefile /etc/coredns/Corefile
+# COPY Corefile /etc/coredns/Corefile
 
 # chrony config
 RUN mkdir -p etc/chrony
-COPY chrony.conf /etc/chrony/chrony.conf
+# COPY chrony.conf /etc/chrony/chrony.conf
 
 RUN mkdir -p /var/log/coredns && \
     touch /var/log/coredns/query.log && \
