@@ -50,7 +50,7 @@ RUN mkdir -p /var/lib/aide && \
 RUN echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontabs/root
 
 # --- Harden SSH ---
-COPY sshd_config /etc/ssh/sshd_config
+# COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
 # --- Setup Entrypoint ---

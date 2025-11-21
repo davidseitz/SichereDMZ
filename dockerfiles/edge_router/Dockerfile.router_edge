@@ -78,7 +78,7 @@ RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get up
 RUN echo "*/10 * * * * root /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontab
 
 # --- Harden SSH ---
-COPY sshd_config /etc/ssh/sshd_config
+# COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
 # --- Setup Entrypoint ---
