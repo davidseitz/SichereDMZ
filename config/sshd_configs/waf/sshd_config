@@ -9,6 +9,9 @@ PasswordAuthentication no
 PubkeyAuthentication yes
 PermitEmptyPasswords no
 
+
+ListenAddress 10.10.60.2
+
 # --- BASTION HOST BEST PRACTICE ---
 # Only allow the 'admin' user from the Bastion's IP.
 AllowUsers admin@10.10.30.3
