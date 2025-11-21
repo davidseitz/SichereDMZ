@@ -28,6 +28,7 @@ topology:
         - config/fluent-bit/edge_router/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/edge_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/edge_router/sshd_config:/etc/ssh/sshd_config:ro
       network-mode: none
 
     internal_router:
@@ -55,6 +56,7 @@ topology:
         - config/fluent-bit/internal_router/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/internal_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/internal_router/sshd_config:/etc/ssh/sshd_config:ro
       network-mode: none
 
     # --- Externe/Angreifer-Knoten ---
@@ -103,6 +105,7 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/webserver/sshd_config:/etc/ssh/sshd_config:ro
       network-mode: none
 
     reverse_proxy:
@@ -132,6 +135,7 @@ topology:
         - certs/key.pem:/etc/nginx/ssl/key.pem:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
+        - config/sshd_configs/waf/sshd_config:/etc/ssh/sshd_config:ro
         # MOUNT PUBLIC KEY
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
 
@@ -201,6 +205,7 @@ topology:
         - config/fluent-bit/siem/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/siem/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/siem/sshd_config:/etc/ssh/sshd_config:ro
 
     bastion:
       kind: linux
@@ -238,6 +243,7 @@ topology:
         - config/fluent-bit/ntp_dns/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/ntp_dns/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/ntp_dns/sshd_config:/etc/ssh/sshd_config:ro
       network-mode: none
 
     security_switch:
@@ -272,6 +278,7 @@ topology:
         - config/fluent-bit/database/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - config/database/my.cnf:/etc/my.cnf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
+        - config/sshd_configs/database/sshd_config:/etc/ssh/sshd_config:ro
 
       network-mode: none
 
