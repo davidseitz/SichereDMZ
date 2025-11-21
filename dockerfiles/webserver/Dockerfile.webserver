@@ -4,7 +4,7 @@ FROM python:3.11-alpine
 # Install system dependencies including netcat (nc) for the wait loop
 # Also install bash, as some shell features might require it over sh
 # We use netcat-openbsd as the 'nc' command
-RUN apk update && apk add --no-cache gcc musl-dev libgcc libstdc++ bash netcat-openbsd openssh-server
+RUN apk update && apk add --no-cache gcc musl-dev libgcc libstdc++ bash netcat-openbsd openssh-server nftables
 
 WORKDIR /app
 

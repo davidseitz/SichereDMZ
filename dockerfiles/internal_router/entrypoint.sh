@@ -29,26 +29,26 @@ mv /var/lib/aide/aide.db.new "$DB_PATH"
 echo "Running baseline AIDE check..."
 /usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
 
-# B. Fluent-bit (Logging)
-echo "Starting Fluent-bit..."
-# Official Debian package installs to /opt/fluent-bit/bin/
-if [ -f /opt/fluent-bit/bin/fluent-bit ]; then
-    /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
-else
-    # Fallback for standard repo install
-    /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
-fi
+# # B. Fluent-bit (Logging)
+# echo "Starting Fluent-bit..."
+# # Official Debian package installs to /opt/fluent-bit/bin/
+# if [ -f /opt/fluent-bit/bin/fluent-bit ]; then
+#     /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+# else
+#     # Fallback for standard repo install
+#     /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+# fi
 
 # C. Suricata (IDS/IPS)
-echo "Starting Suricata on eth0..."
-# -D runs it as a daemon (background)
-# -i eth0 tells it which interface to listen on
-/usr/bin/suricata -c /etc/suricata/suricata.yaml -i eth0 -D
+# echo "Starting Suricata on eth0..."
+# # -D runs it as a daemon (background)
+# # -i eth0 tells it which interface to listen on
+# /usr/bin/suricata -c /etc/suricata/suricata.yaml -i eth0 -D
 
 echo "Starting chrony..."
 chronyd -f /etc/chrony/chrony.conf
 
 
 # --- 3. Keep Container Alive ---
-echo "Edge-Router is running. Awaiting connections."
+echo "Internal Router is running. Awaiting connections."
 exec "$@"

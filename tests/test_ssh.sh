@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# --- Loglevel---
+LOGLEVEL="DEBUG"
+
 # --- Configuration & Container Names ---
 # Derived from 'name: security_lab' in topology.yaml
 PREFIX="clab-security_lab"
@@ -50,15 +53,14 @@ run_test() {
     echo -n "Testing: $name ($src -> $dst:$port)... "
 
     # Construct command
-    # -o LogLevel=ERROR: Suppresses "Warning: Permanently added..." messages
     # -o StrictHostKeyChecking=no: Auto-accept new keys
     # -o UserKnownHostsFile=/dev/null: Don't save keys to a real file
     # -o BatchMode=yes: Fail instead of asking for passwords
-    local cmd="ssh -p $port -i $key -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
+    local cmd="ssh -p $port -i $key -o LogLevel=$LOGLEVEL -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
 
     if [ -z "$key" ]; then
         # If no key provided (e.g. attackers), don't use -i
-        cmd="ssh -p $port -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
+        cmd="ssh -p $port -o LogLevel=$LOGLEVEL -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes -o ConnectTimeout=5 $USER@$dst 'echo OK'"
     fi
 
     # Execute inside container

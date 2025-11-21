@@ -125,9 +125,6 @@ topology:
           '
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
-        # FIX PERMISSIONS FOR MOUNTED KEY
-        - "chown admin:admin /home/admin/.ssh/authorized_keys"
-        - "chmod 600 /home/admin/.ssh/authorized_keys"
       binds:
         - config/waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
@@ -162,8 +159,6 @@ topology:
       exec:
         - "ip addr add 10.10.20.2/29 dev eth10"
         - "ip route add default via 10.10.20.1"
-        # FIX PERMISSIONS FOR PRIVATE KEY
-        - "chmod 600 /root/.ssh/id_rsa"
       binds:
         - "sshkey/sshkey:/home/admin/.ssh/id_rsa:ro"
         - config/dns/resolv.conf:/etc/resolv.conf:ro
@@ -191,6 +186,7 @@ topology:
       exec:
         - "ip addr add 10.10.30.2/29 dev eth10"
         - "ip addr add 10.10.60.5/28 dev ethmgmt"
+        - "ip route del default"
         - "ip route add default via 10.10.30.1"
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
