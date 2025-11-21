@@ -1,4 +1,4 @@
-# NEW: Listen on our non-standard port
+# Listen on our non-standard port
 Port 3025
 
 Protocol 2
@@ -8,12 +8,12 @@ PermitRootLogin no
 PasswordAuthentication no
 PubkeyAuthentication yes
 PermitEmptyPasswords no
-ListenAddress 10.10.60.5
 
+# --- BASTION HOST BEST PRACTICE ---
+# Only allow the 'admin' user from the Bastion's IP.
 AllowUsers admin@10.10.30.3
 
 # Log to stderr
 LogLevel INFO
-UsePAM no
 X11Forwarding no
 AllowTcpForwarding no

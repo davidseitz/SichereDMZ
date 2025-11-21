@@ -215,6 +215,7 @@ topology:
         - config/fluent-bit/bastion/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - config/fluent-bit/bastion/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/bastion/parsers:/etc/fluent-bit/parsers:ro
+        - config/sshd_configs/bastion/sshd_config:/etc/ssh/sshd_config:ro
         # MOUNT KEYS
         - sshkeys/admin/admin_key.pub:/home/admin/.ssh/authorized_keys:ro
         # - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro

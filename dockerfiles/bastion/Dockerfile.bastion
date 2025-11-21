@@ -36,7 +36,7 @@ RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bi
 RUN echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontabs/root
 
 # --- Harden SSH ---
-COPY sshd_config /etc/ssh/sshd_config
+# COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
 # --- CONFIG TWEAK FOR BASTION ---
