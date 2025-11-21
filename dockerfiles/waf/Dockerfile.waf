@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 # --- SSH-Konfiguration ---
 # Copy configuration
-COPY sshd_config /etc/ssh/sshd_config
+#COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
 # --- Add a dedicated admin user ---

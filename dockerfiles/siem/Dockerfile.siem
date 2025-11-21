@@ -16,7 +16,7 @@ RUN addgroup -g 1001 admin && \
 RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-apk-updates && \
     chmod 0440 /etc/sudoers.d/admin-apk-updates
 
-COPY sshd_config /etc/ssh/sshd_config
+#COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
 
 # The AIDE package doesn't create this, but aide --init needs it to write the DB. 
