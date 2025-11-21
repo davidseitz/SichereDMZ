@@ -17,6 +17,6 @@ AllowUsers admin@10.10.30.3
 
 # Log to stderr
 LogLevel INFO
-UsePAM no
+#UsePAM no
 X11Forwarding no
 AllowTcpForwarding no
