@@ -40,13 +40,15 @@ echo "Starting fluent-bit service..."
 # --- Start MariaDB (Temporary Background Start) ---
 echo "Starting MariaDB in background for setup..."
 # Start MariaDB in the background, allowing the script to continue.
-/usr/bin/mariadbd \
-  --user=mysql \
-  --datadir=/var/lib/mysql \
-  --skip-name-resolve \
-  --bind-address=0.0.0.0 \
-  --skip-networking=0 \
-  --port=3306 &
+#/usr/bin/mariadbd \
+#  --user=mysql \
+#  --datadir=/var/lib/mysql \
+#  --skip-name-resolve \
+#  --bind-address=0.0.0.0 \
+#  --skip-networking=0 \
+#  --port=3306 &
+
+/usr/bin/mariadbd --defaults-file=/etc/my.cnf &
 
 # Wait for MariaDB to start up and listen on the socket
 for i in {30..0}; do
@@ -104,13 +106,15 @@ chronyd -f /etc/chrony/chrony.conf
 
 # --- 4. Final Start MariaDB (Foreground) ---
 echo "Starting MariaDB in the foreground..."
-exec /usr/bin/mariadbd \
-  --user=mysql \
-  --datadir=/var/lib/mysql \
-  --skip-name-resolve \
-  --bind-address=0.0.0.0 \
-  --skip-networking=0 \
-  --port=3306
+#exec /usr/bin/mariadbd \
+#  --user=mysql \
+#  --datadir=/var/lib/mysql \
+#  --skip-name-resolve \
+#  --bind-address=0.0.0.0 \
+#  --skip-networking=0 \
+#  --port=3306
+
+/usr/bin/mariadbd --defaults-file=/etc/my.cnf &
 
 # The execution will never reach here if the above exec succeeds.
 # If the container keeps running after exec, this line is executed.
