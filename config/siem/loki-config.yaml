@@ -2,7 +2,9 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  http_listen_address: 10.10.30.2
   grpc_listen_port: 9096
+  grpc_listen_address: 10.10.30.2
   log_level: info
   grpc_server_max_concurrent_streams: 1000
 
