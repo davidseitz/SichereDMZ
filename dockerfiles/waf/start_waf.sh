@@ -15,8 +15,9 @@ if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
 fi
 
 # --- 2. Starte den SSH-Daemon ---
+sleep 10
 echo "INFO: Starte /usr/sbin/sshd (config is baked into image)..."
-/usr/sbin/sshd
+/usr/sbin/sshd -D -e
 
 # --- 3. Rufe das originale Entrypoint-Skript für Nginx auf ---
 echo "INFO: Übergebe an Nginx-Entrypoint..."
