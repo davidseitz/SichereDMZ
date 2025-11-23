@@ -58,4 +58,4 @@ python -c "from app import init_db; init_db()"
 echo "Starting Gunicorn (Backend) on port 80..."
 # 'exec' replaces the current shell process with Gunicorn, ensuring Gunicorn is PID 1
 # and listening directly on the external port 80.
-exec gunicorn -b 0.0.0.0:80 app:app --workers 2 --timeout 120
+exec gunicorn -b 10.10.10.4:80 app:app --workers 2 --timeout 120
