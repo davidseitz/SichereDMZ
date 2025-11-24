@@ -37,13 +37,13 @@ $NFT add rule inet filter FORWARD iifname "ethclient" oifname "ethtransit" \
 
 # F2 Attacker 2 (10.10.20.3) -> Internet HTTP/HTTPS via ethclient -> ethtransit
 $NFT add rule inet filter FORWARD iifname "ethclient" oifname "ethtransit" \
-    ip saddr 10.10.20.2 meta l4proto { tcp, udp } th dport { 80, 443} \
+    ip saddr 10.10.20.3 meta l4proto { tcp, udp } th dport { 80, 443} \
     log prefix \"FWI_ALLOW_ATT2_EDGE_ROUTER: \" counter accept
 
 # F8 Bastion (10.10.30.3) -> Internal Router (10.10.60.1) SSH via ethsecurity -> Internal Router
 $NFT add rule inet filter INPUT iifname "ethsecurity" \
     ip saddr 10.10.30.3 ip daddr 10.10.60.1 tcp dport 3025 \
-    log prefix "FWI_ALLOW_BASTION_INTERNAL_ROUTER: " counter accept
+    log prefix \"FWI_ALLOW_BASTION_INTERNAL_ROUTER: \" counter accept
 
 # F9 Bastion (10.10.30.3) -> Database (10.10.60.4) SSH via ethsecurity -> ethmgmt
 $NFT add rule inet filter FORWARD iifname "ethsecurity" oifname "ethmgmt" \
@@ -103,7 +103,7 @@ $NFT add rule inet filter OUTPUT oifname "ethsecurity" \
 # F33 Internal Router (10.10.50.2) -> Internet HTTP/HTTPS OUTBOUND -> ethtransit
 $NFT add rule inet filter OUTPUT oifname "ethtransit" \
     ip saddr 10.10.50.2 meta l4proto { tcp, udp } th dport {80,443} \
-    log prefix "FWI_ALLOW_INTERNAL_ROUTER_INTERNET: " counter accept
+    log prefix \"FWI_ALLOW_INTERNAL_ROUTER_INTERNET: \" counter accept
 
 # F21 Web Server (10.10.10.4) -> SIEM (10.10.30.2) HTTP/HTTPS via ethdmz -> ethsecurity
 $NFT add rule inet filter FORWARD iifname "ethdmz" oifname "ethsecurity" \
@@ -130,7 +130,7 @@ $NFT add rule inet filter FORWARD iifname "ethtransit" oifname "ethsecurity" \
     ip saddr 10.10.50.1 ip daddr 10.10.30.4 udp dport { 53, 123} \
     log prefix \"FWI_ALLOW_EDGE_ROUTER_DNS: \" counter accept
 
-# F25 Internal Router () -> Time/DNS (10.10.30.4) DNS OUTBOUND -> ethsecurity
+# F25 Internal Router -> Time/DNS (10.10.30.4) DNS OUTBOUND -> ethsecurity
 $NFT add rule inet filter OUTPUT oifname "ethsecurity" \
     ip daddr 10.10.30.4 udp dport { 53, 123} \
     log prefix \"FWI_ALLOW_ROUTER_DNS: \" counter accept

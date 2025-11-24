@@ -17,10 +17,7 @@ topology:
         - "ip route add default via 192.168.1.1 dev ethwan"
         - "ip route add 10.10.0.0/16 via 10.10.50.2"
         - "sysctl -w net.ipv4.ip_forward=1"
-        - "chmod +x /fw_config/configure_fw.sh"
-        - "/fw_config/configure_fw.sh"
       binds:
-        - fw_config/edge/edge_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
@@ -29,6 +26,7 @@ topology:
         - config/fluent-bit/edge_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - config/sshd_configs/edge_router/sshd_config:/etc/ssh/sshd_config:ro
+        - config/firewalls/edge_nftables.conf:/etc/nftables.conf:ro
       network-mode: none
 
     internal_router:
@@ -45,10 +43,7 @@ topology:
         - "ip addr add 10.10.10.2/29 dev ethdmz"
         - "ip route add default via 10.10.50.1"
         - "sysctl -w net.ipv4.ip_forward=1"
-        - "chmod +x /fw_config/configure_fw.sh"
-        - "/fw_config/configure_fw.sh"
       binds:
-        - fw_config/internal/internal_configure_fw.sh:/fw_config/configure_fw.sh
         - config/aide/router/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
@@ -57,6 +52,7 @@ topology:
         - config/fluent-bit/internal_router/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - config/sshd_configs/internal_router/sshd_config:/etc/ssh/sshd_config:ro
+        - config/firewalls/internal_nftables.conf:/etc/nftables.conf:ro
       network-mode: none
 
     # --- Externe/Angreifer-Knoten ---

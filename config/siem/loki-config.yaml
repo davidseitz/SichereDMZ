@@ -2,14 +2,16 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
-  http_listen_address: 10.10.30.2
+#  http_listen_address: 10.10.30.2
+  http_listen_address: 0.0.0.0
   grpc_listen_port: 9096
-  grpc_listen_address: 10.10.30.2
+#  grpc_listen_address: 10.10.30.2
+  grpc_listen_address: 0.0.0.0
   log_level: info
   grpc_server_max_concurrent_streams: 1000
 
 common:
-  instance_addr: 127.0.0.1
+  instance_addr: 10.10.30.2
   path_prefix: /tmp/loki
   storage:
     filesystem:
