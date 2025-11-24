@@ -87,6 +87,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Generate SSH host keys if not present
 RUN ssh-keygen -A
 
+# FOR TESTING
+RUN apt update && apt install netcat-traditional -y
+
+
 # The AIDE package doesn't create this, but aide --init needs it to write the DB.
 RUN mkdir -p /var/lib/aide/ && \
     chmod 750 /var/lib/aide && \
