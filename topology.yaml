@@ -95,7 +95,6 @@ topology:
         FLASK_SECRET: "VerySecureP@ssword123!"
       exec:
         - "ip addr add 10.10.10.4/29 dev eth10"
-        - "ip addr add 10.10.10.5/29 dev eth1"
         - "ip addr add 10.10.60.3/28 dev ethmgmt"
         - "ip route add default via 10.10.10.2"
         - "chmod +x /fw_config/configure_fw.sh"
@@ -118,7 +117,6 @@ topology:
             while [ ! -d /sys/class/net/eth1 ] || [ ! -d /sys/class/net/eth10 ] || [ ! -d /sys/class/net/ethmgmt ]; do sleep 0.1; done;
             ip addr add 10.10.10.3/29 dev eth10
             ip addr add 10.10.60.2/28 dev ethmgmt
-            ip addr add 10.10.10.5/29 dev eth1
             ip route del default
             ip route add default via 10.10.10.2
             ip route add 192.168.1.0/24 via 10.10.10.1
@@ -318,7 +316,6 @@ topology:
     - endpoints: ["internal_router:ethmgmt", "mgmt_switch:eth7"]
     - endpoints: ["dmz_switch:eth4", "web_server:eth10"]
     - endpoints: ["dmz_switch:eth3", "reverse_proxy:eth10"]
-    - endpoints: ["web_server:eth1", "reverse_proxy:eth1"]
     - endpoints: ["client_switch:eth2", "admin:eth10"]
     - endpoints: ["client_switch:eth3", "attacker_2:eth10"]
     - endpoints: ["security_switch:eth2", "siem:eth10"]
