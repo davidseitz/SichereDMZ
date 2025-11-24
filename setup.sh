@@ -23,6 +23,8 @@ NC="\033[0m"
 
 # Funktion zum Starten des Labs
 function deploy_lab {
+    #Erstelle Bridge
+    sudo ./create_bridge.sh
     #Erstelle Verzeichnis für Loki
     mkdir -p ./siem-demo/loki/data
     
@@ -33,6 +35,9 @@ function deploy_lab {
 
 # Funktion zum Zerstören des Labs
 function destroy_lab {
+    # Zerstöre Bridge
+    sudo ./destroy_bridge.sh
+    
     echo -e "${BLUE}Zerstöre Containerlab-Topologie ($TOPOLOGY_FILE)...${NC}"
     # Ruft containerlab aufl
     containerlab destroy -t $TOPOLOGY_FILE
