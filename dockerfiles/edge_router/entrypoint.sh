@@ -27,7 +27,7 @@ echo "AIDE database initialized. Copying to $DB_PATH..."
 mv /var/lib/aide/aide.db.new "$DB_PATH"
 
 echo "Running baseline AIDE check..."
-/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
+/usr/bin/aide --check --config="/etc/aide.conf" | jq -c . >> /var/log/aide.json || true
 
 # B. Fluent-bit (Logging)
 echo "Starting Fluent-bit..."
