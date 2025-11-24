@@ -586,7 +586,7 @@ logging:
 
 # Linux high speed capture support
 af-packet:
-  - interface: ethwan
+  - interface: ethclient
     threads: auto
     cluster-type: cluster_qm
     cluster-id: 99
@@ -607,6 +607,17 @@ af-packet:
     cluster-type: cluster_qm
     cluster-id: 96
     # mtu: 9500
+  - interface: ethsecurity
+    threads: auto
+    cluster-type: cluster_qm
+    cluster-id: 95
+    # mtu: 9500
+  - interface: ethresource
+    threads: auto
+    cluster-type: cluster_qm
+    cluster-id: 94
+    # mtu: 9500
+
 
   # Put default values here. These will be used for an interface that is not
   # in the list above.

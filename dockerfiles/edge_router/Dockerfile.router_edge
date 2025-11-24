@@ -52,17 +52,16 @@ RUN chown root:root /etc/suricata/suricata.yaml && \
 # --- Create Suricata User and Directories ---
 RUN addgroup --system --gid 1002 suricata && \
     adduser --system --uid 1002 --gid 1002 --no-create-home --disabled-password --gecos "" --home /var/lib/suricata suricata && \
-    mkdir -p /var/log/suricata /var/lib/suricata && \
-    chown -R suricata:suricata /var/log/suricata /var/lib/suricata
+    # Create /var/run/suricata and set permissions
+    mkdir -p /var/log/suricata /var/lib/suricata /var/run/suricata && \
+    chown -R suricata:suricata /var/log/suricata /var/lib/suricata /var/run/suricata
 
 # --- 5. Download Initial Suricata Rules ---
 # This reads /etc/suricata/suricata.yaml, sees the 'rule-files' section,
 # downloads the default ET Open ruleset, and builds the 'suricata.rules' file.
 # Switch to suricata user to run update, ensuring correct file permissions
-USER suricata
 RUN suricata-update --no-test
-# Switch back to root for subsequent build steps 
-USER root
+
 
 # --- Add a dedicated admin user --- 
 RUN addgroup --gid 1001 admin && \

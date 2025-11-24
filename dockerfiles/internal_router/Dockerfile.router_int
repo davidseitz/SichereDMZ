@@ -16,8 +16,7 @@ RUN apt-get update && \
       nftables \
       aide \
       jq \
-      cron \
-      suricata
+      cron 
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
 RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg' && \
@@ -30,6 +29,7 @@ RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /u
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       suricata \
+      suricata-update \
       fluent-bit \
       chrony \
     && \
@@ -40,6 +40,25 @@ RUN apt-get update && \
 
 # FOR TESTING
 # RUN apt update && apt install netcat-traditional -y
+
+   # --- 4. Configure Suricata ---
+# Copy our custom, multi-interface configuration
+COPY suricata.yaml /etc/suricata/suricata.yaml
+RUN chown root:root /etc/suricata/suricata.yaml && \
+    chmod 644 /etc/suricata/suricata.yaml
+
+# --- Create Suricata User and Directories ---
+RUN addgroup --system --gid 1002 suricata && \
+    adduser --system --uid 1002 --gid 1002 --no-create-home --disabled-password --gecos "" --home /var/lib/suricata suricata && \
+    # Create /var/run/suricata and set permissions
+    mkdir -p /var/log/suricata /var/lib/suricata /var/run/suricata && \
+    chown -R suricata:suricata /var/log/suricata /var/lib/suricata /var/run/suricata
+
+# --- 5. Download Initial Suricata Rules ---
+# This reads /etc/suricata/suricata.yaml, sees the 'rule-files' section,
+# downloads the default ET Open ruleset, and builds the 'suricata.rules' file.
+# Switch to suricata user to run update, ensuring correct file permissions
+RUN suricata-update --no-test
 
 # --- Add a dedicated admin user ---
 RUN addgroup --gid 1001 admin && \
