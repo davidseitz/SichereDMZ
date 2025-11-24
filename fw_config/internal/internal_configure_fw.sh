@@ -98,7 +98,7 @@ $NFT add rule inet filter FORWARD iifname "ethtransit" oifname "ethsecurity" \
 # F19 Internal Router (10.10.30.1) -> SIEM (10.10.30.2) HTTP/HTTPS OUTBOUND -> ethsecurity
 $NFT add rule inet filter OUTPUT oifname "ethsecurity" \
     ip daddr 10.10.30.2 meta l4proto { tcp, udp } th dport 3100 \
-    log prefix "FWI_ALLOW_ROUTER_LOGS_SIEM: " counter accept
+    log prefix \"FWI_ALLOW_ROUTER_LOGS_SIEM: \" counter accept
 
 # F33 Internal Router (10.10.50.2) -> Internet HTTP/HTTPS OUTBOUND -> ethtransit
 $NFT add rule inet filter OUTPUT oifname "ethtransit" \
@@ -133,7 +133,7 @@ $NFT add rule inet filter FORWARD iifname "ethtransit" oifname "ethsecurity" \
 # F25 Internal Router () -> Time/DNS (10.10.30.4) DNS OUTBOUND -> ethsecurity
 $NFT add rule inet filter OUTPUT oifname "ethsecurity" \
     ip daddr 10.10.30.4 udp dport { 53, 123} \
-    log prefix "FWI_ALLOW_ROUTER_DNS: " counter accept
+    log prefix \"FWI_ALLOW_ROUTER_DNS: \" counter accept
 
 # F24 Database (10.10.40.2) -> Time/DNS (10.10.30.4) DNS via ethresource -> ethsecurity
 $NFT add rule inet filter FORWARD iifname "ethresource" oifname "ethsecurity" \
