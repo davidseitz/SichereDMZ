@@ -31,7 +31,6 @@ echo "Log-Dateien werden in '$LOG_DIR' gespeichert."
 
 # --- WICHTIG: Wechsle in das Projekt-Hauptverzeichnis ---
 # (Dorthin, wo das 'dockerfiles'-Verzeichnis liegt)
-# Dies muss VOR der 'find'-Schleife passieren!
 cd "$(dirname "$0")/.." || exit 1
 echo "Wechsle in das Projekt-Hauptverzeichnis: $PWD"
 
@@ -39,20 +38,14 @@ echo "Wechsle in das Projekt-Hauptverzeichnis: $PWD"
 cd $BASE_SEARCH_DIR || { echo -e "${RED}Fehler: Konnte nicht ins Basisverzeichnis wechseln.${NC}"; exit 1; }
 echo "Suche nach Dockerfiles in '$PWD'..."
 
-
-# NICHT 'set -e' hier verwenden, da wir Jobs im Hintergrund verwalten.
 JOB_COUNT=0
 FAILURES=0
 
 # Wir definieren die Build-Logik als Funktion
-# Dies macht die Schleife unten viel sauberer
-# Wir definieren die Build-Logik als Funktion
-# Dies macht die Schleife unten viel sauberer
 run_build_job() {
     DOCKERFILE_PATH=$1
     
     # set -e *innerhalb* der Sub-Shell. 
-    # Wenn hier etwas fehlschlägt, stoppt nur dieser Job, nicht alle.
     set -e 
 
     # --- 1. Variablen dynamisch ableiten ---
@@ -76,12 +69,22 @@ run_build_job() {
         echo "Image nicht gefunden. Build wird gestartet."
     else
         IMAGE_TIMESTAMP=$(date -d "$IMAGE_TIMESTAMP_STR" +%s)
-        DOCKERFILE_TIMESTAMP=$(date -r "$DOCKERFILE_PATH" +%s)
         
-        if [ $DOCKERFILE_TIMESTAMP -gt $IMAGE_TIMESTAMP ]; then
-            echo "Dockerfile ist neuer als das existierende Image. Neubau wird gestartet."
+        # --- ÄNDERUNG HIER ---
+        # Anstatt nur das Dockerfile zu prüfen, suchen wir die neuste Datei im gesamten Verzeichnis.
+        # find: alle Dateien | stat: Timestamp holen | sort: absteigend | head: nur die neuste
+        LATEST_CONTEXT_TIMESTAMP=$(find "$DOCKERFILE_DIR" -type f -exec stat -c %Y {} + | sort -nr | head -n1)
+
+        # Fallback, falls Verzeichnis leer (sollte nicht passieren, da Dockerfile existiert)
+        if [ -z "$LATEST_CONTEXT_TIMESTAMP" ]; then LATEST_CONTEXT_TIMESTAMP=0; fi
+        
+        echo "Image TS:   $IMAGE_TIMESTAMP"
+        echo "Context TS: $LATEST_CONTEXT_TIMESTAMP"
+
+        if [ "$LATEST_CONTEXT_TIMESTAMP" -gt "$IMAGE_TIMESTAMP" ]; then
+            echo "Änderungen im Verzeichnis erkannt (neuer als Image). Neubau wird gestartet."
         else
-            echo "Image ist bereits vorhanden und aktuell. Build wird übersprungen."
+            echo "Image ist bereits vorhanden und aktuell (Kontext unverändert). Build wird übersprungen."
             exit 0 # Job erfolgreich beendet (übersprungen)
         fi
     fi
@@ -90,8 +93,6 @@ run_build_job() {
     echo "Starte Image-Build aus '$DOCKERFILE_DIR'..."
     docker image rm $IMAGE_NAME > /dev/null 2>&1 || true
     
-    # Pfad zum Key, relativ zum Projekt-Stammverzeichnis
-    # (Das Skript läuft aus 'dockerfiles', also eine Ebene hoch)
     KEY_FILE_PATH="../sshkey/sshkey.pub"
 
     # Der eigentliche Build-Befehl
@@ -107,11 +108,9 @@ run_build_job() {
 
 # --- HAUPTSCHLEIFE: Job-Verwaltung ---
 
-# Prozesssubstitution, um 'stdin'-Konflikte zu vermeiden
 while IFS= read -r -d '' DOCKERFILE_PATH; do
 
     # --- Job-Pool-Verwaltung ---
-    # Warte, bis die Anzahl der laufenden Jobs unter dem Maximum liegt
     while (( $(jobs -p | wc -l) >= MAX_JOBS )); do
         sleep 1
     done
@@ -119,13 +118,11 @@ while IFS= read -r -d '' DOCKERFILE_PATH; do
     # --- Service-Namen für das Log holen ---
     SERVICE_NAME=$(basename "$DOCKERFILE_PATH")
     SERVICE_NAME="${SERVICE_NAME#Dockerfile.}"
-    LOG_FILE="../$LOG_DIR/${SERVICE_NAME}.log" # Pfad relativ zum Hauptverzeichnis
+    LOG_FILE="../$LOG_DIR/${SERVICE_NAME}.log" 
 
     echo -e "${BLUE}Starte Build-Job für: $SERVICE_NAME${NC} (Log: $LOG_FILE)"
 
     # --- Starte den Job im Hintergrund ---
-    # Wir rufen die Funktion 'run_build_job' in einer Sub-Shell auf
-    # und leiten STDOUT und STDERR in die Log-Datei um.
     (
         run_build_job "$DOCKERFILE_PATH"
     ) > "$LOG_FILE" 2>&1 &
@@ -137,7 +134,6 @@ done < <(find -type f -name "Dockerfile.*" -print0)
 # --- Aufräumen ---
 echo -e "\n${BLUE}Alle Build-Jobs gestartet ($JOB_COUNT). Warte auf Fertigstellung...${NC}"
 
-# Warte auf *alle* Hintergrund-Jobs, die in dieser Shell gestartet wurden
 wait
 
 echo -e "${GREEN}=== Alle Docker-Builds abgeschlossen ===${NC}"
@@ -145,8 +141,8 @@ echo -e "${GREEN}=== Alle Docker-Builds abgeschlossen ===${NC}"
 # --- Fehler-Zusammenfassung ---
 echo "Prüfe Logs auf Fehler..."
 for logfile in ../$LOG_DIR/*.log; do
-    # 'tail -n 1' holt die letzte Zeile, 'grep -q' prüft leise
-    if ! tail -n 1 "$logfile" | grep -q -E "erfolgreich gebaut|übersprungen"; then
+    # Check auf Erfolg oder Skip
+    if ! tail -n 5 "$logfile" | grep -q -E "erfolgreich gebaut|übersprungen"; then
         SERVICE_NAME=$(basename "$logfile" .log)
         echo -e "${RED}FEHLER im Build für: $SERVICE_NAME${NC} (Siehe $logfile)"
         FAILURES=$((FAILURES + 1))
