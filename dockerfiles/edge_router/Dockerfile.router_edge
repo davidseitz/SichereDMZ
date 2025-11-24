@@ -62,7 +62,6 @@ RUN addgroup --system --gid 1002 suricata && \
 # Switch to suricata user to run update, ensuring correct file permissions
 RUN suricata-update --no-test
 
-
 # --- Add a dedicated admin user --- 
 RUN addgroup --gid 1001 admin && \
     adduser --uid 1000 --gid 1001 --disabled-password --gecos "" --home /home/admin admin && \
