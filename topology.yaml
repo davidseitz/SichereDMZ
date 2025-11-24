@@ -67,6 +67,7 @@ topology:
         - ip addr add 172.20.1.10/24 dev ethwan
         - ip route add default via 172.20.1.1
         - "ip addr add 192.168.1.2/24 dev eth1"
+        - "ip addr add 10.10.0.0/16 dev eth1"
         - "sysctl -w net.ipv4.ip_forward=1"
         - "nft add table ip nat"
         - "nft add chain ip nat postrouting { type nat hook postrouting priority 100 ; }"
