@@ -1,19 +1,35 @@
 #!/bin/bash
 
-PHY_IFACE="eth0"
+# AUTOMATICALLY DETECT INTERFACE
+PHY_IFACE=$(ip route get 8.8.8.8 | sed -n 's/.*dev \([^\ ]*\).*/\1/p')
 BRIDGE="network_bridge"
 SUBNET="172.20.1.0/24"
 
+# Safety check
+if [ -z "$PHY_IFACE" ]; then
+    echo ">>> Error: Could not detect internet-facing interface. Cannot verify iptables rules."
+    exit 1
+fi
+
 echo ">>> Cleaning up NAT Bridge..."
+echo ">>> Detected Internet Interface for cleanup: $PHY_IFACE"
 
 # 1. Remove IPTables Rules
 # (The -D flag deletes the rule we added with -A previously)
-sudo iptables -t nat -D POSTROUTING -s $SUBNET -o $PHY_IFACE -j MASQUERADE
-sudo iptables -D FORWARD -i $BRIDGE -j ACCEPT
-sudo iptables -D FORWARD -o $BRIDGE -j ACCEPT
+# We suppress errors (2>/dev/null) just in case the rule is already gone or the interface changed.
+sudo iptables -t nat -D POSTROUTING -s $SUBNET -o $PHY_IFACE -j MASQUERADE 2>/dev/null || echo ">>> Note: NAT rule not found or already deleted."
+
+sudo iptables -D FORWARD -i $BRIDGE -j ACCEPT 2>/dev/null
+sudo iptables -D FORWARD -o $BRIDGE -j ACCEPT 2>/dev/null
 
 # 2. Delete the bridge
-sudo ip link set $BRIDGE down
-sudo ip link del $BRIDGE
+# Check if bridge exists before trying to delete
+if ip link show $BRIDGE > /dev/null 2>&1; then
+    sudo ip link set $BRIDGE down
+    sudo ip link del $BRIDGE
+    echo ">>> Bridge deleted."
+else
+    echo ">>> Bridge $BRIDGE does not exist."
+fi
 
 echo ">>> Done."
