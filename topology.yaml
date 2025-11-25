@@ -117,8 +117,8 @@ topology:
             ip addr add 10.10.60.2/28 dev ethmgmt
             ip addr add 10.10.10.5/29 dev eth1
             ip route del default
-            ip route add default via 10.10.10.2
-            ip route add 192.168.1.0/24 via 10.10.10.1
+            ip route add default via 10.10.10.1
+            ip route add 10.10.0.0/16 via 10.10.10.2
           '
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
@@ -190,7 +190,6 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml:ro
-        - siem-demo/loki/data:/tmp/loki
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro

@@ -38,13 +38,18 @@ echo "Starting MariaDB in background for setup..."
 
 /usr/bin/mariadbd --defaults-file=/etc/my.cnf &
 
-# Wait for MariaDB to start up and listen on the socket
-for i in {30..0}; do
-    if mariadb-admin ping &>/dev/null; then
+# Initialize counter
+i=30
+# Loop while i is greater than 0
+while [ $i -gt 0 ]; do
+    if mariadb-admin ping --silent; then
+        echo "MariaDB responded to ping!"
         break
     fi
     echo "Waiting for MariaDB to start... ($i)"
     sleep 1
+    # Decrement counter (POSIX compliant arithmetic)
+    i=$((i-1))
 done
 
 if [ "$i" = 0 ]; then
