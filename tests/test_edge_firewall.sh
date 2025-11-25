@@ -3,62 +3,141 @@
 
 # --- Konfiguration ---
 EDGE_ROUTER="clab-security_lab-edge_router"
-ATTACKER_CONTAINER="clab-security_lab-attacker_1"
+ATTACKER_CONTAINER="clab-security_lab-attacker_1" # IP: 192.168.1.2
 INTERNAL_ROUTER_CONTAINER="clab-security_lab-internal_router"
-CLIENT_CONTAINER="clab-security_lab-admin"
-INTERNET_SIM_CONTAINER="clab-security_lab-internet"
-WAN_IP="192.168.1.1"          # WAN-Gateway/Simulated Internet endpoint
-REVPROXY_IP="10.10.10.3"      # Reverse Proxy im DMZ-Netz
-EDGE_ROUTER_IP="10.10.50.1"   # Edge-Router Transit-IP
-TEST_PORTS=(80 443)           # HTTP/HTTPS
+CLIENT_CONTAINER="clab-security_lab-admin" # IP: 10.10.20.2 (Test for blocked internal traffic)
+DNS_TIME_CONTAINER="clab-security_lab-time_dns" # IP: 10.10.30.4
+
+# IP Addresses from nftables rules
+PUBLIC_IP="8.8.8.8"           # Known public IP for Internet access tests
+EDGE_ROUTER_MGMT_IP="10.10.60.6" # Assuming 10.10.60.1 is FWE's ethmgmt IP for INPUT test
+REVPROXY_IP="10.10.10.3"      # Reverse Proxy in DMZ
+SIEM_IP="10.10.30.2"          # SIEM IP
+BASTION_IP="10.10.30.3"       # Test source for SSH
+
+# Ports
+SSH_PORT="3025"
+DNS_PORT="53"
+NTP_PORT="123"
+SIEM_LOG_PORT="3100"
+HTTP_PORT="80"
+HTTPS_PORT="443"
+
+# --- Colors ---
 GREEN="\033[0;32m"
 RED="\033[0;31m"
 NC="\033[0m"
 
-echo "=== Starte automatisierte Tests für Edge-Router-Regeln ==="
+echo "=== Starte automatisierte Tests für Edge-Router-Regeln (FWE) ==="
 TEST_FAILED=0
 
 # Hilfsfunktion: prüft Exit-Code gegen Erwartung und meldet Ergebnis
 check_result() {
     local rc=$1
-    local expected=$2
+    local expected=$2 # "pass" or "fail"
     local msg=$3
 
-    if { [[ "$expected" == "true" && $rc -eq 0 ]] || [[ "$expected" == "false" && $rc -ne 0 ]]; }; then
+    if { [[ "$expected" == "pass" && $rc -eq 0 ]] || [[ "$expected" == "fail" && $rc -ne 0 ]]; }; then
         echo -e "${GREEN}ERFOLG${NC}: $msg"
     else
-        echo -e "${RED}FEHLER${NC}: $msg"
+        echo -e "${RED}FEHLER${NC}: $msg (Expected: $expected, Actual: $rc)"
         TEST_FAILED=1
     fi
 }
 
-# --- Test 1: Attacker -> Reverse Proxy (TCP 80/443) ---
-echo -n "Test 1: (Attacker) Zugriff auf Reverse Proxy Port 80/443 ... "
-for p in "${TEST_PORTS[@]}"; do
-    docker exec $ATTACKER_CONTAINER nc -z -w2 10.10.10.3 $p >/dev/null 2>&1
-    check_result $? "true" "Port $p von Attacker zum Reverse Proxy erreichbar"
-done
+# Helper function for netcat tests
+test_nc() {
+    local SOURCE_CONT=$1
+    local DEST_IP=$2
+    local PORT=$3
+    local PROTO=$4 # tcp or udp
+    local EXPECT_PASS=$5 # "pass" or "fail"
+    local TEST_NAME="$6"
 
-# --- Test 2: Interner Router -> Internet via ping (google.com) ---
-# Prüft, ob ICMP-Pakete aus dem internen Netz ins Internet gelangen.
-echo -n "Test 2: (Internal Router) Ping $INTERNET_TEST_HOST (Internet) ... "
-# -c 1 : ein Ping, -W 2 : Timeout 2 Sekunden (Linux ping)
-docker exec $INTERNAL_ROUTER_CONTAINER ping -c 1 -W 2 $INTERNET_TEST_HOST >/dev/null 2>&1
-check_result $? "true" "Interner Router kann $INTERNET_TEST_HOST anpingen (Internetzugang)"
+    local COMMAND="docker exec $SOURCE_CONT nc -z -w 2 "
+    if [ "$PROTO" == "udp" ]; then
+        COMMAND="$COMMAND -u "
+    fi
+    COMMAND="$COMMAND $DEST_IP $PORT"
 
-# --- Test 3: Edge Router selbst -> Internet (TCP 80/443) ---
-echo -n "Test 3: (Edge Router) Eigener Zugriff ins Internet Port 80/443 ... "
-for p in "${TEST_PORTS[@]}"; do
-    docker exec $EDGE_ROUTER nc -z -w2 8.8.8.8 $p >/dev/null 2>&1
-    check_result $? "true" "Edge Router selbst kann Port $p im Internet erreichen"
-done
+    # Execute the command silently
+    $COMMAND >/dev/null 2>&1
+    local RESULT=$?
 
-# --- Test 4: Unerlaubter Zugriff (Client direkt -> Internet) ---
-echo -n "Test 4: (Client direkt) Zugriff auf Internet sollte BLOCKIERT sein ... "
-for p in "${TEST_PORTS[@]}"; do
-    docker exec $CLIENT_CONTAINER nc -z -w2 8.8.8.8 $p >/dev/null 2>&1
-    check_result $? "false" "Client darf Port $p im Internet NICHT direkt erreichen"
-done
+    check_result $RESULT "$EXPECT_PASS" "$TEST_NAME"
+}
+
+# --- 1. INPUT Chain Tests (Traffic to FWE itself) ---
+echo "--- 1. INPUT Chain Tests (Traffic to FWE) ---"
+
+# Rule: Bastion -> Edge Router SSH on 3025 (Assuming BASTION_IP can reach FWE's ethmgmt IP)
+# Note: The original rule lacked S/D addresses, so we test connectivity from a known internal IP (e.g., BASTION_IP 10.10.30.3).
+echo -n "Test 1.1: (BASTION_IP) Zugriff auf FWE SSH ($EDGE_ROUTER_MGMT_IP:$SSH_PORT) ... "
+docker exec $INTERNAL_ROUTER_CONTAINER nc -z -w2 $EDGE_ROUTER_MGMT_IP $SSH_PORT >/dev/null 2>&1
+check_result $? "pass" "SSH $SSH_PORT von Bastion/IR zu FWE"
+
+
+# --- 2. OUTPUT Chain Tests (Traffic from FWE itself) ---
+echo "--- 2. OUTPUT Chain Tests (Traffic from FWE) ---"
+
+# Rule: F(TBD) Edge Router -> Internet TCP Web (80, 443)
+echo -n "Test 2.1: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTP_PORT) TCP ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTP_PORT" "tcp" "pass" "FWE OUT to Internet TCP 80"
+echo -n "Test 2.2: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTPS_PORT) TCP ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTPS_PORT" "tcp" "pass" "FWE OUT to Internet TCP 443"
+
+# Rule: F(TBD) Edge Router -> Internet UDP QUIC (443)
+echo -n "Test 2.3: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTPS_PORT) UDP (QUIC) ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTPS_PORT" "udp" "pass" "FWE OUT to Internet UDP 443"
+
+# Rule: Edge Router -> SIEM OUTBOUND Logs (10.10.30.2) TCP/UDP 3100
+echo -n "Test 2.4: FWE Logs -> SIEM ($SIEM_IP:$SIEM_LOG_PORT) TCP ... "
+test_nc "$EDGE_ROUTER" "$SIEM_IP" "$SIEM_LOG_PORT" "tcp" "pass" "FWE OUT to SIEM TCP 3100"
+echo -n "Test 2.5: FWE Logs -> SIEM ($SIEM_IP:$SIEM_LOG_PORT) UDP ... "
+test_nc "$EDGE_ROUTER" "$SIEM_IP" "$SIEM_LOG_PORT" "udp" "pass" "FWE OUT to SIEM UDP 3100"
+
+
+# --- 3. FORWARD Chain Tests (Transit Traffic) ---
+echo "--- 3. FORWARD Chain Tests (Transit Traffic) ---"
+
+# Rule F1: Attacker 1 (192.168.1.2) -> Rev Proxy (10.10.10.3) TCP Web (80, 443)
+echo -n "Test 3.1: Attacker 1 -> Reverse Proxy ($REVPROXY_IP:$HTTP_PORT) TCP ... "
+test_nc "$ATTACKER_CONTAINER" "$REVPROXY_IP" "$HTTP_PORT" "tcp" "pass" "Attacker to Rev Proxy TCP 80"
+echo -n "Test 3.2: Attacker 1 -> Reverse Proxy ($REVPROXY_IP:$HTTPS_PORT) TCP ... "
+test_nc "$ATTACKER_CONTAINER" "$REVPROXY_IP" "$HTTPS_PORT" "tcp" "pass" "Attacker to Rev Proxy TCP 443"
+
+# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet TCP Web (80, 443)
+echo -n "Test 3.3: Internal Router -> Internet ($PUBLIC_IP:$HTTP_PORT) TCP ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTP_PORT" "tcp" "pass" "IR to Internet TCP 80"
+echo -n "Test 3.4: Internal Router -> Internet ($PUBLIC_IP:$HTTPS_PORT) TCP ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTPS_PORT" "tcp" "pass" "IR to Internet TCP 443"
+
+# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet UDP QUIC (443)
+echo -n "Test 3.5: Internal Router -> Internet ($PUBLIC_IP:$HTTPS_PORT) UDP (QUIC) ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTPS_PORT" "udp" "pass" "IR to Internet UDP 443"
+
+# Rule F34: DNS Time Server (10.10.30.4) -> Internet DNS/NTP (53, 123) UDP
+echo -n "Test 3.6: DNS/Time Server -> Internet ($PUBLIC_IP:$DNS_PORT) UDP ... "
+test_nc "$DNS_TIME_CONTAINER" "$PUBLIC_IP" "$DNS_PORT" "udp" "pass" "DNS/Time to Internet UDP 53"
+echo -n "Test 3.7: DNS/Time Server -> Internet ($PUBLIC_IP:$NTP_PORT) UDP ... "
+test_nc "$DNS_TIME_CONTAINER" "$PUBLIC_IP" "$NTP_PORT" "udp" "pass" "DNS/Time to Internet UDP 123"
+
+
+# --- 4. Negative Tests (Blocked Traffic) ---
+echo "--- 4. Negative Tests (Muss BLOCKIERT werden) ---"
+
+# Negative Test 4.1: Internal Host (Client 10.10.20.2) -> DMZ (10.10.10.3) (Should be blocked by FORWARD policy)
+echo -n "Test 4.1: Client (10.10.20.2) -> Reverse Proxy ($REVPROXY_IP:$HTTP_PORT) (Erwartet Block) ... "
+test_nc "$CLIENT_CONTAINER" "$REVPROXY_IP" "$HTTP_PORT" "tcp" "fail" "Internal Host to DMZ Block"
+
+# Negative Test 4.2: Attacker 1 -> Edge Router SSH (Should be blocked by INPUT policy/no matching rule)
+echo -n "Test 4.2: Attacker 1 -> FWE SSH ($EDGE_ROUTER_MGMT_IP:$SSH_PORT) (Erwartet Block) ... "
+docker exec $ATTACKER_CONTAINER nc -z -w2 $EDGE_ROUTER_MGMT_IP $SSH_PORT >/dev/null 2>&1
+check_result $? "fail" "Attacker 1 to FWE SSH Block"
+
+# Negative Test 4.3: Internal Host -> Reverse Proxy UDP (No QUIC rule for external traffic is present in FWE)
+echo -n "Test 4.3: Attacker 1 -> Reverse Proxy ($REVPROXY_IP:$HTTPS_PORT) UDP (Erwartet Block) ... "
+test_nc "$ATTACKER_CONTAINER" "$REVPROXY_IP" "$HTTPS_PORT" "udp" "fail" "Attacker to Rev Proxy UDP 443 Block"
 
 echo "=== Tests abgeschlossen ==="
 exit $TEST_FAILED
