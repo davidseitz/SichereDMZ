@@ -311,7 +311,7 @@ topology:
       kind: bridge
 
   links:
-    - endpoints: ["attacker_1:eth1", "edge_router:ethwatt"]
+    - endpoints: ["attacker_1:eth1", "edge_router:ethatt"]
     - endpoints: ["edge_router:ethtransit", "internal_router:ethtransit"]
     - endpoints: ["edge_router:ethdmz", "dmz_switch:eth1"]
     - endpoints: ["edge_router:ethmgmt", "mgmt_switch:eth1"]

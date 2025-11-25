@@ -3,6 +3,13 @@
 set -e
 
 # --- 1. Start Services ---
+
+# Wait for IP address assignment on ethmgmt to ensure network is up
+echo "Waiting for IP address on ethmgmt..."
+while ! ip addr show ethmgmt | grep -q "inet "; do
+    sleep 1
+done
+
 echo "Starting sshd service on port 3025..."
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
