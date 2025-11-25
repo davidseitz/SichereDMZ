@@ -190,7 +190,6 @@ topology:
       binds:
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/siem/loki-config.yaml:/etc/loki/config.yml:ro
-        - siem-demo/loki/data:/tmp/loki
         - config/aide/siem/aide.conf:/etc/aide.conf:ro
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
