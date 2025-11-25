@@ -88,6 +88,7 @@ RUN ssh-keygen -A
 
 # FOR TESTING
 RUN apt update && apt install netcat-traditional -y
+RUN apt update && apt install tcpdump -y
 
 
 # The AIDE package doesn't create this, but aide --init needs it to write the DB.

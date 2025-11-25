@@ -25,6 +25,7 @@ NC="\033[0m"
 function deploy_lab {
     #Erstelle Bridge
     sudo ./create_bridge.sh
+    sudo chmod -R 600 sshkeys/
     #Erstelle Verzeichnis für Loki
     mkdir -p ./siem-demo/loki/data
     
