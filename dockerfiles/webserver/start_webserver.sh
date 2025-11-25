@@ -9,7 +9,7 @@ MAX_RETRIES=30
 RETRY_INTERVAL=2
 count=0
 
-sleep 20
+#sleep 20
 #--- SSHD Setup ---
 # --- 1. Host-Keys generieren (nur falls nötig) ---
 #    Wir prüfen nur noch auf die Keys. Die Konfig ist jetzt im Image.

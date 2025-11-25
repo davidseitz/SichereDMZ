@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- CONFIGURATION ---
-PHY_IFACE="eth0"          # Your internet-facing interface
+PHY_IFACE="enp0s3"          # Your internet-facing interface
 BRIDGE="network_bridge"          # Name of the new lab bridge
 GATEWAY_IP="172.20.1.1/24" # The IP address for the Bridge (Gateway for lab nodes)
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PHY_IFACE="eth0"
+PHY_IFACE="enp0s3"
 BRIDGE="network_bridge"
 SUBNET="172.20.1.0/24"
 

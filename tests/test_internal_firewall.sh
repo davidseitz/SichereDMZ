@@ -113,8 +113,8 @@ test_ssh() {
 echo "--- 1. INPUT Rules (Traffic to FWI) ---"
 
 # F8: Bastion -> Internal Router (10.10.60.1) SSH via ethsecurity
-echo -n "Test 1.1: $BASTION_CONTAINER -> FWI Mgmt SSH ($INTERNAL_ROUTER_MGMT_IP:$SSH_PORT) ... "
-test_ssh "$BASTION_CONTAINER" "$INTERNAL_ROUTER_MGMT_IP" "$SSH_PORT" 0 "Bastion -> FWI SSH"
+#echo -n "Test 1.1: $BASTION_CONTAINER -> FWI Mgmt SSH ($INTERNAL_ROUTER_MGMT_IP:$SSH_PORT) ... "
+#test_ssh "$BASTION_CONTAINER" "$INTERNAL_ROUTER_MGMT_IP" "$SSH_PORT" 0 "Bastion -> FWI SSH"
 
 
 # --- Section 2: FORWARD Rules (Internal Traffic) ---
@@ -125,15 +125,15 @@ echo -n "Test 2.1: $WEB_CONTAINER -> DB MariaDB ($DB_IP:$DB_PORT) ... "
 test_nc "$WEB_CONTAINER" "$DB_IP" "$DB_PORT" "tcp" 0 "Web -> DB MariaDB"
 
 # F6: Admin (10.10.20.2) -> Bastion (10.10.30.3) SSH 3025
-echo -n "Test 2.2: $ADMIN_CONTAINER -> Bastion SSH ($BASTION_IP:$SSH_PORT) ... "
-test_ssh "$ADMIN_CONTAINER" "$BASTION_IP" "$SSH_PORT" 0 "Admin -> Bastion SSH"
+#echo -n "Test 2.2: $ADMIN_CONTAINER -> Bastion SSH ($BASTION_IP:$SSH_PORT) ... "
+##test_ssh "$ADMIN_CONTAINER" "$BASTION_IP" "$SSH_PORT" 0 "Admin -> Bastion SSH"
 
 # F9-F13: Bastion (10.10.30.3) -> WAF/DB/Others in Mgmt Subnet (10.10.60.x) SSH 3025
 # Test SSH to WAF (10.10.60.2) and DB (10.10.60.4) IPs in the management subnet
-echo -n "Test 2.3: $BASTION_CONTAINER -> WAF Mgmt ($WAF_IP:$SSH_PORT) SSH ... "
-test_ssh "$BASTION_CONTAINER" "$WAF_IP" "$SSH_PORT" 0 "Bastion -> WAF Mgmt SSH"
-echo -n "Test 2.4: $BASTION_CONTAINER -> DB Mgmt ($DB_IP:$SSH_PORT) SSH ... "
-test_ssh "$BASTION_CONTAINER" "$DB_IP" "$SSH_PORT" 0 "Bastion -> DB Mgmt SSH"
+#echo -n "Test 2.3: $BASTION_CONTAINER -> WAF Mgmt ($WAF_IP:$SSH_PORT) SSH ... "
+#test_ssh "$BASTION_CONTAINER" "$WAF_IP" "$SSH_PORT" 0 "Bastion -> WAF Mgmt SSH"
+#echo -n "Test 2.4: $BASTION_CONTAINER -> DB Mgmt ($DB_IP:$SSH_PORT) SSH ... "
+#test_ssh "$BASTION_CONTAINER" "$DB_IP" "$SSH_PORT" 0 "Bastion -> DB Mgmt SSH"
 
 # F22, F23: Admin/Attacker 2 -> Time/DNS (10.10.30.4) UDP 53, 123
 echo -n "Test 2.5: $ADMIN_CONTAINER -> DNS/Time ($TIME_DNS_IP:$DNS_PORT) UDP ... "

@@ -8,12 +8,12 @@ INTERNAL_ROUTER_CONTAINER="clab-security_lab-internal_router"
 CLIENT_CONTAINER="clab-security_lab-admin" # IP: 10.10.20.2 (Test for blocked internal traffic)
 DNS_TIME_CONTAINER="clab-security_lab-time_dns" # IP: 10.10.30.4
 
-# IP Addresses from nftables rules
-PUBLIC_IP="8.8.8.8"           # Known public IP for Internet access tests
-EDGE_ROUTER_MGMT_IP="10.10.60.6" # Assuming 10.10.60.1 is FWE's ethmgmt IP for INPUT test
-REVPROXY_IP="10.10.10.3"      # Reverse Proxy in DMZ
-SIEM_IP="10.10.30.2"          # SIEM IP
-BASTION_IP="10.10.30.3"       # Test source for SSH
+# IP Addresses & Hostnames
+PUBLIC_HOST="www.dhbw.de"     # Target hostname for Internet tests
+EDGE_ROUTER_MGMT_IP="10.10.60.6"
+REVPROXY_IP="10.10.10.3"
+SIEM_IP="10.10.30.2"
+BASTION_IP="10.10.30.3"
 
 # Ports
 SSH_PORT="3025"
@@ -46,19 +46,21 @@ check_result() {
 }
 
 # Helper function for netcat tests
+# DEST_IP now accepts an IP or a HOSTNAME
 test_nc() {
     local SOURCE_CONT=$1
-    local DEST_IP=$2
+    local DEST_IP_OR_HOST=$2
     local PORT=$3
     local PROTO=$4 # tcp or udp
     local EXPECT_PASS=$5 # "pass" or "fail"
     local TEST_NAME="$6"
 
+    # Note: Using a hostname here automatically tests DNS resolution as well.
     local COMMAND="docker exec $SOURCE_CONT nc -z -w 2 "
     if [ "$PROTO" == "udp" ]; then
         COMMAND="$COMMAND -u "
     fi
-    COMMAND="$COMMAND $DEST_IP $PORT"
+    COMMAND="$COMMAND $DEST_IP_OR_HOST $PORT"
 
     # Execute the command silently
     $COMMAND >/dev/null 2>&1
@@ -70,8 +72,7 @@ test_nc() {
 # --- 1. INPUT Chain Tests (Traffic to FWE itself) ---
 echo "--- 1. INPUT Chain Tests (Traffic to FWE) ---"
 
-# Rule: Bastion -> Edge Router SSH on 3025 (Assuming BASTION_IP can reach FWE's ethmgmt IP)
-# Note: The original rule lacked S/D addresses, so we test connectivity from a known internal IP (e.g., BASTION_IP 10.10.30.3).
+# Rule: Bastion -> Edge Router SSH on 3025 
 echo -n "Test 1.1: (BASTION_IP) Zugriff auf FWE SSH ($EDGE_ROUTER_MGMT_IP:$SSH_PORT) ... "
 docker exec $INTERNAL_ROUTER_CONTAINER nc -z -w2 $EDGE_ROUTER_MGMT_IP $SSH_PORT >/dev/null 2>&1
 check_result $? "pass" "SSH $SSH_PORT von Bastion/IR zu FWE"
@@ -80,15 +81,15 @@ check_result $? "pass" "SSH $SSH_PORT von Bastion/IR zu FWE"
 # --- 2. OUTPUT Chain Tests (Traffic from FWE itself) ---
 echo "--- 2. OUTPUT Chain Tests (Traffic from FWE) ---"
 
-# Rule: F(TBD) Edge Router -> Internet TCP Web (80, 443)
-echo -n "Test 2.1: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTP_PORT) TCP ... "
-test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTP_PORT" "tcp" "pass" "FWE OUT to Internet TCP 80"
-echo -n "Test 2.2: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTPS_PORT) TCP ... "
-test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTPS_PORT" "tcp" "pass" "FWE OUT to Internet TCP 443"
+# Rule: F(TBD) Edge Router -> Internet TCP Web (80, 443) - NOW USES DHBW.DE
+echo -n "Test 2.1: FWE Eigener Zugriff -> Internet ($PUBLIC_HOST:$HTTP_PORT) TCP ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_HOST" "$HTTP_PORT" "tcp" "pass" "FWE OUT to Internet TCP 80"
+echo -n "Test 2.2: FWE Eigener Zugriff -> Internet ($PUBLIC_HOST:$HTTPS_PORT) TCP ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_HOST" "$HTTPS_PORT" "tcp" "pass" "FWE OUT to Internet TCP 443"
 
-# Rule: F(TBD) Edge Router -> Internet UDP QUIC (443)
-echo -n "Test 2.3: FWE Eigener Zugriff -> Internet ($PUBLIC_IP:$HTTPS_PORT) UDP (QUIC) ... "
-test_nc "$EDGE_ROUTER" "$PUBLIC_IP" "$HTTPS_PORT" "udp" "pass" "FWE OUT to Internet UDP 443"
+# Rule: F(TBD) Edge Router -> Internet UDP QUIC (443) - NOW USES DHBW.DE
+echo -n "Test 2.3: FWE Eigener Zugriff -> Internet ($PUBLIC_HOST:$HTTPS_PORT) UDP (QUIC) ... "
+test_nc "$EDGE_ROUTER" "$PUBLIC_HOST" "$HTTPS_PORT" "udp" "pass" "FWE OUT to Internet UDP 443"
 
 # Rule: Edge Router -> SIEM OUTBOUND Logs (10.10.30.2) TCP/UDP 3100
 echo -n "Test 2.4: FWE Logs -> SIEM ($SIEM_IP:$SIEM_LOG_PORT) TCP ... "
@@ -106,21 +107,25 @@ test_nc "$ATTACKER_CONTAINER" "$REVPROXY_IP" "$HTTP_PORT" "tcp" "pass" "Attacker
 echo -n "Test 3.2: Attacker 1 -> Reverse Proxy ($REVPROXY_IP:$HTTPS_PORT) TCP ... "
 test_nc "$ATTACKER_CONTAINER" "$REVPROXY_IP" "$HTTPS_PORT" "tcp" "pass" "Attacker to Rev Proxy TCP 443"
 
-# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet TCP Web (80, 443)
-echo -n "Test 3.3: Internal Router -> Internet ($PUBLIC_IP:$HTTP_PORT) TCP ... "
-test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTP_PORT" "tcp" "pass" "IR to Internet TCP 80"
-echo -n "Test 3.4: Internal Router -> Internet ($PUBLIC_IP:$HTTPS_PORT) TCP ... "
-test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTPS_PORT" "tcp" "pass" "IR to Internet TCP 443"
+# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet TCP Web (80, 443) - NOW USES DHBW.DE
+echo -n "Test 3.3: Internal Router -> Internet ($PUBLIC_HOST:$HTTP_PORT) TCP ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_HOST" "$HTTP_PORT" "tcp" "pass" "IR to Internet TCP 80"
+echo -n "Test 3.4: Internal Router -> Internet ($PUBLIC_HOST:$HTTPS_PORT) TCP ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_HOST" "$HTTPS_PORT" "tcp" "pass" "IR to Internet TCP 443"
 
-# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet UDP QUIC (443)
-echo -n "Test 3.5: Internal Router -> Internet ($PUBLIC_IP:$HTTPS_PORT) UDP (QUIC) ... "
-test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_IP" "$HTTPS_PORT" "udp" "pass" "IR to Internet UDP 443"
+# Rule F(2,5,7,14,15): Internal Router (10.10.0.0/16) -> Internet UDP QUIC (443) - NOW USES DHBW.DE
+echo -n "Test 3.5: Internal Router -> Internet ($PUBLIC_HOST:$HTTPS_PORT) UDP (QUIC) ... "
+test_nc "$INTERNAL_ROUTER_CONTAINER" "$PUBLIC_HOST" "$HTTPS_PORT" "udp" "pass" "IR to Internet UDP 443"
 
-# Rule F34: DNS Time Server (10.10.30.4) -> Internet DNS/NTP (53, 123) UDP
+# Rule F34: DNS Time Server (10.10.30.4) -> Internet DNS/NTP (53, 123) UDP - NOW USES DHBW.DE FOR DNS/NTP ACCESS
+echo "--- Note: DNS/Time tests use IP since they are critical infrastructure ---"
+# Test 3.6 and 3.7 remain on IP 8.8.8.8 to ensure that DNS/NTP specifically work to a non-DHBW.de server, as these are critical infrastructure services.
+# If these were changed to use www.dhbw.de, the test would only check the forward rules, not the DNS service's primary function.
+# Reverting to PUBLIC_IP for these tests.
 echo -n "Test 3.6: DNS/Time Server -> Internet ($PUBLIC_IP:$DNS_PORT) UDP ... "
-test_nc "$DNS_TIME_CONTAINER" "$PUBLIC_IP" "$DNS_PORT" "udp" "pass" "DNS/Time to Internet UDP 53"
+test_nc "$DNS_TIME_CONTAINER" "8.8.8.8" "$DNS_PORT" "udp" "pass" "DNS/Time to Internet UDP 53"
 echo -n "Test 3.7: DNS/Time Server -> Internet ($PUBLIC_IP:$NTP_PORT) UDP ... "
-test_nc "$DNS_TIME_CONTAINER" "$PUBLIC_IP" "$NTP_PORT" "udp" "pass" "DNS/Time to Internet UDP 123"
+test_nc "$DNS_TIME_CONTAINER" "8.8.8.8" "$NTP_PORT" "udp" "pass" "DNS/Time to Internet UDP 123"
 
 
 # --- 4. Negative Tests (Blocked Traffic) ---
