@@ -6,7 +6,7 @@ EDGE_ROUTER="clab-security_lab-edge_router"
 ATTACKER_CONTAINER="clab-security_lab-attacker_1" # IP: 192.168.1.2
 INTERNAL_ROUTER_CONTAINER="clab-security_lab-internal_router"
 CLIENT_CONTAINER="clab-security_lab-admin" # IP: 10.10.20.2 (Test for blocked internal traffic)
-DNS_TIME_CONTAINER="clab-security_lab-time_dns" # IP: 10.10.30.4
+DNS_TIME_CONTAINER="clab-security_lab-timedns_server" # IP: 10.10.30.4
 
 # IP Addresses & Hostnames
 PUBLIC_HOST="www.dhbw.de"     # Target hostname for Internet tests
