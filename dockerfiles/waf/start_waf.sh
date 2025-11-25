@@ -16,8 +16,8 @@ fi
 
 # --- 2. Starte den SSH-Daemon ---
 sleep 10
-echo "INFO: Starte /usr/sbin/sshd (config is baked into image)..."
-/usr/sbin/sshd
+echo "INFO: Starte /usr/sbin/sshd"
+/usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
 # --- 3. Rufe das originale Entrypoint-Skript für Nginx auf ---
 echo "INFO: Übergebe an Nginx-Entrypoint..."

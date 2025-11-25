@@ -27,7 +27,7 @@ chronyd -f /etc/chrony/chrony.conf
 
 # 2. Start the OpenSSH server daemon
 echo "Starting sshd service on port 3025..."
-/usr/sbin/sshd
+/usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
 # 3. [NEW] Start the Fluent Bit service
 #    This runs it in the background using a config file we will provide.

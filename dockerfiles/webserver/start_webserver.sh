@@ -26,8 +26,8 @@ if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
 fi
 
 # --- 2. Starte den SSH-Daemon ---
-echo "INFO: Starte /usr/sbin/sshd (config is baked into image)..."
-/usr/sbin/sshd
+echo "INFO: Starte /usr/sbin/sshd"
+/usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
 #--- Main Web Server Startup ---
 echo "--- Starting Gunicorn Only Web Server Setup ---"

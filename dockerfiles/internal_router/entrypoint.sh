@@ -4,7 +4,7 @@ set -e
 
 # --- 1. Start Services ---
 echo "Starting sshd service on port 3025..."
-/usr/sbin/sshd
+/usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
 echo "Starting crond service for daily HIDS checks..."
 # 'cron' is the Debian daemon name

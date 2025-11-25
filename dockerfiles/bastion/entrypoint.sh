@@ -16,7 +16,7 @@ echo "Running baseline AIDE check..."
 
 # Start the OpenSSH server daemon
 echo "Starting sshd service on port 3025..."
-/usr/sbin/sshd -e 2>> /var/log/ssh-custom.log
+/usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
 # Start the 'cron' daemon in the foreground (it forks itself)
 # This will run our daily 'aide --check' script
