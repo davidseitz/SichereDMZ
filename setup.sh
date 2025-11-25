@@ -26,6 +26,7 @@ function deploy_lab {
     #Erstelle Bridge
     sudo ./create_bridge.sh
     sudo chmod -R 600 sshkeys/
+    sudo chown -R 1000:1001 sshkeys/
     #Erstelle Verzeichnis für Loki
     mkdir -p ./siem-demo/loki/data
     
