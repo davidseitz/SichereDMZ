@@ -19,7 +19,8 @@ RUN apt-get update && \
       jq \
       cron \
       suricata \
-      suricata-update
+      suricata-update \
+      inetutils-ping 
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---
 RUN sh -c 'curl https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg' && \
