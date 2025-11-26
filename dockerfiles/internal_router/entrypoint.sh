@@ -50,7 +50,8 @@ fi
 echo "Starting Suricata... (Interfaces defined in suricata.yaml)"
 # -D runs it as a daemon (background)
 # Interfaces are auto-loaded from the af-packet config
-exec /usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet
+# Use & to run in the background
+/usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet &
 
 echo "Starting chrony..."
 chronyd -f /etc/chrony/chrony.conf

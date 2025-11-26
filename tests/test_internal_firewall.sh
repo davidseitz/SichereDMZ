@@ -21,6 +21,7 @@ WAF_IP="10.10.10.3"
 DB_IP="10.10.40.2"
 SIEM_IP="10.10.30.2"
 TIME_DNS_IP="10.10.30.4"
+PUBLIC_IP="8.8.8.8"
 
 # Ports
 SSH_PORT="3025"
@@ -56,7 +57,7 @@ test_nc() {
         COMMAND="$COMMAND -u "
     fi
     COMMAND="$COMMAND $DEST_IP $PORT"
-
+    
     # Execute the command silently
     $COMMAND >/dev/null 2>&1
     local RESULT=$?

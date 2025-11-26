@@ -1,127 +1,83 @@
 #!/bin/sh
-# This script runs as root
 set -e
 
-# --- 2. MariaDB Initialization ---
-mkdir -p /run/mysqld
-chown -R mysql:mysql /run/mysqld
-if [ -z "$(ls -A /var/lib/mysql)" ]; then
-    echo "MariaDB data directory is empty. Initializing database..."
-    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
-    # Note: Initializing the DB creates the 'root'@'localhost' user, 
-    # which is used below for initial setup.
+# --- 1. AIDE (HIDS) Initialization ---
+# OPTIMIZATION: Only run init if the DB doesn't exist.
+if [ ! -f /var/lib/aide/aide.db.gz ] || [ ! -s /var/lib/aide/aide.db.gz ]; then
+    echo "AIDE database not found. Initializing (this will take time)..."
+    /usr/bin/aide --init > /dev/null
+    mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
+    echo "AIDE initialized."
 else
-    echo "MariaDB database already exists."
+    echo "AIDE database exists. Skipping init."
 fi
 
-# --- 3. Start Services ---
-echo "Starting sshd service on port 3025..."
+# --- 2. Start Auxiliary Services ---
+# We start these in the background. They will die when the main process (MariaDB) dies.
+echo "Starting Sidecars: SSHD, Chrony, Fluent-bit, Crond..."
+
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
-
-echo "Starting crond service for daily HIDS checks..."
-/usr/sbin/crond
-
-#    This runs it in the background using a config file we will provide.
-echo "Starting fluent-bit service..."
+chronyd -f /etc/chrony/chrony.conf &
 /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+/usr/sbin/crond -b -l 8
 
-# --- Start MariaDB (Temporary Background Start) ---
-echo "Starting MariaDB in background for setup..."
-# Start MariaDB in the background, allowing the script to continue.
-#/usr/bin/mariadbd \
-#  --user=mysql \
-#  --datadir=/var/lib/mysql \
-#  --skip-name-resolve \
-#  --bind-address=0.0.0.0 \
-#  --skip-networking=0 \
-#  --port=3306 &
+# --- 3. MariaDB Initialization & Bootstrap ---
 
-/usr/bin/mariadbd --defaults-file=/etc/my.cnf &
+# Ensure permissions are correct
+chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
-# Initialize counter
-i=30
-# Loop while i is greater than 0
-while [ $i -gt 0 ]; do
-    if mariadb-admin ping --silent; then
-        echo "MariaDB responded to ping!"
-        break
+if [ -z "$(ls -A /var/lib/mysql)" ]; then
+    echo "MariaDB data directory is empty. Installing system tables..."
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql --skip-test-db > /dev/null
+
+    echo "Starting temporary MariaDB for user creation..."
+    # Start MariaDB in "maintenance mode" (no networking) for setup
+    /usr/bin/mariadbd --user=mysql --datadir=/var/lib/mysql --skip-networking --socket=/run/mysqld/mysqld.sock &
+    TEMP_PID=$!
+
+    # Wait for the socket to be ready
+    for i in {30..0}; do
+        if echo 'SELECT 1' | mariadb --socket=/run/mysqld/mysqld.sock --connect-timeout=1 > /dev/null 2>&1; then
+            break
+        fi
+        echo "Waiting for temp DB init... $i"
+        sleep 1
+    done
+
+    if [ "$i" = 0 ]; then
+        echo "Temp DB failed to start."
+        exit 1
     fi
-    echo "Waiting for MariaDB to start... ($i)"
-    sleep 1
-    # Decrement counter (POSIX compliant arithmetic)
-    i=$((i-1))
-done
 
-if [ "$i" = 0 ]; then
-    echo "MariaDB failed to start. Exiting."
-    exit 1
-fi
-echo "MariaDB is up and running. Proceeding with database setup."
-# --- NEW MariaDB Setup Commands ---
-# Create a temporary SQL file
-cat << EOF > /tmp/init.sql
-# 1. Create the database
+    echo "Applying security settings and creating users..."
+    
+    # Use strict SQL for the init
+    cat << EOF | mariadb --socket=/run/mysqld/mysqld.sock
+FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS webapp;
-
-# 2. Create the user and set the password. Using '%' to allow connections 
-# from any host (required for webserver in another container/host).
 CREATE USER IF NOT EXISTS 'webuser'@'%' IDENTIFIED BY 'VerySecureP@ssword123!';
-
-# 3. Grant privileges to the new user on the new database
 GRANT ALL PRIVILEGES ON webapp.* TO 'webuser'@'%';
-
-# 4. Apply changes
+-- Optional: Lockdown root (remove remote access if present)
+-- DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 FLUSH PRIVILEGES;
 EOF
+    
+    echo "Initialization complete. Stopping temp DB..."
+    kill -TERM "$TEMP_PID"
+    wait "$TEMP_PID"
+    echo "Temp DB stopped."
+else
+    echo "MariaDB data directory already populated. Skipping setup."
+fi
 
-# Execute the SQL file using the root user (which has no password by default
-# in the initial installation setup for the socket connection).
-mariadb < /tmp/init.sql
-rm /tmp/init.sql
-echo "Database 'webapp' and user 'webuser' created successfully."
+# --- 4. Final Baseline Check ---
+# Only run if needed, don't let it block startup too long
+echo "Running baseline AIDE check (backgrounded)..."
+(/usr/bin/aide --check | jq -c . >> /var/log/aide.json) &
 
-# --- Stop MariaDB (for final exec) ---
-# Stop the background MariaDB instance cleanly
-echo "Stopping MariaDB for final foreground start..."
-mariadb-admin shutdown
+# --- 5. Main Execution ---
+echo "Starting MariaDB in Foreground..."
 
-# Wait for MariaDB to fully stop
-for i in {10..0}; do
-    if ! mariadb-admin ping &>/dev/null; then
-        break
-    fi
-    sleep 1
-done
-
-echo "Starting chrony..."
-chronyd -f /etc/chrony/chrony.conf
-
-
-# --- 4. Final Start MariaDB (Foreground) ---
-echo "Starting MariaDB in the foreground..."
-#exec /usr/bin/mariadbd \
-#  --user=mysql \
-#  --datadir=/var/lib/mysql \
-#  --skip-name-resolve \
-#  --bind-address=0.0.0.0 \
-#  --skip-networking=0 \
-#  --port=3306
-
-/usr/bin/mariadbd --defaults-file=/etc/my.cnf &
-
-# --- 1. AIDE (HIDS) Initialization ---
-# Check if the AIDE database exists. If not, create it.
-# This is the "first-run" task you correctly identified.
-echo "AIDE database. Initializing..."
-echo "This may take a minute..."
-/usr/bin/aide --init > /dev/null
-echo "AIDE database initialized. Copyingm..."
-mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
-
-echo "Running baseline AIDE check..."
-/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
-
-# The execution will never reach here if the above exec succeeds.
-# If the container keeps running after exec, this line is executed.
-echo "Database server is running. Awaiting connections."
+# "exec" replaces the current shell process with the command passed in CMD.
+# This makes MariaDB PID 1.
 exec "$@"

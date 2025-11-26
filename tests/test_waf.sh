@@ -10,7 +10,7 @@
 # --- Konfiguration ---
 ATTACKER_CONTAINER="clab-security_lab-attacker_1"
 WAF_IP="10.10.10.3"
-EXPECTED_CONTENT="Willkommen auf dem sicheren Webserver"
+EXPECTED_CONTENT="Willkommen - SUN DMZ Webserver"
 
 # --- WICHTIG: Auf HTTPS und --no-check-certificate umgestellt ---
 BASE_URL="https://${WAF_IP}"
