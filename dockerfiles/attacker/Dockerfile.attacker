@@ -15,9 +15,15 @@ RUN apt update && \
     apt install netcat-traditional -y && \
     apt install curl -y && \
     apt install nftables -y && \
+    apt install python3 -y && \
+    apt install python3-pip -y && \
+    apt-get install -y slowhttptest && \
     apt -y install wget 
 
-# Add slowloris script
+# 2. Install Slowloris via PIP
+# Note: On newer Ubuntu versions (24.04+), we use --break-system-packages 
+# to allow global pip installation in the container environment.
+RUN pip3 install slowloris --break-system-packages
 
 # The default command for Alpine is to run a shell, which is perfect.
 CMD ["/bin/sh"]
