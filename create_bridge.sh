@@ -48,4 +48,9 @@ sudo iptables -I FORWARD 1 -i $BRIDGE -j ACCEPT
 sudo iptables -I FORWARD 1 -o $BRIDGE -j ACCEPT
 
 echo ">>> Done. Bridge $BRIDGE is up at $GATEWAY_IP"
+
+# 6. Add route for host browser access to lab nodes [Optional]
+echo ">>> Adding route to access lab nodes from host..."
+sudo ip route add 10.10.0.0/16 via 172.20.1.9 dev network_bridge
+
 echo ">>> Your lab nodes should use ${GATEWAY_IP%/*} as their default gateway."

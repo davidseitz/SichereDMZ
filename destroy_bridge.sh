@@ -32,4 +32,7 @@ else
     echo ">>> Bridge $BRIDGE does not exist."
 fi
 
+# 3. Remove route for host browser access to lab nodes [Optional]
+sudo ip route del 10.10.0.0/16 via 172.20.1.9 dev network_bridge 2>/dev/null || echo ">>> Note: Route not found or already deleted."
+
 echo ">>> Done."
