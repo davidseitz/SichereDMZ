@@ -18,6 +18,9 @@ DB_USER = os.getenv("DB_USER", "webuser")
 DB_PASS = os.getenv("DB_PASS", "webpass")
 DB_NAME = os.getenv("DB_NAME", "webapp")
 
+# Hostkonfiguration
+ALLOWED_HOST = "web.sun.dmz"
+
 # --- LOGGING SETUP ---
 LOG_FILE = "/var/log/webapp.log"
 
@@ -45,7 +48,6 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.addHandler(file_handler)
 app.logger.info("Application logging initialized and outputting to %s.", LOG_FILE)
 # --- END LOGGING SETUP ---
-
 
 def get_db_conn():
     """Gibt eine Datenbankverbindung zurück. Kann pymysql.err.OperationalError auslösen."""
@@ -133,6 +135,35 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- BEFORE REQUEST ---
+
+@app.before_request
+def check_host_header():
+    # The Host header is available in request.headers['Host']
+    # The header value might include the port (e.g., 'web.sun.dmz:5000'), 
+    # so we should split it to get only the hostname.
+    host_header = request.headers.get('Host')
+    
+    if host_header:
+        # Get the hostname part (strip port if present)
+        hostname = host_header.split(':')[0]
+        
+        if hostname != ALLOWED_HOST:
+            # Equivalent to NGINX's return 444 (close connection), 
+            # we can return an immediate 400 or 403 response, or 
+            # simply abort with 404 to provide no useful info.
+            # *Note: Returning 444 is an NGINX-specific behavior, 
+            # in a standard HTTP server, you'd typically return 
+            # a standard error like 403 Forbidden or 404 Not Found 
+            # and then close the connection.*
+            
+            # Using abort(403) or returning an empty 403 response is the common practice.
+            # To mimic the NGINX behavior of an immediate connection close with no response, 
+            # the Python app itself *cannot* perfectly replicate it at the HTTP level, 
+            # as it must first process the request. The best software-level equivalent is 
+            # returning a standard error and logging.
+            print(f"Blocking request with Host: {host_header}")
+            abort(403) # Return a 403 Forbidden response
 
 # --- ROUTEN ---
 

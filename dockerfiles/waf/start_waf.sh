@@ -33,7 +33,7 @@ echo "INFO: Starting Cron daemon..."
 service cron start
 
 # Start SSH
-#sleep 2
+sleep 2
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 

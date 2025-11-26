@@ -4,7 +4,7 @@
 WAF_CONTAINER="clab-security_lab-reverse_proxy"
 WEB_SERVER_IP="10.10.10.4"
 CORRECT_HOST="web.sun.dmz"
-EXPECTED_CONTENT="Willkommen auf dem sicheren Webserver"
+EXPECTED_CONTENT="Willkommen - SUN DMZ Webserver"
 
 # --- Farben für die Ausgabe ---
 GREEN="\033[0;32m"
