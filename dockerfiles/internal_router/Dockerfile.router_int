@@ -73,7 +73,7 @@ RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get up
     chmod 0440 /etc/sudoers.d/admin-router-rules
 
 # AIDE every 10 min
-RUN echo "*/10 * * * * root /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontab
+RUN echo "*/10 * * * * root /usr/bin/aide --check --config="/etc/aide.conf" | jq -c . >> /var/log/aide.json" >> /etc/crontab
 
 # --- Harden SSH ---
 # COPY sshd_config /etc/ssh/sshd_config 
