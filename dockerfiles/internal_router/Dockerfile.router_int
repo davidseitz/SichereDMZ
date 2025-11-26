@@ -20,6 +20,7 @@ RUN apt-get update && \
       cron \
       suricata \
       suricata-update \
+      ulogd2 \
       inetutils-ping 
 
 # --- 2. Add Fluent-Bit Repository (OFFICIAL METHOD) ---

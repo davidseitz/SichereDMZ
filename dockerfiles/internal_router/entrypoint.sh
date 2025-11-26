@@ -10,6 +10,9 @@ while ! ip addr show ethmgmt | grep -q "inet "; do
     sleep 1
 done
 
+echo "Starting ulogd2 to capture nflog events..."
+ulogd -c /etc/ulogd.conf -d &
+
 echo "Starting sshd service on port 3025..."
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
