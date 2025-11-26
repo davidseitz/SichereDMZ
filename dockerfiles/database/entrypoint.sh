@@ -2,6 +2,15 @@
 # This script runs as root
 set -e
 
+# --- 1. AIDE (HIDS) Initialization ---
+# Check if the AIDE database exists. If not, create it.
+# This is the "first-run" task you correctly identified.
+echo "AIDE database. Initializing..."
+echo "This may take a minute..."
+/usr/bin/aide --init > /dev/null
+echo "AIDE database initialized. Copyingm..."
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
+
 # --- 2. MariaDB Initialization ---
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
@@ -108,15 +117,6 @@ echo "Starting MariaDB in the foreground..."
 #  --port=3306
 
 /usr/bin/mariadbd --defaults-file=/etc/my.cnf &
-
-# --- 1. AIDE (HIDS) Initialization ---
-# Check if the AIDE database exists. If not, create it.
-# This is the "first-run" task you correctly identified.
-echo "AIDE database. Initializing..."
-echo "This may take a minute..."
-/usr/bin/aide --init > /dev/null
-echo "AIDE database initialized. Copyingm..."
-mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
 
 echo "Running baseline AIDE check..."
 /usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
