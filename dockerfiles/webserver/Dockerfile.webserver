@@ -15,7 +15,9 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       bash \
       netcat-openbsd \
       openssh-server \
+      jq \
       nftables \
+      aide@testing \
       fluent-bit@testing
 
 WORKDIR /app
@@ -44,6 +46,14 @@ RUN addgroup -g 1001 admin && \
 RUN mkdir -p /home/admin/.ssh && \
     chmod 700 /home/admin/.ssh && \
     chown admin:admin /home/admin/.ssh
+
+# AIDE Setup
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide && \
+    touch /var/lib/aide/aide.db.gz && \
+    chmod 640 /var/lib/aide/aide.db.gz
+
+
 
 # Expose port for SSH
 EXPOSE 3025

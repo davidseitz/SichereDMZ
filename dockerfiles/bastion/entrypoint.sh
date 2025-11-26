@@ -8,7 +8,7 @@ set -e
 echo "AIDE database. Initializing..."
 echo "This may take a minute..."
 /usr/bin/aide --init > /dev/null
-echo "AIDE database initialized. Copyingm..."
+echo "AIDE database initialized. Copying..."
 mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
 
 echo "Running baseline AIDE check..."

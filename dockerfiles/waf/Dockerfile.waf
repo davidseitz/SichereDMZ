@@ -1,24 +1,15 @@
-# Starte vom offiziellen Nginx/WAF-Image
 FROM owasp/modsecurity-crs:nginx
 
 USER root
-
 ENV DEBIAN_FRONTEND=noninteractive
-# Installiere den SSH-Server und räume danach auf
+
+# Install dependencies
 RUN apt-get update && \
     apt-get install -y \
-    openssh-server \
-    iproute2 \
-    curl \
-    gnupg \
-    ca-certificates \
-    nftables \
-    aide \
-    jq && \
+    openssh-server iproute2 curl gnupg ca-certificates nftables aide cron jq && \
     rm -rf /var/lib/apt/lists/*
 
-# 2. Add Fluent-Bit Repository (Official Method)
-# This logic is copied from your Edge Router to ensure consistency
+# Install Fluent-Bit
 RUN unset CURL_CA_BUNDLE && unset SSL_CERT_FILE && \
     curl -fsSL https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg && \
     codename=$(grep -oP '(?<=VERSION_CODENAME=).*' /etc/os-release 2>/dev/null || echo "bookworm") && \
@@ -26,40 +17,32 @@ RUN unset CURL_CA_BUNDLE && unset SSL_CERT_FILE && \
     apt-get update && \
     apt-get install -y --no-install-recommends fluent-bit
 
-# For TESTING only!
-RUN apt update && apt install curl
-
-# --- SSH-Konfiguration ---
-# Copy configuration
-# COPY sshd_config /etc/ssh/sshd_config
+# SSH Setup
 RUN mkdir -p /var/run/sshd
 
-# --- Add a dedicated admin user ---
+# Admin User
 RUN addgroup --gid 1001 admin && \
     adduser --uid 1000 --gid 1001 --gecos "" --home /home/admin admin && \
-    echo 'admin:UnlockTheAccount123!' | chpasswd
-
-# --- Prepare SSH Directory for Mounting ---
-# We create the directory here so we can set permissions before mounting
-RUN mkdir -p /home/admin/.ssh && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd && \
+    mkdir -p /home/admin/.ssh && \
     chmod 700 /home/admin/.ssh && \
     chown admin:admin /home/admin/.ssh
 
-# Configure AIDE Cron
-RUN echo "*/10 * * * * root /usr/bin/aide --check --config="/etc/aide.conf" | /usr/bin/jq -c . >> /var/log/aide.json" > /etc/cron.d/aide-check
+# --- AIDE SETUP ---
+
+# 2. Setup Cron
+# Uses single quotes to wrap the whole command, allowing double quotes inside
+RUN echo '*/10 * * * * root /usr/bin/aide --check --config="/etc/aide.conf" | /usr/bin/jq -c . >> /var/log/aide.json' > /etc/cron.d/aide-check
 RUN chmod 0644 /etc/cron.d/aide-check
 
-# Create AIDE dirs
+# 3. Create Directories (No pre-touching of DB files needed)
 RUN mkdir -p /var/lib/aide && \
     chmod 750 /var/lib/aide
 
-# Kopiere Start-Skript in das Image
+# Start Script
 COPY start_waf.sh /start_waf.sh
 RUN chmod +x /start_waf.sh
 
-EXPOSE 80
-EXPOSE 443
-EXPOSE 3025
+EXPOSE 80 443 3025
 
-# Setze das neue Start-Skript als Standardbefehl 
 CMD ["/start_waf.sh"]

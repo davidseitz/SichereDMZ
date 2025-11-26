@@ -2,51 +2,49 @@
 
 # --- 1. Host-Keys generieren (nur falls nötig) ---
 if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
-    echo "INFO: SSH host keys not found (empty /etc/ssh volume?)."
-    echo "INFO: Initializing SSHD..."
+    echo "INFO: SSH host keys not found."
     mkdir -p /etc/ssh
     ssh-keygen -A
 fi
 
 # --- 2. AIDE Initialization (HIDS) ---
-# We check if the DB exists. If not, we generate it.
+mkdir -p /var/lib/aide/
+chmod 750 /var/lib/aide
+
+# Check if the DB exists.
 if [ ! -f "/var/lib/aide/aide.db" ]; then
     echo "INFO: AIDE Database not found. Initializing..."
-    echo "INFO: This may take a minute..."
     
     # Initialize the database (creates aide.db.new)
     /usr/bin/aide --init --config="/etc/aide.conf"
     
-    # Move it to the live database name
-    cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+    # Simple rename
+    mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
     
     echo "INFO: AIDE initialized successfully."
 else
     echo "INFO: AIDE Database already exists."
 fi
 
-# --- 3. Start Background Services ---
+# Run baseline check
+echo "Running baseline AIDE check..."
+/usr/bin/aide --check --config="/etc/aide.conf" | jq -c . >> /var/log/aide.json || true
 
-# Start Cron (Required for AIDE checks)
+# --- 3. Start Background Services ---
 echo "INFO: Starting Cron daemon..."
-# In Debian, cron runs in background by default, but we ensure it starts
 service cron start
 
-# Start SSH
 sleep 5
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
-# Start Fluent-bit
 echo "INFO: Starting Fluent-bit..."
-# The official repo installs to /opt/fluent-bit/bin/
 if [ -f /opt/fluent-bit/bin/fluent-bit ]; then
     /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 else
-    # Fallback path
     /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 fi
 
-# --- 4. Rufe das originale Entrypoint-Skript für Nginx auf ---
+# --- 4. Nginx Entrypoint ---
 echo "INFO: Übergebe an Nginx-Entrypoint..."
 exec /docker-entrypoint.sh nginx -g 'daemon off;'

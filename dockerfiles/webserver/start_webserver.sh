@@ -9,6 +9,19 @@ MAX_RETRIES=30
 RETRY_INTERVAL=2
 count=0
 
+# --- 1. AIDE (HIDS) Initialization ---
+# Check if the AIDE database exists. If not, create it.
+# This is the "first-run" task you correctly identified.
+echo "AIDE database. Initializing..."
+echo "This may take a minute..."
+/usr/bin/aide --init > /dev/null
+echo "AIDE database initialized. Copying..."
+mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db.gz
+
+echo "Running baseline AIDE check..."
+/usr/bin/aide --check | jq -c . >> /var/log/aide.json || true
+
+
 sleep 20
 #--- SSHD Setup ---
 # --- 1. Host-Keys generieren (nur falls nötig) ---
