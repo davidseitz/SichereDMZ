@@ -2,10 +2,21 @@
 FROM owasp/modsecurity-crs:nginx
 
 USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
 # Installiere den SSH-Server und räume danach auf
 RUN apt-get update && \
-    apt-get install -y openssh-server iproute2 curl nftables && \
+    apt-get install -y \
+    openssh-server \
+    iproute2 \
+    curl \
+    nftables \
+    aide \
+    jq && \
     rm -rf /var/lib/apt/lists/*
+
+# For TESTING only!
+RUN apt update && apt install curl
 
 # --- SSH-Konfiguration ---
 # Copy configuration
@@ -22,6 +33,14 @@ RUN addgroup --gid 1001 admin && \
 RUN mkdir -p /home/admin/.ssh && \
     chmod 700 /home/admin/.ssh && \
     chown admin:admin /home/admin/.ssh
+
+# Configure AIDE Cron
+RUN echo "*/10 * * * * root /usr/bin/aide --check | /usr/bin/jq -c . >> /var/log/aide.json" > /etc/cron.d/aide-check
+RUN chmod 0644 /etc/cron.d/aide-check
+
+# Create AIDE dirs
+RUN mkdir -p /var/lib/aide && \
+    chmod 750 /var/lib/aide
 
 # Kopiere Start-Skript in das Image
 COPY start_waf.sh /start_waf.sh

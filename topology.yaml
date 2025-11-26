@@ -123,6 +123,7 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
+        - config/aide/waf/aide.conf:/etc/aide.conf:ro
         - config/waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - certs/cert.pem:/etc/nginx/ssl/cert.pem:ro
