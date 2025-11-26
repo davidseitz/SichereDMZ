@@ -140,7 +140,7 @@ def login_required(f):
 @app.before_request
 def check_host_header():
     # The Host header is available in request.headers['Host']
-    # The header value might include the port (e.g., 'web.sun.dmz:5000'), 
+    # The header value might include the port
     # so we should split it to get only the hostname.
     host_header = request.headers.get('Host')
     
@@ -151,18 +151,8 @@ def check_host_header():
         if hostname != ALLOWED_HOST:
             # Equivalent to NGINX's return 444 (close connection), 
             # we can return an immediate 400 or 403 response, or 
-            # simply abort with 404 to provide no useful info.
-            # *Note: Returning 444 is an NGINX-specific behavior, 
-            # in a standard HTTP server, you'd typically return 
-            # a standard error like 403 Forbidden or 404 Not Found 
-            # and then close the connection.*
-            
-            # Using abort(403) or returning an empty 403 response is the common practice.
-            # To mimic the NGINX behavior of an immediate connection close with no response, 
-            # the Python app itself *cannot* perfectly replicate it at the HTTP level, 
-            # as it must first process the request. The best software-level equivalent is 
-            # returning a standard error and logging.
-            print(f"Blocking request with Host: {host_header}")
+            # simply abort with 404 to provide no useful info..
+            app.logger.warning(f"HOST_CHECK_FAILED: Missing Host header from {request.remote_addr}. Blocking.")
             abort(403) # Return a 403 Forbidden response
 
 # --- ROUTEN ---
