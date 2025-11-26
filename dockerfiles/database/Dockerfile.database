@@ -1,17 +1,9 @@
-# Start from a specific, stable Alpine version
+# Dockerfiles/database/Dockerfile.database
 FROM alpine:3.22 AS final
 
 USER root
 
-# 1. Enable community and testing repos
-# 2. Update package lists
-# 3. Install all required packages:
-#    - mariadb, mariadb-client: The database server and admin tools
-#    - openssh-server/client: For management
-#    - sudo: For privileged admin tasks
-#    - aide: For HIDS
-#    - dcron: For periodic 'aide' checks
-#    - fluent-bit: Installing now, will run later
+# 1. Install packages
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories && \
     echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk update && \
@@ -27,55 +19,34 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       dcron \
       fluent-bit@testing
 
-# --- Add a dedicated admin user ---
+# 2. Admin User Setup
 RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
-    echo 'admin:UnlockTheAccount123!' | chpasswd
-
-
-    
-# --- Configure sudo for admin ---
-# Allow 'admin' to run updates, HIDS checks, and manage mariadb
-RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
+    echo 'admin:UnlockTheAccount123!' | chpasswd && \
+    echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
     chmod 0440 /etc/sudoers.d/admin-db-rules
 
-# Create AIDE dependencies
+# 3. AIDE Setup
 RUN mkdir -p /var/lib/aide && \
     chmod 750 /var/lib/aide && \
     touch /var/lib/aide/aide.db.gz && \
-    chmod 640 /var/lib/aide/aide.db.gz
+    chmod 640 /var/lib/aide/aide.db.gz && \
+    echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontabs/root
 
+# 4. SSH & MySQL Dir Setup
+RUN mkdir -p /var/run/sshd && \
+    ssh-keygen -A && \
+    mkdir -p /var/lib/mysql /var/log/mysql /run/mysqld && \
+    chown -R mysql:mysql /var/lib/mysql /var/log/mysql /run/mysqld && \
+    chmod 755 /var/log/mysql
 
-# Run AIDE every 10 minutes (output handled by report_url in aide.conf)
-RUN echo "*/10 * * * * /usr/bin/aide --check | jq -c . >> /var/log/aide.json" >> /etc/crontabs/root
-
-# --- Harden SSH ---
-# COPY sshd_config /etc/ssh/sshd_config
-RUN mkdir -p /var/run/sshd
-
-# --- Setup Entrypoint ---
+# 5. Entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# --- MariaDB Configuration --- 
-# Create the data directory and give the 'mysql' user ownership
-RUN mkdir -p /var/lib/mysql && \
-    chown -R mysql:mysql /var/lib/mysql
+EXPOSE 3025 3306
 
-# Generate SSH host keys if not present
-RUN ssh-keygen -A
-
-# Create log dir for mariadb
-RUN mkdir -p /var/log/mysql
-RUN chown mysql:mysql /var/log/mysql
-RUN chmod 755 /var/log/mysql
-
-
-
-# Expose ports
-EXPOSE 3025
-EXPOSE 3306
-
-# --- Run ---
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/bin/sh", "-c", "trap : TERM INT; sleep infinity & wait"]
+
+# CHANGE: Default command is now the Database Server, not sleep
+CMD ["/usr/bin/mariadbd", "--defaults-file=/etc/my.cnf", "--user=mysql", "--console"]
