@@ -17,6 +17,7 @@ RUN apt update && \
     apt install nftables -y && \
     apt -y install wget 
 
+# Add slowloris script
 
 # The default command for Alpine is to run a shell, which is perfect.
 CMD ["/bin/sh"]
