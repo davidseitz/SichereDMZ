@@ -15,7 +15,7 @@ if [ ! -f "/var/lib/aide/aide.db" ]; then
     echo "INFO: This may take a minute..."
     
     # Initialize the database (creates aide.db.new)
-    /usr/bin/aide --init
+    /usr/bin/aide --init --config="/etc/aide.conf"
     
     # Move it to the live database name
     cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
@@ -36,6 +36,16 @@ service cron start
 sleep 5
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
+
+# Start Fluent-bit
+echo "INFO: Starting Fluent-bit..."
+# The official repo installs to /opt/fluent-bit/bin/
+if [ -f /opt/fluent-bit/bin/fluent-bit ]; then
+    /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+else
+    # Fallback path
+    /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+fi
 
 # --- 4. Rufe das originale Entrypoint-Skript für Nginx auf ---
 echo "INFO: Übergebe an Nginx-Entrypoint..."

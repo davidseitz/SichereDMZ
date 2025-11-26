@@ -97,6 +97,9 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
+        - config/fluent-bit/webserver/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/webserver/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/webserver/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh
         - config/dns/resolv.conf:/etc/resolv.conf:ro
         - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
@@ -121,6 +124,9 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
+        - config/fluent-bit/waf/pipelines:/etc/fluent-bit/pipelines:ro
+        - config/fluent-bit/waf/parsers:/etc/fluent-bit/parsers:ro
+        - config/fluent-bit/waf/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
         - config/aide/waf/aide.conf:/etc/aide.conf:ro
         - config/waf_setup/conf/waf.conf:/etc/nginx/conf.d/waf.conf:ro
         - fw_config/hosts/host_configure_fw.sh:/fw_config/configure_fw.sh

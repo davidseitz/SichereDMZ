@@ -10,10 +10,21 @@ RUN apt-get update && \
     openssh-server \
     iproute2 \
     curl \
+    gnupg \
+    ca-certificates \
     nftables \
     aide \
     jq && \
     rm -rf /var/lib/apt/lists/*
+
+# 2. Add Fluent-Bit Repository (Official Method)
+# This logic is copied from your Edge Router to ensure consistency
+RUN unset CURL_CA_BUNDLE && unset SSL_CERT_FILE && \
+    curl -fsSL https://packages.fluentbit.io/fluentbit.key | gpg --dearmor > /usr/share/keyrings/fluentbit-keyring.gpg && \
+    codename=$(grep -oP '(?<=VERSION_CODENAME=).*' /etc/os-release 2>/dev/null || echo "bookworm") && \
+    echo "deb [signed-by=/usr/share/keyrings/fluentbit-keyring.gpg] https://packages.fluentbit.io/debian/$codename $codename main" | tee /etc/apt/sources.list.d/fluent-bit.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends fluent-bit
 
 # For TESTING only!
 RUN apt update && apt install curl
@@ -35,7 +46,7 @@ RUN mkdir -p /home/admin/.ssh && \
     chown admin:admin /home/admin/.ssh
 
 # Configure AIDE Cron
-RUN echo "*/10 * * * * root /usr/bin/aide --check | /usr/bin/jq -c . >> /var/log/aide.json" > /etc/cron.d/aide-check
+RUN echo "*/10 * * * * root /usr/bin/aide --check --config="/etc/aide.conf" | /usr/bin/jq -c . >> /var/log/aide.json" > /etc/cron.d/aide-check
 RUN chmod 0644 /etc/cron.d/aide-check
 
 # Create AIDE dirs

@@ -29,8 +29,14 @@ fi
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
+#    This runs it in the background using a config file we will provide.
+echo "Starting fluent-bit service..."
+/usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
+
+
 #--- Main Web Server Startup ---
 echo "--- Starting Gunicorn Only Web Server Setup ---"
+
 
 # --- 1. Wait for MariaDB ---
 echo "Waiting for MariaDB server at $DB_HOST:$DB_PORT..."
