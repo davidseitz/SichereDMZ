@@ -2,7 +2,7 @@ import logging
 import os
 import secrets
 from flask import Flask, render_template, request, redirect, session, url_for, send_file, abort
-from flask_session import Session  # <--- REQUIRED for server-side sessions
+from flask_session import Session
 from captcha.image import ImageCaptcha
 from functools import wraps
 import pymysql
@@ -34,9 +34,34 @@ DB_USER = os.getenv("DB_USER", "webuser")
 DB_PASS = os.getenv("DB_PASS", "webpass")
 DB_NAME = os.getenv("DB_NAME", "webapp")
 
-# Logging (Same as before)
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("webapp")
+# --- LOGGING SETUP ---
+LOG_FILE = "/var/log/webapp.log"
+
+# Ensure log directory exists (important for container environments)
+log_dir = os.path.dirname(LOG_FILE)
+if not os.path.exists(log_dir):
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except Exception as e:
+        # Print to stdout/stderr since logging might not be fully functional yet
+        print(f"Warning: Could not create log directory {log_dir}. Logging might fail: {e}")
+# Set up the basic logger format
+logging.basicConfig(level=logging.INFO)
+
+# File handler for the security log file
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setLevel(logging.INFO)
+
+# Define a robust format for security logging
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+))
+
+# Add the file handler to the Flask application logger
+app.logger.addHandler(file_handler)
+app.logger.info("Application logging initialized and outputting to %s.", LOG_FILE)
+
+# --- END LOGGING SETUP ---
 
 def get_db_conn():
     return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, cursorclass=pymysql.cursors.DictCursor, autocommit=True)
