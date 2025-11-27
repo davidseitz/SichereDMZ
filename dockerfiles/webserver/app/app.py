@@ -296,7 +296,7 @@ def logout():
 @app.errorhandler(503)
 def service_unavailable_error(e):
     app.logger.critical(f"HTTP_ERROR: 503 Service Unavailable triggered at {request.path}.")
-    return render_template("error_init.html"), 503
+    return render_template("error_init.html", error_message="Webserver momentan nicht."), 503
 
 @app.errorhandler(404)
 def page_not_found(e):
