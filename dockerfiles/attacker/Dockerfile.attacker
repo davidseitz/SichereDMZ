@@ -5,25 +5,26 @@
 FROM ubuntu:latest
 
 # Install utils
-#nmap, ping, iproute2, wafw00f, wget, curl and netcat
+# Added 'tesseract-ocr' and 'libtesseract-dev' for the OCR functionality
 RUN apt update && \
-    # apt -y install kali-linux-headless && \
     apt install inetutils-ping -y && \
     apt install nmap -y && \
     apt install iproute2 -y && \
-    apt install wafw00f -y && \ 
+    apt install wafw00f -y && \
     apt install netcat-traditional -y && \
     apt install curl -y && \
     apt install nftables -y && \
     apt install python3 -y && \
     apt install python3-pip -y && \
     apt-get install -y slowhttptest && \
-    apt -y install wget 
+    apt -y install wget && \
+    apt install tesseract-ocr -y
 
-# 2. Install Python packages: requests and slowloris
+# 2. Install Python packages
+# Added 'pillow' (Required for: from PIL import Image)
 # Note: On newer Ubuntu versions (24.04+), we use --break-system-packages 
 # to allow global pip installation in the container environment.
-RUN pip3 install requests slowloris --break-system-packages
+RUN pip3 install requests slowloris pytesseract pillow --break-system-packages
 
 # The default command for Alpine is to run a shell, which is perfect.
 CMD ["/bin/sh"]
