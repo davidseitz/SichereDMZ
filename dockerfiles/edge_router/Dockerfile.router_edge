@@ -19,6 +19,7 @@ RUN apt-get update && \
       jq \
       aide \
       cron \
+      ulogd2 \
       inetutils-ping 
 
 RUN apt-get update && \

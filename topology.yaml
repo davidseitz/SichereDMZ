@@ -28,6 +28,8 @@ topology:
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - config/sshd_configs/edge_router/sshd_config:/etc/ssh/sshd_config:ro
         - config/firewalls/edge_nftables.conf:/etc/nftables.conf:ro
+        - config/firewalls/logging/router_log.conf:/etc/ulogd.conf:ro
+        - /proc:/host/proc:ro
       network-mode: none
 
     internal_router:
@@ -54,6 +56,8 @@ topology:
         - sshkeys/sshkey.pub:/home/admin/.ssh/authorized_keys:ro
         - config/sshd_configs/internal_router/sshd_config:/etc/ssh/sshd_config:ro
         - config/firewalls/internal_nftables.conf:/etc/nftables.conf:ro
+        - config/firewalls/logging/router_log.conf:/etc/ulogd.conf:ro
+        - /proc:/host/proc:ro
       network-mode: none
 
     # --- Externe/Angreifer-Knoten ---
