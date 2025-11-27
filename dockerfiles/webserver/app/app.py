@@ -198,13 +198,13 @@ def signup():
 
         # --- DEFENSE LAYER 2: VALIDATION LOGIC ---
         if not real_answer:
-            logger.warning(f"SECURITY: Replay attack or expired session detected from {request.remote_addr}")
+            app.logger.warning(f"SECURITY: Replay attack or expired session detected from {request.remote_addr}")
             return render_template("signup.html", error="Session expired. Please reload the captcha.")
 
         # Use constant time comparison to prevent timing attacks
         if not secrets.compare_digest(real_answer, user_answer):
-            logger.debug(f"CAPTCHA_FAIL: Expected '{real_answer}', got '{user_answer}' from {request.remote_addr}")
-            logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.remote_addr}")
+            app.logger.debug(f"CAPTCHA_FAIL: Expected '{real_answer}', got '{user_answer}' from {request.remote_addr}")
+            app.logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.remote_addr}")
             return render_template("signup.html", error="Incorrect security code.")
 
         # --- DEFENSE LAYER 3: RESOURCE PROTECTION ---
@@ -230,7 +230,7 @@ def signup():
         except pymysql.err.IntegrityError:
             return render_template("signup.html", error="Username taken.")
         except Exception as e:
-            logger.error(f"DB Error: {e}")
+            app.logger.error(f"DB_ERROR: {e}")
             return render_template("signup.html", error="System error.")
         finally:
             if 'conn' in locals(): conn.close()
