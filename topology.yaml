@@ -130,6 +130,50 @@ topology:
           '
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
+      env:
+        # Core ModSecurity Settings
+        MODSEC_RULE_ENGINE: "on"
+        MODSEC_AUDIT_ENGINE: "on"
+        MODSEC_AUDIT_LOG: "/var/log/modsec_audit.log"
+        LOGLEVEL: "warn"
+        ERRORLOG: "/var/log/modsec_error.log"
+        
+        # Limits
+        MODSEC_REQ_BODY_ACCESS: "on"
+        MODSEC_REQ_BODY_LIMIT: "13107200"
+        MODSEC_REQ_BODY_NOFILES_LIMIT: "131072"
+        MODSEC_RESP_BODY_ACCESS: "on"
+        MODSEC_RESP_BODY_LIMIT: "524288"
+        MODSEC_PCRE_MATCH_LIMIT: "1000"
+        MODSEC_PCRE_MATCH_LIMIT_RECURSION: "1000"
+        MAX_NUM_ARGS: "128"
+        TIMEOUT: "60"
+
+        # OWASP CRS Tuning (Paranoia & Anomaly)
+        BLOCKING_PARANOIA: "3"
+        DETECTION_PARANOIA: "3"
+        ANOMALY_INBOUND: "10"
+        ANOMALY_OUTBOUND: "5"
+        
+        # Policy Constraints
+        ALLOWED_METHODS: "GET POST PUT"
+        ALLOWED_REQUEST_CONTENT_TYPE: "text/xml|application/xml|text/plain"
+        ALLOWED_REQUEST_CONTENT_TYPE_CHARSET: "utf-8|iso-8859-1"
+        ALLOWED_HTTP_VERSIONS: "HTTP/1.1 HTTP/2 HTTP/2.0"
+        RESTRICTED_EXTENSIONS: ".cmd/ .com/ .config/ .dll/"
+        RESTRICTED_HEADERS: "/proxy/ /if/"
+        STATIC_EXTENSIONS: "/.jpg/ /.jpeg/ /.png/ /.gif/"
+        
+        # CRS Argument/File Limits
+        ARG_NAME_LENGTH: "50"
+        ARG_LENGTH: "200"
+        TOTAL_ARG_LENGTH: "6400"
+        MAX_FILE_SIZE: "100000"
+        COMBINED_FILE_SIZES: "1000000"
+        
+        # Misc
+        ENFORCE_BODYPROC_URLENCODED: "1"
+        VALIDATE_UTF8_ENCODING: "1"
       binds:
         - config/fluent-bit/waf/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/waf/parsers:/etc/fluent-bit/parsers:ro
