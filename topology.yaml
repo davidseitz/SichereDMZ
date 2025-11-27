@@ -65,6 +65,8 @@ topology:
         - "ip route add default via 172.20.1.1"
         - "ip addr add 192.168.1.2/24 dev eth1"
         - "ip route add 10.10.0.0/16 via 192.168.1.1"
+      binds:
+        - attacks/python-scripts:/home/attacker/attacks:ro
       network-mode: none
 
     attacker_2:

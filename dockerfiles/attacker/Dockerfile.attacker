@@ -20,10 +20,10 @@ RUN apt update && \
     apt-get install -y slowhttptest && \
     apt -y install wget 
 
-# 2. Install Slowloris via PIP
+# 2. Install Python packages: requests and slowloris
 # Note: On newer Ubuntu versions (24.04+), we use --break-system-packages 
 # to allow global pip installation in the container environment.
-RUN pip3 install slowloris --break-system-packages
+RUN pip3 install requests slowloris --break-system-packages
 
 # The default command for Alpine is to run a shell, which is perfect.
 CMD ["/bin/sh"]
