@@ -11,14 +11,6 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# # 1. Install Python requests in the container (if missing)
-# echo -e "${BLUE}[SETUP] Installing python requests library in attacker container...${NC}"
-# docker exec $ATTACKER_CONTAINER pip3 install requests --break-system-packages > /dev/null 2>&1
-
-# # 2. Copy the attack script to the container
-# echo -e "${BLUE}[SETUP] Copying attack script...${NC}"
-# docker cp flood_users.py $ATTACKER_CONTAINER:/flood_users.py
-
 # Function to measure latency
 measure_latency() {
     local phase_name="$1"
@@ -52,16 +44,20 @@ measure_latency "Baseline (Normal Traffic)"
 
 # 4. Start Attack in Background
 echo -e "\n${GREEN}>>> Launching Signup Flood Attack...${NC}"
-docker exec $ATTACKER_CONTAINER python3 /home/attacker/attacks/flood_users.py > /dev/null 2>&1 &
+
+# UPDATE: Explicitly use the Virtual Environment Python
+# This guarantees we have access to cv2, pytesseract, and requests
+docker exec $ATTACKER_CONTAINER /opt/venv/bin/python3 /home/attacker/attacks/flood_users.py > /dev/null 2>&1 &
+
 ATTACK_PID=$!
 
-# Give it 2 seconds to ramp up
-sleep 2
+# Allow attack to ramp up
+sleep 5
 
-# 5. Stress Test
-measure_latency "During Signup Flood"
+# 5. Stress Test (Under Attack)
+measure_latency "Under Attack (DoS)"
 
 # 6. Cleanup
 echo -e "\n${BLUE}[CLEANUP] Stopping attack...${NC}"
-# Kill the python script inside the container
-docker exec $ATTACKER_CONTAINER pkill -f "python3 /home/attacker/attacks/flood_users.py"
+# We kill the python process inside the container
+docker exec $ATTACKER_CONTAINER pkill -f flood_users.py

@@ -1,30 +1,39 @@
-# Start from the Kali base image
-#FROM kalilinux/kali-rolling
-
-# Use a ubuntu base image for a smaller footprint
 FROM ubuntu:latest
 
-# Install utils
-# Added 'tesseract-ocr' and 'libtesseract-dev' for the OCR functionality
-RUN apt update && \
-    apt install inetutils-ping -y && \
-    apt install nmap -y && \
-    apt install iproute2 -y && \
-    apt install wafw00f -y && \
-    apt install netcat-traditional -y && \
-    apt install curl -y && \
-    apt install nftables -y && \
-    apt install python3 -y && \
-    apt install python3-pip -y && \
-    apt-get install -y slowhttptest && \
-    apt -y install wget && \
-    apt install tesseract-ocr -y
+# 1. Install System Dependencies
+# We REMOVED 'python3-opencv' to prevent the numpy conflict.
+# We ADDED 'python3-venv' and 'libgl1' (required for opencv).
+RUN apt-get update && \
+    apt-get install -y \
+    inetutils-ping \
+    nmap \
+    iproute2 \
+    wafw00f \
+    netcat-traditional \
+    curl \
+    nftables \
+    python3 \
+    python3-pip \
+    python3-venv \
+    slowhttptest \
+    wget \
+    tesseract-ocr \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 2. Install Python packages
-# Added 'pillow' (Required for: from PIL import Image)
-# Note: On newer Ubuntu versions (24.04+), we use --break-system-packages 
-# to allow global pip installation in the container environment.
-RUN pip3 install requests slowloris pytesseract pillow --break-system-packages
+# 2. Set up a Virtual Environment
+# This creates a "local python instance" at /opt/venv
+RUN python3 -m venv /opt/venv
 
-# The default command for Alpine is to run a shell, which is perfect.
+# 3. Add Virtual Environment to PATH
+# This ensures that typing 'python3' or 'pip' automatically uses the venv versions
+ENV PATH="/opt/venv/bin:$PATH"
+
+# 4. Install Python Packages inside the Venv
+# We no longer need '--break-system-packages' because we are inside a venv.
+RUN pip install --upgrade pip && \
+    pip install requests slowloris pytesseract pillow opencv-python-headless
+    
+WORKDIR /root
 CMD ["/bin/sh"]

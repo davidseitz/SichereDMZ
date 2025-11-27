@@ -10,11 +10,14 @@ import sys
 
 # --- IMPORT DEPENDENCIES SAFELY ---
 try:
+    from PIL import Image, ImageFilter, ImageOps
     import pytesseract
-    from PIL import Image
+    import io
+    import cv2
+    import numpy as np
 except ImportError:
     print("[-] ERROR: Missing Python libraries.")
-    print("    Run: pip install pytesseract pillow")
+    print("    Run: pip install pytesseract pillow opencv-python-headless numpy")
     sys.exit(1)
 
 # --- CONFIGURATION ---
@@ -38,6 +41,77 @@ def check_system_dependencies():
 
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+
+def solve_captcha_with_preprocessing(image_bytes):
+    try:
+        # 1. Load Image
+        img = Image.open(io.BytesIO(image_bytes))
+        
+        # 2. Convert to Grayscale
+        img = img.convert('L')
+        
+        # 3. Scale Up (Crucial for Tesseract accuracy)
+        # Tesseract works best on text approx 30px high. We double the size.
+        width, height = img.size
+        img = img.resize((width * 2, height * 2), Image.Resampling.LANCZOS)
+        
+        # 4. Apply Median Filter
+        # This is the "Magic" step. It looks at neighboring pixels and picks the median.
+        # Since noise dots are usually 1 pixel wide, this erases them while keeping thick text.
+        img = img.filter(ImageFilter.MedianFilter(size=3))
+        
+        # 5. Binarization (Thresholding)
+        # Force pixels to be either pure black or pure white.
+        # We assume text is dark (< 160) and background/noise is light (> 160).
+        threshold = 160
+        img = img.point(lambda p: 255 if p > threshold else 0)
+        
+        # 6. Configure Tesseract
+        # --psm 8: Treat the image as a single word.
+        # whitelist: Tell Tesseract to ONLY look for uppercase letters and numbers.
+        custom_config = r'--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        
+        result = pytesseract.image_to_string(img, config=custom_config)
+        
+        # Clean result just in case
+        return ''.join(filter(str.isalnum, result)).strip().upper()
+        
+    except Exception as e:
+        print(f"[!] Preprocessing Error: {e}")
+        return ""
+    
+
+def solve_captcha_opencv(image_bytes):
+    # Convert bytes to numpy array
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+    
+    # 1. Thresholding (Otsu's method determines optimal threshold automatically)
+    # This turns the image into pure black and white
+    _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # 2. Remove Noise (Morphological Opening)
+    # This removes small white dots (noise) from the text
+    kernel = np.ones((2,2), np.uint8)
+    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+    # 3. Dilation (Thicken the text)
+    # Makes the letters connect better if the noise removal ate some parts
+    img = cv2.dilate(img, kernel, iterations=1)
+
+    # 4. Invert back (Tesseract prefers black text on white bg)
+    img = cv2.bitwise_not(img)
+    
+    # 5. Resize (Scale up)
+    img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+    # Solve
+    custom_config = r'--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    result = pytesseract.image_to_string(img, config=custom_config)
+    
+    return ''.join(filter(str.isalnum, result)).strip().upper()
+
 
 def attack_worker(thread_id):
     # Create session per thread
@@ -65,24 +139,14 @@ def attack_worker(thread_id):
                 time.sleep(5)
                 continue
 
-            # 2. Solve with OCR
-            try:
-                img = Image.open(io.BytesIO(r_img.content))
-                # Convert to grayscale (L) for better OCR accuracy
-                img = img.convert('L') 
-                
-                # Perform OCR
-                # --psm 8 treats the image as a single word (good for captchas)
-                captcha_guess = pytesseract.image_to_string(img, config='--psm 8').strip()
-                
-                # Filter non-alphanumeric characters
-                captcha_guess = ''.join(filter(str.isalnum, captcha_guess)).upper()
-            except Exception as e:
-                print(f"[-] Thread {thread_id}: OCR Error: {e}")
-                continue
-
-            # If OCR failed to find text, skip
-            if not captcha_guess:
+            # 2. Solve the CAPTCHA
+            image_bytes = r_img.content
+            captcha_guess = solve_captcha_with_preprocessing(image_bytes)
+            if not captcha_guess or len(captcha_guess) != 6:
+                # Fallback to OpenCV method if preprocessing fails
+                captcha_guess = solve_captcha_opencv(image_bytes)
+            if not captcha_guess or len(captcha_guess) != 6:
+                print(f"[-] Thread {thread_id}: OCR Failed to produce valid CAPTCHA.")
                 continue
 
             # 3. Submit the Signup

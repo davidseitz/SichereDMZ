@@ -35,7 +35,7 @@ DB_PASS = os.getenv("DB_PASS", "webpass")
 DB_NAME = os.getenv("DB_NAME", "webapp")
 
 # Logging (Same as before)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("webapp")
 
 def get_db_conn():
@@ -178,6 +178,7 @@ def signup():
 
         # Use constant time comparison to prevent timing attacks
         if not secrets.compare_digest(real_answer, user_answer):
+            logger.debug(f"CAPTCHA_FAIL: Expected '{real_answer}', got '{user_answer}' from {request.remote_addr}")
             logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.remote_addr}")
             return render_template("signup.html", error="Incorrect security code.")
 
