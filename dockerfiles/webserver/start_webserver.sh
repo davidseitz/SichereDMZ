@@ -46,6 +46,11 @@ echo "INFO: Starte /usr/sbin/sshd"
 echo "Starting fluent-bit service..."
 /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
+#C. Suricata (IDS/IPS)
+echo "Starting Suricata... (Interface: eth0)"
+# -D runs it as a daemon (background)
+# Interfaces are auto-loaded from the af-packet config in suricata.yaml
+/usr/bin/suricata -c /etc/suricata/suricata.yaml --af-packet &
 
 #--- Main Web Server Startup ---
 echo "--- Starting Gunicorn Only Web Server Setup ---"

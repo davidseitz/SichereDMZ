@@ -20,7 +20,31 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       aide@testing \
       fluent-bit@testing \
       jpeg-dev \
-      zlib-dev
+      zlib-dev \
+      suricata
+
+RUN pip install suricata-update
+
+# --- New Suricata Configuration Steps (Alpine) ---
+
+# --- Configure Suricata ---
+# Copy our custom, single-interface configuration
+COPY suricata.yaml /etc/suricata/suricata.yaml
+RUN chown root:root /etc/suricata/suricata.yaml && \
+    chmod 644 /etc/suricata/suricata.yaml
+
+# --- Create Suricata User and Directories (Standardized) ---
+# Alpine's 'adduser' is different; use standard 'suricata' user and group creation.
+# NOTE: Alpine uses 'addgroup' and 'adduser' from 'busybox', which is simpler.
+RUN addgroup -S -g 1002 suricata && \
+    adduser -S -u 1002 -G suricata -h /var/lib/suricata -D suricata && \
+    # Create /var/run/suricata and set permissions
+    mkdir -p /var/log/suricata /var/lib/suricata /var/run/suricata && \
+    chown -R suricata:suricata /var/log/suricata /var/lib/suricata /var/run/suricata
+
+# --- Download Initial Suricata Rules ---
+# This uses the Python-based suricata-update
+RUN suricata-update --no-test
 
 WORKDIR /app
 
