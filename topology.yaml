@@ -175,6 +175,7 @@ topology:
         ENFORCE_BODYPROC_URLENCODED: "1"
         VALIDATE_UTF8_ENCODING: "1"
       binds:
+        - config/waf_setup/rules/signup_protection.conf:/etc/nginx/modsecurity.d/signup_protection.conf:ro
         - config/fluent-bit/waf/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/waf/parsers:/etc/fluent-bit/parsers:ro
         - config/fluent-bit/waf/fluent-bit.conf:/etc/fluent-bit/fluent-bit.conf:ro
