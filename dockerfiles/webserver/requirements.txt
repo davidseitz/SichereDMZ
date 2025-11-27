@@ -2,3 +2,5 @@ flask
 pymysql
 bcrypt
 gunicorn
+captcha
+Pillow

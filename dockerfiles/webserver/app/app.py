@@ -6,6 +6,14 @@ import os
 from functools import wraps
 from time import sleep # Not strictly needed, but kept for completeness of original structure
 
+# Captcha requirements
+# --- Add imports ---
+from captcha.image import ImageCaptcha
+import io
+import random
+import string
+from flask import send_file
+
 # --- Application Setup ---
 app = Flask(__name__)
 # WICHTIG: Dies sollte in einer Produktionsumgebung sicher gesetzt werden.
@@ -48,6 +56,12 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.addHandler(file_handler)
 app.logger.info("Application logging initialized and outputting to %s.", LOG_FILE)
 # --- END LOGGING SETUP ---
+
+# Helper for CAPTCHA generation
+def generate_captcha_text(length=5):
+    # Digits and uppercase letters (avoiding confusing chars like O/0, I/l)
+    chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return "".join(random.choices(chars, k=length))
 
 def get_db_conn():
     """Gibt eine Datenbankverbindung zurück. Kann pymysql.err.OperationalError auslösen."""
@@ -169,12 +183,37 @@ def index():
 def auth_choice():
     return render_template("auth_choice.html")
 
+# --- New Route to Serve the Image ---
+@app.route("/captcha/image")
+def captcha_image():
+    # 1. Generate random text
+    captcha_text = generate_captcha_text()
+    
+    # 2. Store securely in session (server-side)
+    session["captcha_result"] = captcha_text
+    
+    # 3. Create the image
+    image = ImageCaptcha(width=280, height=90)
+    data = image.generate(captcha_text)
+    
+    # 4. Send image stream to browser
+    return send_file(data, mimetype="image/png")
+
 @app.route("/signup", methods=["GET", "POST"])
 @check_db_availability
 def signup():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
+        # 1. Check Captcha
+        user_answer = request.form.get("captcha_answer", "").upper()
+        real_answer = session.get("captcha_result")
+
+        if not real_answer or user_answer != real_answer:
+            app.logger.warning(f"CAPTCHA_FAIL: {request.remote_addr}")
+            return render_template("signup.html", error="Incorrect security code. Please try again.")
+
+        # 2. Get Form Data
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         if not username or not password:
             app.logger.info(f"SIGNUP_FAILED: Missing fields for username '{username}'.")
@@ -204,8 +243,9 @@ def signup():
                 conn.close()
 
         return redirect(url_for('signin'))
+    else:
+        return render_template("signup.html")
 
-    return render_template("signup.html")
 
 @app.route("/signin", methods=["GET", "POST"])
 @check_db_availability

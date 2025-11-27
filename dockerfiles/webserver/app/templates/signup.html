@@ -4,26 +4,63 @@
 <meta charset="utf-8">
 <title>Sign Up</title>
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
   .form-container { background:#fff; padding:30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.1); width: 350px; }
-  input { width: 100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:6px; }
-  button { width: 100%; padding:12px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+  .form-group { margin-bottom: 15px; }
+  input { width: 100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:6px; box-sizing: border-box; }
+  button { width: 100%; padding:12px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size: 16px; }
   button:hover { background:#0056b3; }
-  .error { color:red; margin-bottom:10px; }
+  .error { color:red; margin-bottom:10px; font-size: 0.9em; }
+  img { max-width: 100%; height: auto; }
 </style>
 </head>
 <body>
+
 <div class="form-container">
-<h2>Create Account</h2>
-{% if error %}
-<p class="error">{{ error }}</p>
-{% endif %}
-<form method="POST">
-<input type="text" name="username" placeholder="Username" required>
-<input type="password" name="password" placeholder="Password" required>
-<button type="submit">Sign Up</button>
-</form>
-<a href="{{ url_for('signin') }}">Already have an account? Sign In</a>
+    <h2>Create Account</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('signup') }}">
+        
+        <div class="form-group">
+            <input type="text" name="username" placeholder="Username" required>
+        </div>
+
+        <div class="form-group">
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
+
+        <div class="form-group">
+            <label style="font-weight: bold; font-size: 0.9em;">Security Check:</label>
+            
+            <div style="margin: 10px 0; text-align: center;">
+                <img src="{{ url_for('captcha_image') }}" 
+                     alt="CAPTCHA" 
+                     id="captcha-img"
+                     style="border: 1px solid #ccc; border-radius: 4px; cursor: pointer;"
+                     onclick="this.src='{{ url_for('captcha_image') }}?' + Math.random()"
+                     title="Click to reload image">
+                <br>
+                <small style="color: #666; font-size: 0.8em;">Click image to reload</small>
+            </div>
+            
+            <input type="text" 
+                   name="captcha_answer" 
+                   placeholder="Enter the code from the image" 
+                   required
+                   autocomplete="off">
+        </div>
+
+        <button type="submit">Sign Up</button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 15px; font-size: 0.9em;">
+        Already have an account? <a href="{{ url_for('signin') }}">Login</a>
+    </p>
 </div>
+
 </body>
 </html>
