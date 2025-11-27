@@ -64,4 +64,4 @@ measure_latency "During Signup Flood"
 # 6. Cleanup
 echo -e "\n${BLUE}[CLEANUP] Stopping attack...${NC}"
 # Kill the python script inside the container
-docker exec $ATTACKER_CONTAINER pkill -f "python3 /flood_users.py"
+docker exec $ATTACKER_CONTAINER pkill -f "python3 /home/attacker/attacks/flood_users.py"
