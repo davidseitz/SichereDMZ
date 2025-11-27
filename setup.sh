@@ -125,8 +125,8 @@ case "$1" in
             exit 1
         fi
         
-        # Launch 10 bots
-        $BOTNET_SCRIPT 10
+        # Launch 100 bots
+        $BOTNET_SCRIPT 100
         
         echo -e "${GREEN}=== DDoS läuft. Überwache Logs mit: docker logs -f clab-security_lab-reverse_proxy ===${NC}"
         ;;
