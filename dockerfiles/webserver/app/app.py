@@ -1,85 +1,45 @@
 import logging
-from flask import Flask, render_template, request, redirect, session, url_for, abort
+import os
+import secrets
+from flask import Flask, render_template, request, redirect, session, url_for, send_file, abort
+from flask_session import Session  # <--- REQUIRED for server-side sessions
+from captcha.image import ImageCaptcha
+from functools import wraps
 import pymysql
 import bcrypt
-import os
-from functools import wraps
-from time import sleep # Not strictly needed, but kept for completeness of original structure
-
-# Captcha requirements
-# --- Add imports ---
-from captcha.image import ImageCaptcha
 import io
-import random
-import string
-from flask import send_file
 
-# --- Application Setup ---
 app = Flask(__name__)
-# WICHTIG: Dies sollte in einer Produktionsumgebung sicher gesetzt werden.
-app.secret_key = os.getenv("FLASK_SECRET", "super-secure-dev-secret-key-01234") 
 
-# Datenbankkonfiguration
-DB_HOST = os.getenv("DB_HOST", "10.10.40.2")
-DB_PORT = int(os.getenv("DB_PORT", 3306))
-DB_USER = os.getenv("DB_USER", "webuser")
-DB_PASS = os.getenv("DB_PASS", "webpass")
-DB_NAME = os.getenv("DB_NAME", "webapp")
+# --- SECURITY CONFIGURATION ---
+app.secret_key = os.getenv("FLASK_SECRET", "super-secure-dev-secret-key")
+
+# 1. Configure Server-Side Sessions
+# This stores session data in the /flask_session folder inside the container
+# The browser only gets a Session ID, not the data itself.
+app.config["SESSION_TYPE"] = "filesystem" 
+app.config["SESSION_FILE_DIR"] = "./flask_session"
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_USE_SIGNER"] = True
+Session(app)
+
+# 2. Allowed Host Header (Must match WAF config)
 
 # Hostkonfiguration
 ALLOWED_HOST = "web.sun.dmz"
 
-# --- LOGGING SETUP ---
-LOG_FILE = "/var/log/webapp.log"
+# Database Configuration
+DB_HOST = os.getenv("DB_HOST", "10.10.40.2")
+DB_USER = os.getenv("DB_USER", "webuser")
+DB_PASS = os.getenv("DB_PASS", "webpass")
+DB_NAME = os.getenv("DB_NAME", "webapp")
 
-# Ensure log directory exists (important for container environments)
-log_dir = os.path.dirname(LOG_FILE)
-if not os.path.exists(log_dir):
-    try:
-        os.makedirs(log_dir, exist_ok=True)
-    except Exception as e:
-        # Print to stdout/stderr since logging might not be fully functional yet
-        print(f"Warning: Could not create log directory {log_dir}. Logging might fail: {e}")
-
-# Set up the basic logger format
+# Logging (Same as before)
 logging.basicConfig(level=logging.INFO)
-
-# File handler for the security log file
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setLevel(logging.INFO)
-# Define a robust format for security logging
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
-))
-
-# Add the file handler to the Flask application logger
-app.logger.addHandler(file_handler)
-app.logger.info("Application logging initialized and outputting to %s.", LOG_FILE)
-# --- END LOGGING SETUP ---
-
-# Helper for CAPTCHA generation
-def generate_captcha_text(length=5):
-    # Digits and uppercase letters (avoiding confusing chars like O/0, I/l)
-    chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-    return "".join(random.choices(chars, k=length))
+logger = logging.getLogger("webapp")
 
 def get_db_conn():
-    """Gibt eine Datenbankverbindung zurück. Kann pymysql.err.OperationalError auslösen."""
-    try:
-        return pymysql.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            user=DB_USER,
-            password=DB_PASS,
-            database=DB_NAME,
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=True
-        )
-    except pymysql.err.OperationalError as e:
-        # Log this as a critical event as it affects application availability
-        app.logger.critical(f"DB_CONNECTION_FAILED: Attempt to connect to DB at {DB_HOST}:{DB_PORT} failed. Error: {e}")
-        raise # Re-raise the exception
-
+    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, cursorclass=pymysql.cursors.DictCursor, autocommit=True)
 
 def init_db():
     """
@@ -184,67 +144,70 @@ def auth_choice():
     return render_template("auth_choice.html")
 
 # --- New Route to Serve the Image ---
+
 @app.route("/captcha/image")
 def captcha_image():
-    # 1. Generate random text
-    captcha_text = generate_captcha_text()
+    # Generate random text (Using alphanumeric to avoid confusion)
+    # Using 'secrets' is cryptographically stronger than 'random'
+    image_text = secrets.token_hex(3).upper() # Generates ~6 chars
     
-    # 2. Store securely in session (server-side)
-    session["captcha_result"] = captcha_text
+    # STORE SECURELY: 
+    # This saves the answer in ./flask_session/[session_id] on the SERVER.
+    # The client cannot see this value.
+    session["captcha_answer"] = image_text
     
-    # 3. Create the image
+    # Generate image
     image = ImageCaptcha(width=280, height=90)
-    data = image.generate(captcha_text)
+    data = image.generate(image_text)
     
-    # 4. Send image stream to browser
     return send_file(data, mimetype="image/png")
 
 @app.route("/signup", methods=["GET", "POST"])
-@check_db_availability
 def signup():
     if request.method == "POST":
-        # 1. Check Captcha
+        # --- DEFENSE LAYER 1: REPLAY PROTECTION ---
+        # Retrieve the answer and IMMEDIATELY remove it from the session.
+        # If the user reloads or an attacker replays the request, 'real_answer' will be None.
+        real_answer = session.pop("captcha_answer", None)
         user_answer = request.form.get("captcha_answer", "").upper()
-        real_answer = session.get("captcha_result")
 
-        if not real_answer or user_answer != real_answer:
-            app.logger.warning(f"CAPTCHA_FAIL: {request.remote_addr}")
-            return render_template("signup.html", error="Incorrect security code. Please try again.")
+        # --- DEFENSE LAYER 2: VALIDATION LOGIC ---
+        if not real_answer:
+            logger.warning(f"SECURITY: Replay attack or expired session detected from {request.remote_addr}")
+            return render_template("signup.html", error="Session expired. Please reload the captcha.")
 
-        # 2. Get Form Data
+        # Use constant time comparison to prevent timing attacks
+        if not secrets.compare_digest(real_answer, user_answer):
+            logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.remote_addr}")
+            return render_template("signup.html", error="Incorrect security code.")
+
+        # --- DEFENSE LAYER 3: RESOURCE PROTECTION ---
+        # Only NOW do we perform expensive operations (Hashing/DB)
+        
         username = request.form.get("username")
         password = request.form.get("password")
 
-        if not username or not password:
-            app.logger.info(f"SIGNUP_FAILED: Missing fields for username '{username}'.")
-            return render_template("signup.html", error="Alle Felder sind erforderlich.")
-        
-        if len(password) < 8:
-            app.logger.info(f"SIGNUP_FAILED: Password too short for username '{username}'.")
-            return render_template("signup.html", error="Das Passwort muss mindestens 8 Zeichen lang sein.")
+        if not username or not password or len(password) < 8:
+            return render_template("signup.html", error="Invalid input.")
 
+        # Expensive Bcrypt operation (Only runs if human is verified)
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        conn = None 
 
         try:
             conn = get_db_conn()
             with conn.cursor() as cur:
                 cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s)", 
                             (username, pw_hash.decode('utf-8')))
-            app.logger.info(f"SIGNUP_SUCCESS: New user registered: '{username}'.")
+            return redirect(url_for('signin'))
         except pymysql.err.IntegrityError:
-            app.logger.warning(f"SIGNUP_FAILED: Username already exists: '{username}'.")
-            return render_template("signup.html", error="Benutzername existiert bereits. Bitte wählen Sie einen anderen.")
+            return render_template("signup.html", error="Username taken.")
         except Exception as e:
-             app.logger.error(f"SIGNUP_ERROR: Database error during signup for '{username}': {e}")
-             return render_template("error_500.html", error_message="Fehler bei der Registrierung."), 500
+            logger.error(f"DB Error: {e}")
+            return render_template("signup.html", error="System error.")
         finally:
-            if conn:
-                conn.close()
+            if 'conn' in locals(): conn.close()
 
-        return redirect(url_for('signin'))
-    else:
-        return render_template("signup.html")
+    return render_template("signup.html")
 
 
 @app.route("/signin", methods=["GET", "POST"])

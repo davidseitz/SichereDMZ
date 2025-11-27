@@ -4,3 +4,4 @@ bcrypt
 gunicorn
 captcha
 Pillow
+Flask-Session
