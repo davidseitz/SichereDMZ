@@ -188,8 +188,10 @@ def signup():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        if not username or not password or len(password) < 8:
-            return render_template("signup.html", error="Invalid input.")
+        if not username or not password:
+            return render_template("signup.html", error="You have to provide a username and password")
+        if len(password) < 8:
+            return render_template("signup.html", error="Password must have at least 8 characters.")
 
         # Expensive Bcrypt operation (Only runs if human is verified)
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
