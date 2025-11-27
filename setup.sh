@@ -14,6 +14,7 @@
 TOPOLOGY_FILE="topology.yaml"
 TEST_SCRIPT_PATH="./tests/run_all_tests.sh"
 BUILD_SCRIPT_PATH="./build/build_all_containers.sh"
+BOTNET_SCRIPT="./attacks/launch_botnet.sh"
 
 # --- Farben ---
 GREEN="\033[0;32m"
@@ -116,9 +117,34 @@ case "$1" in
         run_tests
         ;;
         
+    dosattack)
+        echo "=== Starte DDoS Simulation (Botnet) ==="
+        if [ ! -f "$BOTNET_SCRIPT" ]; then
+            echo -e "${RED}Botnet-Skript '$BOTNET_SCRIPT' nicht gefunden!${NC}"
+            # Fallback: create it dynamically if missing? Better to assume user saved it.
+            exit 1
+        fi
+        
+        # Launch 10 bots
+        $BOTNET_SCRIPT 10
+        
+        echo -e "${GREEN}=== DDoS läuft. Überwache Logs mit: docker logs -f clab-security_lab-reverse_proxy ===${NC}"
+        ;;
+    stopdos)
+        echo "=== Stoppe DDoS Simulation (Botnet) ==="
+        # Stoppe alle Bot-Container
+        if [ ! -f "$BOTNET_SCRIPT" ]; then
+            echo -e "${RED}Botnet-Skript '$BOTNET_SCRIPT' nicht gefunden!${NC}"
+            # Fallback: create it dynamically if missing? Better to assume user saved it.
+            exit 1
+        fi
+        
+        $BOTNET_SCRIPT stop
+        ;;
+        
     *)
         echo -e "${RED}Unbekanntes Argument: $1${NC}"
-        echo "Nutzung: $0 [start|stop|restart|test]"
+        echo "Nutzung: $0 [start|stop|restart|test|dosattack|stopdos]"
         exit 1
         ;;
 esac
