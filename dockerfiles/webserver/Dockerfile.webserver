@@ -16,6 +16,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       netcat-openbsd \
       chrony \
       openssh-server \
+      sudo \
       jq \
       nftables \
       aide@testing \
