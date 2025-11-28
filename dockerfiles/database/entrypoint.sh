@@ -58,7 +58,8 @@ CREATE DATABASE IF NOT EXISTS webapp;
 CREATE USER IF NOT EXISTS 'webuser'@'%' IDENTIFIED BY 'VerySecureP@ssword123!';
 GRANT ALL PRIVILEGES ON webapp.* TO 'webuser'@'%';
 -- Optional: Lockdown root (remove remote access if present)
--- DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'MaiVeariSegureBasword0912!';
 FLUSH PRIVILEGES;
 EOF
     
