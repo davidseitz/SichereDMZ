@@ -69,6 +69,11 @@ RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd
 
+# --- Configure sudo for admin ---
+# CHANGE: Added sudo rules restricting admin to apk update/upgrade (Password Required)
+RUN echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-web-rules && \
+    chmod 0440 /etc/sudoers.d/admin-web-rules
+
 # --- Prepare SSH Directory for Mounting ---
 # We create the directory here so we can set permissions before mounting
 RUN mkdir -p /home/admin/.ssh && \
