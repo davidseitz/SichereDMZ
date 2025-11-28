@@ -29,7 +29,7 @@ RUN mkdir -p /var/lib/aide && \
     chmod 640 /var/lib/aide/aide.db.gz
 
 # --- Configure sudo for admin ---
-RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide" > /etc/sudoers.d/admin-bastion-rules && \
+RUN echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-bastion-rules && \
     chmod 0440 /etc/sudoers.d/admin-bastion-rules
 
 # Run AIDE every 10 minutes (output handled by report_url in aide.conf)
