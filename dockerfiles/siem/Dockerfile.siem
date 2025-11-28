@@ -5,7 +5,7 @@ FROM alpine:3.22 AS final
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repositories && \
     echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache openssh-server su-exec sudo fluent-bit@testing aide@testing dcron chrony nftables jq
+    apk add --no-cache openssh-server su-exec sudo fluent-bit@testing aide@testing dcron chrony nftables jq nginx apache2-utils
 
 COPY --from=builder /usr/bin/loki /usr/bin/loki
 
@@ -19,6 +19,9 @@ RUN echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/
 
 # COPY sshd_config /etc/ssh/sshd_config
 RUN mkdir -p /var/run/sshd
+
+# Ensure Nginx run directory exists (critical for Alpine Nginx)
+RUN mkdir -p /run/nginx
 
 # The AIDE package doesn't create this, but aide --init needs it to write the DB. 
 RUN mkdir -p /var/lib/aide && \
