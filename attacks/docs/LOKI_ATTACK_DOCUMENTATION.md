@@ -599,6 +599,201 @@ This attack methodology is documented for **authorized penetration testing** and
 
 ---
 
+## Phase 2: Authentication Bypass & Persistence
+
+### Executive Summary
+
+After our initial Phase 1 findings, the Blue Team deployed a remediation: an **Nginx reverse proxy** enforcing **HTTP Basic Authentication** in front of Loki. This section documents how we bypassed this control by **scraping credentials from the compromised trusted endpoint**.
+
+### Blue Team Patch Analysis
+
+| Component | Before (Phase 1) | After (Phase 2) |
+|-----------|------------------|-----------------|
+| **Loki Access** | Direct to `:3100` | Via Nginx proxy on `:3100` |
+| **Authentication** | None | HTTP Basic Auth |
+| **Config Location** | `loki-config.yaml` | `nginx/nginx.conf` + `.htpasswd` |
+
+**Nginx Configuration (deployed by Blue Team):**
+```nginx
+server {
+    listen 10.10.30.2:3100;
+    auth_basic "SIEM Log Ingestion - Authorized Personnel Only";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3100;
+    }
+}
+```
+
+### Phase 2 Attack Vector: Credential Scraping
+
+Since the trusted endpoint (`web_server`) still needs to forward logs, its **Fluent Bit configuration must contain valid credentials**:
+
+```ini
+# /etc/fluent-bit/pipelines/ssh-logs.conf (on web_server)
+[OUTPUT]
+    Name             loki
+    Host             10.10.30.2
+    Port             3100
+    http_user        loki-user           # ← SCRAPED
+    http_passwd      a_secretPW#15secEt  # ← SCRAPED
+```
+
+### Phase 2 Attack Flow
+
+```mermaid
+sequenceDiagram
+    participant ATK as 🔴 Attacker
+    participant WEB as 🟢 Web Server<br/>(Compromised)
+    participant PROXY as 🧱 Nginx Proxy<br/>(Auth Enforced)
+    participant LOKI as 📊 Loki Backend
+    
+    Note over ATK,LOKI: Step 1: Verify Auth Enforcement
+    ATK->>WEB: Test unauthenticated access
+    WEB->>PROXY: GET /ready (no creds)
+    PROXY-->>WEB: HTTP 401 Unauthorized
+    WEB-->>ATK: ✓ Auth patch confirmed active
+    
+    Note over ATK,LOKI: Step 2: Credential Scraping
+    ATK->>WEB: grep -r http_passwd /etc/fluent-bit/
+    WEB-->>ATK: http_passwd = a_secretPW#15secEt
+    
+    Note over ATK,LOKI: Step 3: Auth Bypass
+    ATK->>WEB: GET /ready -u loki-user:passwd
+    WEB->>PROXY: GET /ready (Basic Auth header)
+    PROXY->>LOKI: Forward (auth validated)
+    LOKI-->>PROXY: HTTP 200 ready
+    PROXY-->>WEB: HTTP 200 ready
+    WEB-->>ATK: ✓ Auth bypass successful!
+    
+    Note over ATK,LOKI: Step 4: Resume Cardinality Attack
+    ATK->>WEB: Launch attack with scraped creds
+    WEB->>PROXY: POST /push (auth + malicious payload)
+    PROXY->>LOKI: Forward (looks legitimate)
+    LOKI-->>ATK: 💥 Cardinality explosion proceeds
+```
+
+### Phase 2 Benchmark Results
+
+**Test Date:** 2025-11-29  
+**Environment:** Fresh lab deployment with Nginx auth proxy enabled
+
+#### Authentication Verification
+
+| Test | Result |
+|------|--------|
+| Unauthenticated `/ready` | `HTTP 401 Unauthorized` ✓ |
+| Authenticated `/ready` (scraped creds) | `HTTP 200 OK` ✓ |
+| Unauthenticated push | `HTTP 401 Unauthorized` ✓ |
+| Authenticated push (scraped creds) | `HTTP 204 No Content` ✓ |
+
+#### Attack Impact (With Auth Bypass)
+
+| Metric | Baseline | Post-Attack | Delta |
+|--------|----------|-------------|-------|
+| **Container Memory** | 98.14 MiB | 430.8 MiB | **+332.55 MiB (+337.1%)** |
+| **Ingester Streams** | 0 | 5,000 | **+5,000** |
+| **Attack Duration** | — | 11.24 seconds | — |
+| **Injection Rate** | — | 440.88 entries/sec | — |
+
+#### Console Output (Key Excerpts)
+
+```
+[PHASE2] Testing if Blue Team auth patch is in place...
+[PHASE2] ✓ CONFIRMED: Endpoint requires authentication (HTTP 401)
+[PHASE2]   Blue Team patch is ACTIVE
+
+[PHASE2] Scraping credentials from local Fluent Bit configuration...
+[PHASE2] ✓ CREDENTIALS SCRAPED SUCCESSFULLY!
+[PHASE2]   Username: loki-user
+[PHASE2]   Password: a_se****ecEt
+
+[*] Verifying connectivity to http://10.10.30.2:3100
+    [*] Phase 2: Testing unauthenticated access first...
+    [+] CONFIRMED: Endpoint requires authentication (HTTP 401)
+        Blue Team patch is in place!
+    [+] Loki /ready endpoint: OK
+    [!] AUTH BYPASS SUCCESSFUL: Scraped credentials valid!
+    [+] Push API accessible: CONFIRMED
+    [!] VULNERABILITY: Auth bypass via credential scraping!
+```
+
+### Root Cause Analysis
+
+The Blue Team's remediation addressed **authentication** but not the underlying attack surface:
+
+| Issue | Status |
+|-------|--------|
+| Unauthenticated access | ✅ **FIXED** |
+| Credentials stored in plaintext | ❌ **NOT ADDRESSED** |
+| Rate limiting on ingestion | ❌ **NOT ADDRESSED** |
+| Cardinality limits | ❌ **NOT ADDRESSED** |
+| Credential rotation policy | ❌ **NOT ADDRESSED** |
+
+### Updated Recommendations (Phase 2)
+
+Since authentication alone was bypassed, the following additional controls are required:
+
+#### 1. Per-Tenant Rate Limiting (CRITICAL)
+
+```yaml
+# loki-config.yaml
+limits_config:
+  ingestion_rate_mb: 4                    # Max MB/s per tenant
+  ingestion_burst_size_mb: 8              # Burst allowance
+  max_streams_per_user: 5000              # Hard cap on streams
+  max_global_streams_per_user: 10000      # Global limit
+  max_label_name_length: 1024             # Prevent label abuse
+  max_label_value_length: 2048
+  max_label_names_per_series: 15          # Limit label cardinality
+```
+
+#### 2. Secrets Management
+
+Replace plaintext credentials in Fluent Bit configs with environment variables or secrets:
+
+```ini
+# fluent-bit.conf - Use environment variables
+[OUTPUT]
+    Name        loki
+    Host        ${LOKI_HOST}
+    Port        3100
+    http_user   ${LOKI_USERNAME}
+    http_passwd ${LOKI_PASSWORD}
+```
+
+Deploy with:
+```bash
+LOKI_PASSWORD=$(vault read -field=password secret/fluent-bit/loki)
+```
+
+#### 3. Credential Rotation
+
+Implement automatic credential rotation after:
+- Any endpoint compromise detection
+- Regular intervals (e.g., 90 days)
+- Security audit findings
+
+#### 4. Monitoring for Credential Abuse
+
+```promql
+# Alert on unusual push patterns from single source
+sum(rate(loki_distributor_bytes_received_total[5m])) by (user) > 10485760
+```
+
+### Conclusion
+
+**Authentication is necessary but not sufficient.** The Phase 2 assessment demonstrates that a compromised trusted endpoint can trivially scrape credentials from local configuration files. The real defense must be **defense in depth**:
+
+1. **Authentication** ✓ (deployed)
+2. **Rate Limiting** ← NEXT PRIORITY
+3. **Cardinality Limits** ← CRITICAL
+4. **Secrets Management** ← Reduces blast radius
+5. **Anomaly Detection** ← Catch abuse early
+
+---
+
 ## Appendix: File Locations
 
 | File | Description |
@@ -616,7 +811,8 @@ This attack methodology is documented for **authorized penetration testing** and
 
 ---
 
-*Document Version: 2.0*  
+*Document Version: 3.0*  
 *Last Updated: 2025-11-29*  
 *Author: Red Team Assessment*  
-*Benchmark Data: Empirical results from live SichereDMZ environment*
+*Phase 1 Data: Unauthenticated Loki exploitation*  
+*Phase 2 Data: Authentication bypass via credential scraping*
