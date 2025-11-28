@@ -85,6 +85,18 @@ topology:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
       network-mode: none
 
+    attacker_3:
+      kind: linux
+      image: attacker_zap-image
+      cmd: "sleep infinity"
+      exec:
+        # Assign IP in the Client Subnet (Assuming 10.10.40.x based on context)
+        # Ensure this IP doesn't conflict with attacker_2 or admin
+        - "ip addr add 172.20.1.8/24 dev eth10"
+        - "ip link set eth10 up"
+        - "ip route add default via 172.20.1.1"
+      network-mode: none
+
 
     # --- DMZ-Knoten ---
     web_server:
@@ -393,3 +405,4 @@ topology:
     # Connection to internet bridge
     - endpoints: ["attacker_1:ethwan", "network_bridge:br0"]
     - endpoints: ["edge_router:ethwan", "network_bridge:br1"]
+    - endpoints: ["network_bridge:eth5", "attacker_3:eth10"]

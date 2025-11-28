@@ -1,0 +1,18 @@
+# Dockerfile.attacker
+FROM zaproxy/zap-stable:latest
+
+# Switch to root to install system packages
+USER root
+
+# Install iproute2 (for 'ip' command) and iputils-ping (for 'ping')
+RUN apt-get update && apt-get install -y \
+    iproute2 \
+    iputils-ping \
+    netcat-openbsd \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /zap/wrk
+# (Optional) Switch back to zap user if you want strict permissions, 
+# but for a lab attacker node, staying as root is often easier for network config.
+# USER zap

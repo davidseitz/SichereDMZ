@@ -1,0 +1,34 @@
+sequenceDiagram
+    autonumber
+    actor Victim as Victim (Admin)
+    participant Browser as Victim's Browser
+    participant WebServer as 10.10.10.3 (Website) (Legit)
+    participant Attacker as attacker-site.com (Malicious)
+
+    %% Step 1: THE STATE
+    Note over Victim, WebServer: 1. THE STATE: Valid Session Established
+    Victim->>Browser: Log in to 10.10.10.3
+    Browser->>WebServer: POST /login (Credentials)
+    WebServer-->>Browser: 200 OK + Set-Cookie: session=SECRET_ID
+    Note right of Browser: Browser stores cookie.<br/>User leaves tab open.
+
+    %% Step 2: THE TRAP & TRIGGER
+    Note over Victim, Attacker: 2. THE TRAP & TRIGGER
+    Attacker->>Victim: Sends Phishing Email/Link
+    Victim->>Browser: Clicks link to attacker-site.com
+    Browser->>Attacker: GET /index.html
+    Attacker-->>Browser: Returns HTML with Hidden Script/Image
+    Note left of Attacker: <img src="http://10.10.10.3/logout">
+
+    %% Step 3: THE EXPLOIT & FAILURE
+    Note over Browser, WebServer: 3. THE EXPLOIT & FAILURE
+    Browser->>Browser: Parses HTML & finds hidden Image/Script
+    
+    rect rgb(255, 200, 200)
+    Note right of Browser: CRITICAL FAILURE:<br/>Browser automatically attaches<br/>"session=SECRET_ID" cookie<br/>to this cross-site request.
+    Browser->>WebServer: GET /logout (Cookie Included)
+    end
+
+    WebServer->>WebServer: Checks Cookie (Valid)
+    WebServer->>WebServer: Executes Logout Action
+    WebServer-->>Browser: 302 Redirect (Logged Out)
