@@ -13,7 +13,8 @@ RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd
 
-RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-apk-updates && \
+# CHANGE: Removed 'NOPASSWD' to enforce password entry
+RUN echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-apk-updates && \
     chmod 0440 /etc/sudoers.d/admin-apk-updates
 
 # COPY sshd_config /etc/ssh/sshd_config
