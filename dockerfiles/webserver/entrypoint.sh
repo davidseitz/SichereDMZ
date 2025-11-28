@@ -38,6 +38,10 @@ if [ ! -f "/etc/ssh/ssh_host_rsa_key" ]; then
     ssh-keygen -A
 fi
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
+
 # --- 2. Starte den SSH-Daemon ---
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
