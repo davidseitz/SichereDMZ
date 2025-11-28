@@ -14,6 +14,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
       libstdc++ \
       bash \
       netcat-openbsd \
+      chrony \
       openssh-server \
       jq \
       nftables \
@@ -53,7 +54,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files and the startup script
 COPY app/ /app/
-COPY start_webserver.sh /app/start.sh
+COPY entrypoint.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 

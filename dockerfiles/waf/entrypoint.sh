@@ -30,9 +30,14 @@ fi
 echo "Running baseline AIDE check..."
 /usr/bin/aide --check --config="/etc/aide.conf" | jq -c . >> /var/log/aide.json || true
 
+echo "Starting chrony..."
+chronyd -f /etc/chrony/chrony.conf
+
+
 # --- 3. Start Background Services ---
 echo "INFO: Starting Cron daemon..."
 service cron start
+
 
 sleep 5
 echo "INFO: Starte /usr/sbin/sshd"

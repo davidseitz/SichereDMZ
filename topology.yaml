@@ -105,6 +105,7 @@ topology:
         - "chmod +x /fw_config/configure_fw.sh"
         - "/fw_config/configure_fw.sh"
       binds:
+        - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         - config/aide/webserver/aide.conf:/etc/aide.conf:ro
         - config/fluent-bit/webserver/pipelines:/etc/fluent-bit/pipelines:ro
         - config/fluent-bit/webserver/parsers:/etc/fluent-bit/parsers:ro
@@ -177,6 +178,7 @@ topology:
         ENFORCE_BODYPROC_URLENCODED: "1"
         VALIDATE_UTF8_ENCODING: "1"
       binds:
+        - config/chrony/chrony.conf:/etc/chrony/chrony.conf:ro
         - config/fluent-bit/waf/scripts:/etc/fluent-bit/scripts
         - config/waf_setup/rules/signup_protection.conf:/etc/nginx/modsecurity.d/signup_protection.conf:ro
         - config/fluent-bit/waf/pipelines:/etc/fluent-bit/pipelines:ro

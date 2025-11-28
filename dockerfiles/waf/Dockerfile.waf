@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y \
-    openssh-server iproute2 curl gnupg ca-certificates nftables aide cron jq && \
+    openssh-server iproute2 curl gnupg ca-certificates nftables aide cron jq chrony && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Fluent-Bit
@@ -40,7 +40,7 @@ RUN mkdir -p /var/lib/aide && \
     chmod 750 /var/lib/aide
 
 # Start Script
-COPY start_waf.sh /start_waf.sh
+COPY entrypoint.sh /start_waf.sh
 RUN chmod +x /start_waf.sh
 
 EXPOSE 80 443 3025
