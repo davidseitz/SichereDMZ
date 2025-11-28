@@ -586,7 +586,7 @@ logging:
 
 # Linux high speed capture support
 af-packet:
-  - interface: ethdmz
+  - interface: eth10
     threads: auto
     cluster-type: cluster_qm
     cluster-id: 99
