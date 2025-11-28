@@ -34,8 +34,7 @@ RUN addgroup -g 1001 admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd
 
 # --- Configure sudo for admin ---
-# Allow 'admin' to run updates and HIDS checks
-RUN echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide" > /etc/sudoers.d/admin-rules && \
+RUN echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-rules && \
     chmod 0440 /etc/sudoers.d/admin-rules
 
     # The AIDE package doesn't create this, but aide --init needs it to write the DB.

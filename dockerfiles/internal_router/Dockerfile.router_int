@@ -61,8 +61,8 @@ RUN addgroup --system --gid 1002 suricata && \
 RUN suricata-update --no-test
 
 # FOR TESTING
-RUN apt update && apt install netcat-traditional -y
-RUN apt update && apt install tcpdump -y
+#RUN apt update && apt install netcat-traditional -y
+#RUN apt update && apt install tcpdump -y
 
 # --- Add a dedicated admin user ---
 RUN addgroup --gid 1001 admin && \
@@ -70,7 +70,7 @@ RUN addgroup --gid 1001 admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd
 
 # --- Configure sudo for admin ---
-RUN echo "admin ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade, /usr/bin/aide, /usr/sbin/nft, /usr/bin/suricata" > /etc/sudoers.d/admin-router-rules && \
+RUN echo "admin ALL=(ALL) /usr/bin/apt-get update, /usr/bin/apt-get upgrade" > /etc/sudoers.d/admin-router-rules && \
     chmod 0440 /etc/sudoers.d/admin-router-rules
 
 # AIDE every 10 min
