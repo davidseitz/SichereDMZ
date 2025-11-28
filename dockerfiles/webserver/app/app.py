@@ -129,7 +129,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if "user" not in session:
             # Log the attempt to access a restricted page
-            app.logger.warning(f"UNAUTHORIZED_ACCESS: Attempted access to protected route {request.path} by anonymous user from {request.remote_addr}.")
+            app.logger.warning(f"UNAUTHORIZED_ACCESS: Attempted access to protected route {request.path} by anonymous user from {request.headers.get('X-Real-IP')}.")
             return redirect(url_for('signin'))
         return f(*args, **kwargs)
     return decorated_function
@@ -151,7 +151,7 @@ def check_host_header():
             # Equivalent to NGINX's return 444 (close connection), 
             # we can return an immediate 400 or 403 response, or 
             # simply abort with 404 to provide no useful info..
-            app.logger.warning(f"HOST_CHECK_FAILED: Missing Host header from {request.remote_addr}. Blocking.")
+            app.logger.warning(f"HOST_CHECK_FAILED: Missing Host header from {request.headers.get('X-Real-IP')}. Blocking.")
             abort(403) # Return a 403 Forbidden response
 
 # --- ROUTEN ---
@@ -198,13 +198,13 @@ def signup():
 
         # --- DEFENSE LAYER 2: VALIDATION LOGIC ---
         if not real_answer:
-            app.logger.warning(f"SECURITY: Replay attack or expired session detected from {request.remote_addr}")
+            app.logger.warning(f"SECURITY: Replay attack or expired session detected from {request.headers.get('X-Real-IP')}")
             return render_template("signup.html", error="Session expired. Please reload the captcha.")
 
         # Use constant time comparison to prevent timing attacks
         if not secrets.compare_digest(real_answer, user_answer):
-            app.logger.debug(f"CAPTCHA_FAIL: Expected '{real_answer}', got '{user_answer}' from {request.remote_addr}")
-            app.logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.remote_addr}")
+            app.logger.debug(f"CAPTCHA_FAIL: Expected '{real_answer}', got '{user_answer}' from {request.headers.get('X-Real-IP')}")
+            app.logger.info(f"CAPTCHA_FAIL: Incorrect code from {request.headers.get('X-Real-IP')}")
             return render_template("signup.html", error="Incorrect security code.")
 
         # --- DEFENSE LAYER 3: RESOURCE PROTECTION ---
@@ -244,7 +244,7 @@ def signin():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        remote_addr = request.remote_addr
+        remote_addr = request.headers.get('X-Real-IP')
         
         if not username or not password:
             app.logger.info(f"SIGNIN_FAILED: Missing fields during attempt from {remote_addr}.")
@@ -300,7 +300,7 @@ def service_unavailable_error(e):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    app.logger.warning(f"HTTP_ERROR: 404 Not Found for URL {request.url} from {request.remote_addr}.")
+    app.logger.warning(f"HTTP_ERROR: 404 Not Found for URL {request.url} from {request.headers.get('X-Real-IP')}.")
     return render_template("error_404.html"), 404
 
 @app.errorhandler(500)
