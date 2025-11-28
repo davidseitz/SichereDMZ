@@ -38,8 +38,23 @@ chronyd -f /etc/chrony/chrony.conf
 echo "INFO: Starting Cron daemon..."
 service cron start
 
+# --- Active Wait for IP Binding ---
+TARGET_IP="10.10.10.3"
+echo "INFO: Waiting for IP $TARGET_IP to be assigned to an interface..."
 
-sleep 5
+# Loop until the IP is found in the network interface configuration
+while ! ip addr show | grep -q "$TARGET_IP"; do
+  echo "Waiting for $TARGET_IP..."
+  sleep 1
+done
+TARGET_IP="10.10.60.2"
+echo "INFO: Waiting for IP $TARGET_IP to be assigned to an interface..."
+
+# Loop until the IP is found in the network interface configuration
+while ! ip addr show | grep -q "$TARGET_IP"; do
+  echo "Waiting for $TARGET_IP..."
+  sleep 1
+done
 echo "INFO: Starte /usr/sbin/sshd"
 /usr/sbin/sshd -D -e 2>> /var/log/ssh-custom.log &
 
