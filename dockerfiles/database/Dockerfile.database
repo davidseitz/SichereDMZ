@@ -23,7 +23,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.22/community" >> /etc/apk/repo
 RUN addgroup -g 1001 admin && \
     adduser -u 1000 -G admin -h /home/admin -s /bin/sh -D admin && \
     echo 'admin:UnlockTheAccount123!' | chpasswd && \
-    echo "admin ALL=(ALL) NOPASSWD: /sbin/apk update, /sbin/apk upgrade, /usr/bin/aide, /usr/sbin/rc-service mariadb" > /etc/sudoers.d/admin-db-rules && \
+    echo "admin ALL=(ALL) /sbin/apk update, /sbin/apk upgrade" > /etc/sudoers.d/admin-db-rules && \
     chmod 0440 /etc/sudoers.d/admin-db-rules
 
 # 3. AIDE Setup
