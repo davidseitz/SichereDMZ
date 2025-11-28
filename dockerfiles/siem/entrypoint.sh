@@ -34,6 +34,20 @@ echo "Starting sshd service on port 3025..."
 echo "Starting fluent-bit service..."
 /usr/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.conf &
 
+# 4. [NEW] Start Nginx Reverse Proxy
+echo "Configuring Nginx Auth..."
+# Check if .htpasswd exists (it might be mounted). If not, create a default.
+if [ ! -f /etc/nginx/.htpasswd ]; then
+    echo "Creating default Nginx credentials (admin/admin)..."
+    htpasswd -bc /etc/nginx/.htpasswd loki-user a_secretPW#15secEt
+fi
+
+echo "Starting Nginx service..."
+# Nginx on Alpine runs as a daemon by default, so we don't strictly need '&' 
+# unless we used 'daemon off;' in config. We want it in background.
+/usr/sbin/nginx
+
+
 # 4. [FINAL] Start the Loki service (in the foreground)
 #    'exec' ensures it becomes the main container process.
 echo "Starting Loki service as user 'loki'..."
