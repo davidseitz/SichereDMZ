@@ -59,7 +59,7 @@ The SichereDMZ lab implements network-level segmentation to protect the SIEM:
 ### CVE Reference
 
 While not a CVE itself, this misconfiguration enables attacks similar to:
-- **CVE-2023-32698**: Grafana Loki Authentication Bypass
+- **CVE-2022-35957**: Grafana Loki Authentication Bypass
 - General class: "Misconfigured Centralized Logging Infrastructure"
 
 ---
@@ -251,30 +251,30 @@ In time-series databases like Loki, **cardinality** refers to the number of uniq
 │                    LOKI STORAGE MODEL                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│   ┌─────────────┐         ┌─────────────────────────────────┐  │
-│   │   INDEX     │         │        CHUNK STORE              │  │
-│   │  (BoltDB)   │         │       (Filesystem)              │  │
-│   ├─────────────┤         ├─────────────────────────────────┤  │
-│   │ Stream 1 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │ Stream 2 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │ Stream 3 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │   ...       │         │   ...                           │  │
-│   │ Stream N ──────────── │ Chunk: [timestamp, log line]    │  │
-│   └─────────────┘         └─────────────────────────────────┘  │
+│   ┌─────────────┐         ┌─────────────────────────────────┐   │
+│   │   INDEX     │         │        CHUNK STORE              │   │
+│   │  (BoltDB)   │         │       (Filesystem)              │   │
+│   ├─────────────┤         ├─────────────────────────────────┤   │
+│   │ Stream 1 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │ Stream 2 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │ Stream 3 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │   ...       │         │   ...                           │   │
+│   │ Stream N ──────────── │ Chunk: [timestamp, log line]    │   │
+│   └─────────────┘         └─────────────────────────────────┘   │
 │         │                                                       │
 │         ▼                                                       │
-│   ┌─────────────────────────────────────────────────────────┐  │
-│   │              MEMORY CONSUMPTION                          │  │
-│   ├─────────────────────────────────────────────────────────┤  │
-│   │  Index entries:     O(cardinality)                       │  │
-│   │  Query performance: O(cardinality) for label scans       │  │
-│   │  Memory footprint:  ~1KB per active stream               │  │
-│   │                                                          │  │
-│   │  ATTACK IMPACT:                                          │  │
-│   │  - 100,000 streams = ~100MB index overhead               │  │
-│   │  - Query latency: ms → seconds → timeout                 │  │
-│   │  - OOM kill threshold reached                            │  │
-│   └─────────────────────────────────────────────────────────┘  │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │              MEMORY CONSUMPTION                         │   │
+│   ├─────────────────────────────────────────────────────────┤   │
+│   │  Index entries:     O(cardinality)                      │   │
+│   │  Query performance: O(cardinality) for label scans      │   │
+│   │  Memory footprint:  ~1KB per active stream              │   │
+│   │                                                         │   │
+│   │  ATTACK IMPACT:                                         │   │
+│   │  - 100,000 streams = ~100MB index overhead              │   │
+│   │  - Query latency: ms → seconds → timeout                │   │
+│   │  - OOM kill threshold reached                           │   │
+│   └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -438,14 +438,14 @@ The following data was captured from a live benchmark run against a freshly depl
 ```
 MEMORY CONSUMPTION
 ──────────────────────────────────────────────────────────────────────────
-Baseline   │████                                                  │  46 MiB
+Baseline   │████                                                    │  46 MiB
 Post-Attack│████████████████████████████████████████████████████████│ 405 MiB
 ──────────────────────────────────────────────────────────────────────────
                               +757.8% INCREASE
 
 ACTIVE STREAMS (Cardinality)
 ──────────────────────────────────────────────────────────────────────────
-Baseline   │▌                                                      │    16
+Baseline   │▌                                                       │    16
 Post-Attack│████████████████████████████████████████████████████████│ 5,000
 ──────────────────────────────────────────────────────────────────────────
                               +31,150% INCREASE
@@ -580,22 +580,6 @@ nft add rule inet filter forward \
     limit rate 100/second burst 500 packets \
     accept
 ```
-
----
-
-## Legal Disclaimer
-
-⚠️ **AUTHORIZED USE ONLY**
-
-This attack methodology is documented for **authorized penetration testing** and **security research** purposes only. Unauthorized use against systems you do not own or have explicit permission to test is **illegal**.
-
-**Applicable Laws:**
-- Computer Fraud and Abuse Act (CFAA) - USA
-- Computer Misuse Act - UK  
-- StGB §202a-c (Computerstraftaten) - Germany
-- Council of Europe Convention on Cybercrime
-
-**Always obtain written authorization before conducting penetration tests.**
 
 ---
 
@@ -809,10 +793,3 @@ sum(rate(loki_distributor_bytes_received_total[5m])) by (user) > 10485760
 | `config/siem/loki-config-secure.yaml` | Hardened Loki configuration |
 | `config/fluent-bit/examples/loki-authenticated.conf` | Authenticated Fluent Bit config |
 
----
-
-*Document Version: 3.0*  
-*Last Updated: 2025-11-29*  
-*Author: Red Team Assessment*  
-*Phase 1 Data: Unauthenticated Loki exploitation*  
-*Phase 2 Data: Authentication bypass via credential scraping*
