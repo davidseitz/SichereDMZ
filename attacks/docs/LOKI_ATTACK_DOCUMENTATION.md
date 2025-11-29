@@ -59,7 +59,7 @@ The SichereDMZ lab implements network-level segmentation to protect the SIEM:
 ### CVE Reference
 
 While not a CVE itself, this misconfiguration enables attacks similar to:
-- **CVE-2023-32698**: Grafana Loki Authentication Bypass
+- **CVE-2022-35957**: Grafana Loki Authentication Bypass
 - General class: "Misconfigured Centralized Logging Infrastructure"
 
 ---
@@ -438,14 +438,14 @@ The following data was captured from a live benchmark run against a freshly depl
 ```
 MEMORY CONSUMPTION
 ──────────────────────────────────────────────────────────────────────────
-Baseline   │████                                                  │  46 MiB
+Baseline   │████                                                    │  46 MiB
 Post-Attack│████████████████████████████████████████████████████████│ 405 MiB
 ──────────────────────────────────────────────────────────────────────────
                               +757.8% INCREASE
 
 ACTIVE STREAMS (Cardinality)
 ──────────────────────────────────────────────────────────────────────────
-Baseline   │▌                                                      │    16
+Baseline   │▌                                                       │    16
 Post-Attack│████████████████████████████████████████████████████████│ 5,000
 ──────────────────────────────────────────────────────────────────────────
                               +31,150% INCREASE
