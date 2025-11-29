@@ -251,32 +251,32 @@ In time-series databases like Loki, **cardinality** refers to the number of uniq
 │                    LOKI STORAGE MODEL                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│   ┌─────────────┐         ┌─────────────────────────────────┐  │
-│   │   INDEX     │         │        CHUNK STORE              │  │
-│   │  (BoltDB)   │         │       (Filesystem)              │  │
-│   ├─────────────┤         ├─────────────────────────────────┤  │
-│   │ Stream 1 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │ Stream 2 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │ Stream 3 ──────────── │ Chunk: [timestamp, log line]    │  │
-│   │   ...       │         │   ...                           │  │
-│   │ Stream N ──────────── │ Chunk: [timestamp, log line]    │  │
-│   └─────────────┘         └─────────────────────────────────┘  │
-│         │                                                      │
-│         ▼                                                      │
-│   ┌─────────────────────────────────────────────────────────┐  │
-│   │              MEMORY CONSUMPTION                         │  │
-│   ├─────────────────────────────────────────────────────────┤  │
-│   │  Index entries:     O(cardinality)                      │  │
-│   │  Query performance: O(cardinality) for label scans      │  │
-│   │  Memory footprint:  ~1KB per active stream              │  │
-│   │                                                         │  │
-│   │  ATTACK IMPACT:                                         │  │
-│   │  - 100,000 streams = ~100MB index overhead              │  │
-│   │  - Query latency: ms → seconds → timeout                │  │
-│   │  - OOM kill threshold reached                           │  │
-│   └─────────────────────────────────────────────────────────┘  │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
+│   ┌─────────────┐         ┌─────────────────────────────────┐   │
+│   │   INDEX     │         │        CHUNK STORE              │   │
+│   │  (BoltDB)   │         │       (Filesystem)              │   │
+│   ├─────────────┤         ├─────────────────────────────────┤   │
+│   │ Stream 1 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │ Stream 2 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │ Stream 3 ──────────── │ Chunk: [timestamp, log line]    │   │
+│   │   ...       │         │   ...                           │   │
+│   │ Stream N ──────────── │ Chunk: [timestamp, log line]    │   │
+│   └─────────────┘         └─────────────────────────────────┘   │
+│         │                                                       │
+│         ▼                                                       │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │              MEMORY CONSUMPTION                         │   │
+│   ├─────────────────────────────────────────────────────────┤   │
+│   │  Index entries:     O(cardinality)                      │   │
+│   │  Query performance: O(cardinality) for label scans      │   │
+│   │  Memory footprint:  ~1KB per active stream              │   │
+│   │                                                         │   │
+│   │  ATTACK IMPACT:                                         │   │
+│   │  - 100,000 streams = ~100MB index overhead              │   │
+│   │  - Query latency: ms → seconds → timeout                │   │
+│   │  - OOM kill threshold reached                           │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 **Key insight:** The *index size* grows with cardinality, while *chunk storage* grows with data volume. An attacker can exhaust memory and CPU with minimal data by maximizing unique label combinations.
