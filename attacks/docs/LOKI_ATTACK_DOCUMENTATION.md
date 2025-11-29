@@ -583,22 +583,6 @@ nft add rule inet filter forward \
 
 ---
 
-## Legal Disclaimer
-
-⚠️ **AUTHORIZED USE ONLY**
-
-This attack methodology is documented for **authorized penetration testing** and **security research** purposes only. Unauthorized use against systems you do not own or have explicit permission to test is **illegal**.
-
-**Applicable Laws:**
-- Computer Fraud and Abuse Act (CFAA) - USA
-- Computer Misuse Act - UK  
-- StGB §202a-c (Computerstraftaten) - Germany
-- Council of Europe Convention on Cybercrime
-
-**Always obtain written authorization before conducting penetration tests.**
-
----
-
 ## Phase 2: Authentication Bypass & Persistence
 
 ### Executive Summary
@@ -809,10 +793,3 @@ sum(rate(loki_distributor_bytes_received_total[5m])) by (user) > 10485760
 | `config/siem/loki-config-secure.yaml` | Hardened Loki configuration |
 | `config/fluent-bit/examples/loki-authenticated.conf` | Authenticated Fluent Bit config |
 
----
-
-*Document Version: 3.0*  
-*Last Updated: 2025-11-29*  
-*Author: Red Team Assessment*  
-*Phase 1 Data: Unauthenticated Loki exploitation*  
-*Phase 2 Data: Authentication bypass via credential scraping*
