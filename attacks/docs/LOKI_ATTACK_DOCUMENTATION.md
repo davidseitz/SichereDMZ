@@ -261,22 +261,22 @@ In time-series databases like Loki, **cardinality** refers to the number of uniq
 │   │   ...       │         │   ...                           │  │
 │   │ Stream N ──────────── │ Chunk: [timestamp, log line]    │  │
 │   └─────────────┘         └─────────────────────────────────┘  │
-│         │                                                       │
-│         ▼                                                       │
+│         │                                                      │
+│         ▼                                                      │
 │   ┌─────────────────────────────────────────────────────────┐  │
-│   │              MEMORY CONSUMPTION                          │  │
+│   │              MEMORY CONSUMPTION                         │  │
 │   ├─────────────────────────────────────────────────────────┤  │
-│   │  Index entries:     O(cardinality)                       │  │
-│   │  Query performance: O(cardinality) for label scans       │  │
-│   │  Memory footprint:  ~1KB per active stream               │  │
-│   │                                                          │  │
-│   │  ATTACK IMPACT:                                          │  │
-│   │  - 100,000 streams = ~100MB index overhead               │  │
-│   │  - Query latency: ms → seconds → timeout                 │  │
-│   │  - OOM kill threshold reached                            │  │
+│   │  Index entries:     O(cardinality)                      │  │
+│   │  Query performance: O(cardinality) for label scans      │  │
+│   │  Memory footprint:  ~1KB per active stream              │  │
+│   │                                                         │  │
+│   │  ATTACK IMPACT:                                         │  │
+│   │  - 100,000 streams = ~100MB index overhead              │  │
+│   │  - Query latency: ms → seconds → timeout                │  │
+│   │  - OOM kill threshold reached                           │  │
 │   └─────────────────────────────────────────────────────────┘  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 **Key insight:** The *index size* grows with cardinality, while *chunk storage* grows with data volume. An attacker can exhaust memory and CPU with minimal data by maximizing unique label combinations.
