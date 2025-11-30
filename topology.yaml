@@ -12,7 +12,7 @@ topology:
         - "ip addr add 172.20.1.9/24 dev ethwan"
         - "ip route add default via 172.20.1.1"
         - "ip addr add 10.10.10.1/29 dev ethdmz"
-        - "ip addr add 10.10.50.1/24 dev ethtransit"
+        - "ip addr add 10.10.50.1/30 dev ethtransit"
         - "ip addr add 10.10.60.6/28 dev ethmgmt"
         - "ip addr add 192.168.1.1/24 dev ethatt"
         - "ip link set ethwan up"
@@ -39,7 +39,7 @@ topology:
       cap-add:
         - NET_ADMIN
       exec:
-        - "ip addr add 10.10.50.2/24 dev ethtransit"
+        - "ip addr add 10.10.50.2/30 dev ethtransit"
         - "ip addr add 10.10.60.1/28 dev ethmgmt"
         - "ip addr add 10.10.20.1/29 dev ethclient"
         - "ip addr add 10.10.30.1/29 dev ethsecurity"
@@ -83,6 +83,18 @@ topology:
         - "ip route add default via 10.10.20.1"
       binds:
         - config/dns/resolv.conf:/etc/resolv.conf:ro
+      network-mode: none
+
+    attacker_3:
+      kind: linux
+      image: attacker_zap-image
+      cmd: "sleep infinity"
+      exec:
+        # Assign IP in the Client Subnet (Assuming 10.10.40.x based on context)
+        # Ensure this IP doesn't conflict with attacker_2 or admin
+        - "ip addr add 172.20.1.8/24 dev eth10"
+        - "ip link set eth10 up"
+        - "ip route add default via 172.20.1.1"
       network-mode: none
 
 
@@ -394,3 +406,4 @@ topology:
     # Connection to internet bridge
     - endpoints: ["attacker_1:ethwan", "network_bridge:br0"]
     - endpoints: ["edge_router:ethwan", "network_bridge:br1"]
+    - endpoints: ["network_bridge:eth5", "attacker_3:eth10"]

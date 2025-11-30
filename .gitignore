@@ -4,3 +4,9 @@ fluent-bit-build-plugins/
 attacks/reports/
 siem-demo/loki/data/*
 cleanup.sh
+attacks/loki_stages/attack_output.log
+attacks/loki_stages/baseline_metrics.txt
+attacks/loki_stages/benchmark_2025-11-28_23-52-01.log
+attacks/loki_stages/benchmark_results.txt
+attacks/loki_stages/postattack_metrics.txt
+prompts/
