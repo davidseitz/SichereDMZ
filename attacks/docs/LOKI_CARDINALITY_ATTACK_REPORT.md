@@ -1,12 +1,5 @@
 # Loki Cardinality Explosion Attack: Technical Analysis Report
 
-**Document Version:** 3.0  
-**Classification:** Red Team Assessment  
-**Date:** 2025-11-30  
-**Author:** Security Research Team  
-
----
-
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
