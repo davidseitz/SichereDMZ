@@ -61,6 +61,29 @@ limits_config:
   retention_period: 240h
   metric_aggregation_enabled: true
 
+  # --- LOG FLOOD PROTECTION (Volume) ---
+  # Maximum amount of logs (in MB) allowed per second. 
+  # If exceeded, Loki returns a 429 error.
+  ingestion_rate_mb: 1
+  ingestion_burst_size_mb: 2
+
+  # Maximum line size (prevents memory OOM from a single massive log line)
+  max_line_size: 256KB
+
+  # --- CARDINALITY PROTECTION (Index exhaustion) ---
+  # The maximum number of active streams (unique label combinations) allowed.
+  # This is the #1 defense against high-cardinality attacks.
+  max_streams_per_user: 1000
+  max_global_streams_per_user: 1000
+
+  # --- LABEL HYGIENE (Preventing weird data structures) ---
+  # Limit the number of labels on a single log stream (e.g., max 15 tags)
+  max_label_names_per_series: 15
+  # Limit the length of label names and values
+  max_label_name_length: 256
+  max_label_value_length: 256
+
+
 # -----------------------------------------
 
 ruler:

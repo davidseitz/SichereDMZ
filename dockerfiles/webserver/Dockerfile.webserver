@@ -48,6 +48,10 @@ RUN addgroup -S -g 1002 suricata && \
 # This uses the Python-based suricata-update
 RUN suricata-update --no-test
 
+RUN chmod 644 /etc/suricata/classification.config && \
+    chmod 644 /etc/suricata/reference.config && \
+    chmod 644 /etc/suricata/threshold.config
+
 WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt

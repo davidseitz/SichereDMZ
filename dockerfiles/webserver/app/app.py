@@ -115,7 +115,7 @@ def check_db_availability(f):
         except Exception as e:
             # Fängt andere unerwartete Fehler
             app.logger.error(f"DB_CHECK_ERROR: An unexpected error occurred during DB check for {request.path}: {e}")
-            return render_template("error_500.html", error_message="Interner Fehler bei der Datenbankprüfung."), 500
+            return render_template("error_500.html", error_message="Internal error during database check."), 500
         finally:
             if conn:
                 conn.close() # Stelle sicher, dass die Verbindung geschlossen wird
@@ -213,10 +213,23 @@ def signup():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        special = "!@#$%^&*()_+-=[]{};:,.<>/?"
+
+        has_digit = any(c.isdigit() for c in password)
+        has_upper = any(c.isupper() for c in password)
+        has_lower = any(c.islower() for c in password)
+        has_special = any(c in special for c in password)
+
         if not username or not password:
             return render_template("signup.html", error="You have to provide a username and password")
-        if len(password) < 8:
-            return render_template("signup.html", error="Password must have at least 8 characters.")
+        if len(password) < 12:
+            return render_template("signup.html", error="Password must have at least 12 characters")
+        if not has_lower or not has_upper:
+            return render_template("signup.html", error="Password must contain at least 1 upper and lower character")
+        if not has_digit:
+            return render_template("signup.html", error="Password must contain at least 1 digit")
+        if not has_special:
+            return render_template("signup.html", error="Password must contain at least 1 of these special character: !@#$%^&*()_+-=[]{};:,.<>/?")
 
         # Expensive Bcrypt operation (Only runs if human is verified)
         pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -262,7 +275,7 @@ def signin():
         
         if not username or not password:
             app.logger.info(f"SIGNIN_FAILED: Missing fields during attempt from {remote_addr}.")
-            return render_template("signin.html", error="Alle Felder sind erforderlich.")
+            return render_template("signin.html", error="You have to provide a Username and Password")
 
         user = None
         conn = None
@@ -274,7 +287,7 @@ def signin():
             conn.close()
         except Exception as e:
             app.logger.error(f"SIGNIN_ERROR: Database error during signin for '{username}' from {remote_addr}: {e}")
-            return render_template("error_500.html", error_message="Fehler beim Anmeldevorgang."), 500
+            return render_template("error_500.html", error_message="Error during login"), 500
 
         # Prüfen, ob Benutzer existiert und Passwort übereinstimmt
         if user and bcrypt.checkpw(password.encode('utf-8'), user["password_hash"].encode('utf-8')):
@@ -283,7 +296,7 @@ def signin():
             return redirect(url_for('dashboard'))
         else:
             app.logger.warning(f"SIGNIN_FAILED: Invalid credentials attempt for username '{username}' from {remote_addr}.")
-            return render_template("signin.html", error="Ungültige Anmeldedaten.")
+            return render_template("signin.html", error="Invalid login credentials.")
 
     return render_template("signin.html")
 
@@ -310,7 +323,7 @@ def logout():
 @app.errorhandler(503)
 def service_unavailable_error(e):
     app.logger.critical(f"HTTP_ERROR: 503 Service Unavailable triggered at {request.path}.")
-    return render_template("error_init.html", error_message="Webserver momentan nicht."), 503
+    return render_template("error_init.html", error_message="Webserver currently not available"), 503
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -321,7 +334,7 @@ def page_not_found(e):
 def internal_server_error(e):
     # Flask logs the traceback automatically; here we log the final handler
     app.logger.error(f"HTTP_ERROR: 500 Internal Server Error triggered at {request.path}.")
-    return render_template("error_500.html", error_message="Ein interner Serverfehler ist aufgetreten."), 500
+    return render_template("error_500.html", error_message="An internal server error has occurred."), 500
 
 
 if __name__ == "__main__":

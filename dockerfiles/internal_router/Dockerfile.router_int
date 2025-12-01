@@ -61,7 +61,7 @@ RUN addgroup --system --gid 1002 suricata && \
 RUN suricata-update --no-test
 
 # FOR TESTING
-#RUN apt update && apt install netcat-traditional -y
+RUN apt update && apt install netcat-traditional -y
 #RUN apt update && apt install tcpdump -y
 
 # --- Add a dedicated admin user ---
