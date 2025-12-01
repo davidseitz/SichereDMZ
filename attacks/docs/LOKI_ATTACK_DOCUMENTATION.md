@@ -40,7 +40,7 @@
 
 ## 1\. Executive Summary
 
-This report documents **Attack Vector 3** in the systematic security verification of a segmented DMZ infrastructure. Following successful assessments of perimeter defenses (ATK-001: Edge Firewall) and web application security (ATK-002: WAF/Web Server), this phase evaluates the resilience of the centralized Security Information and Event Management (SIEM) subsystem against internal threat actors.
+This report documents **Attack Vector 3** in the systematic security verification of a segmented DMZ infrastructure. Following successful assessments of defense against generic attacks launched with commercial vulnerability scanners and resitance against denial of sevice attacks, this phase evaluates the resilience of the centralized Security Information and Event Management (SIEM) subsystem against internal threat actors.
 
 The assessment identified a critical vulnerability in the Grafana Loki logging infrastructure that permits a **cardinality explosion attack**, resulting in denial of service against the security monitoring capability. This attack vector is particularly significant as it targets the defensive infrastructure itself, potentially enabling attackers to achieve "SIEM blindness" while conducting subsequent malicious activities undetected.
 
