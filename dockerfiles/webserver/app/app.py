@@ -242,9 +242,23 @@ def signup():
 @check_db_availability
 def signin():
     if request.method == "POST":
+        remote_addr = request.headers.get('X-Real-IP')
+        
+        # --- DEFENSE LAYER 1: CAPTCHA REPLAY PROTECTION ---
+        real_answer = session.pop("captcha_answer", None)
+        user_answer = request.form.get("captcha_answer", "").upper()
+
+        if not real_answer:
+            app.logger.warning(f"SECURITY: Replay attack or expired session detected during signin from {remote_addr}")
+            return render_template("signin.html", error="Session expired. Please reload the captcha.")
+
+        if not secrets.compare_digest(real_answer, user_answer):
+            app.logger.info(f"CAPTCHA_FAIL: Incorrect code during signin from {remote_addr}")
+            return render_template("signin.html", error="Incorrect security code.")
+
+        # --- DEFENSE LAYER 2: CREDENTIAL VALIDATION ---
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        remote_addr = request.headers.get('X-Real-IP')
         
         if not username or not password:
             app.logger.info(f"SIGNIN_FAILED: Missing fields during attempt from {remote_addr}.")
