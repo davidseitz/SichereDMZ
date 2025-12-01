@@ -1,11 +1,6 @@
 # 3. SIEM Cardinality Explosion Attack
 # Loki Cardinality Explosion Attack: Technical Analysis Report
 
-**Document Classification:** Security Verification Report  
-**Project Context:** DMZ Infrastructure Security Assessment  
-**Attack Vector ID:** DMZ-ATK-003 (SIEM Subsystem)  
-**Assessment Date:** November 2025  
-
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
