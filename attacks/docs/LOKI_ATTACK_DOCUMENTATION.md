@@ -1,14 +1,20 @@
 # 3. SIEM Cardinality Explosion Attack
 # Loki Cardinality Explosion Attack: Technical Analysis Report
 
+**Document Classification:** Security Verification Report  
+**Project Context:** DMZ Infrastructure Security Assessment  
+**Attack Vector ID:** DMZ-ATK-003 (SIEM Subsystem)  
+**Assessment Date:** November 2025  
+
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
 2. [Attack Classification and Theoretical Foundation](#2-attack-classification-and-theoretical-foundation)
-   * 2.1 [Cardinality Explosion Mechanism](#21-cardinality-explosion-mechanism)
-   * 2.2 [Index Growth Analysis](#22-index-growth-analysis)
-   * 2.3 [MITRE ATT&CK Classification](#23-mitre-attck-classification)
-   * 2.4 [Related Vulnerabilities](#24-related-vulnerabilities)
+   * 2.1 [Context Within DMZ Security Model](#21-context-within-dmz-security-model)
+   * 2.2 [Cardinality Explosion Mechanism](#22-cardinality-explosion-mechanism)
+   * 2.3 [Index Growth Analysis](#23-index-growth-analysis)
+   * 2.4 [MITRE ATT&CK Classification](#24-mitre-attck-classification)
+   * 2.5 [Related Vulnerabilities](#25-related-vulnerabilities)
 3. [Attack Prerequisites and Trust Model](#3-attack-prerequisites-and-trust-model)
    * 3.1 [Network Trust Architecture](#31-network-trust-architecture)
    * 3.2 [Initial Access Requirements](#32-initial-access-requirements)
@@ -22,42 +28,59 @@
    * 5.2 [Phase 2: Authentication Bypass via Credential Scraping](#52-phase-2-authentication-bypass-via-credential-scraping)
    * 5.3 [Impact Projections](#53-impact-projections)
    * 5.4 [Phase 3: Attack Against Protected Loki (Experimental Validation)](#54-phase-3-attack-against-protected-loki-experimental-validation)
-6. [Countermeasures Explained](#6-countermeasure-analysis)
-   * 6.1 [Reverse Proxy Authentication](#61-blue-team-mitigation-reverse-proxy-authentication)
+6. [Countermeasures Explained](#6-countermeasures-explained)
+   * 6.1 [Reverse Proxy Authentication](#61-reverse-proxy-authentication)
    * 6.2 [Countermeasure Bypass: Credential Scraping](#62-countermeasure-bypass-credential-scraping)
    * 6.3 [Root Cause Analysis](#63-root-cause-analysis)
    * 6.4 [Phase 3: Native Loki Cardinality Protection](#64-phase-3-native-loki-cardinality-protection)
-7. [Conclusions and Recommendations](#7-conclusions-and-recommendations)
+7. [Conclusions and Recommendations](#7-conclusions-and-required-further-actions)
 8. [Appendix: Technical Artifacts](#8-appendix-technical-artifacts)
 
 ---
 
 ## 1\. Executive Summary
 
-This report documents a Red Team assessment of a Grafana Loki SIEM deployment within a segmented enterprise network. The assessment identified a critical vulnerability in the logging infrastructure that permits a **cardinality explosion attack**, resulting in denial of service against the centralized security monitoring system.
+This report documents **Attack Vector 3** in the systematic security verification of a segmented DMZ infrastructure. Following successful assessments of perimeter defenses (ATK-001: Edge Firewall) and web application security (ATK-002: WAF/Web Server), this phase evaluates the resilience of the centralized Security Information and Event Management (SIEM) subsystem against internal threat actors.
 
-**Key Findings:**
+The assessment identified a critical vulnerability in the Grafana Loki logging infrastructure that permits a **cardinality explosion attack**, resulting in denial of service against the security monitoring capability. This attack vector is particularly significant as it targets the defensive infrastructure itself, potentially enabling attackers to achieve "SIEM blindness" while conducting subsequent malicious activities undetected.
 
-| Metric | Phase 1 (No Auth) | Phase 2 (Auth Bypass) |
-| --- | --- | --- |
-| Memory Increase | \+757.8% | \+337.1% |
-| Streams Injected | 5,000 | 5,000 |
-| Attack Duration | 14.60 seconds | 11.24 seconds |
-| Success Rate | 100% | 100% |
+**Key Findings Across All Phases:**
 
-The attack exploits the trust relationship between log-forwarding endpoints and the centralized SIEM, bypassing perimeter defenses by leveraging a compromised trusted host. Even after Blue Team deployment of HTTP Basic Authentication, the attack remained viable through credential scraping from local Fluent Bit configurations.
+| Metric | Phase 1 (No Auth) | Phase 2 (Auth Bypass) | Phase 3 (Protected) |
+| --- | --- | --- | --- |
+| Memory Increase | +757.8% | +337.1% | +342% |
+| Streams Injected | 5,000 | 5,000 | **1,000** (capped) |
+| HTTP 429 Rejections | 0 | 0 | **9,058** |
+| Attack Duration | 14.60s | 11.24s | 11.94s |
+| Success Rate | 100% | 100% | **~10%** |
 
-**Attack Classification:** T1565.001 (Stored Data Manipulation), T1499.003 (Application Exhaustion Flood)
+The attack exploits the trust relationship between log-forwarding endpoints and the centralized SIEM, bypassing perimeter defenses by leveraging a compromised trusted host. Phase 2 demonstrated that HTTP Basic Authentication is insufficient, as credentials can be scraped from local Fluent Bit configurations. **Phase 3 validation confirmed that native Loki cardinality limits (`max_streams_per_user: 1000`) effectively mitigate the attack**, blocking 90% of malicious injection attempts with HTTP 429 responses.
+
+**Attack Classification:** T1565.001 (Stored Data Manipulation), T1499.003 (Application Exhaustion Flood)  
+**DMZ Project Relevance:** Validates defense-in-depth principle; demonstrates that compromised DMZ hosts can pivot to attack security infrastructure
 
 ---
 
 ## 2\. Attack Classification and Theoretical Foundation
 
-### 2.1 Cardinality Explosion Mechanism
+### 2.1 Context Within DMZ Security Model
+
+This attack vector targets the **Security Zone** of the DMZ architecture, specifically the centralized logging infrastructure. Unlike perimeter attacks (ATK-001, ATK-002) which test external-facing defenses, this assessment evaluates the security of internal trust relationships and the resilience of defensive systems themselves.
+
+**DMZ Attack Surface Progression:**
+
+| Attack ID | Target Zone | Objective | Prerequisite |
+| --- | --- | --- | --- |
+| ATK-001 | Edge/Perimeter | Firewall bypass | External access |
+| ATK-002 | DMZ | Web application compromise | Perimeter breach |
+| **ATK-003** | **Security Zone** | **SIEM denial of service** | **DMZ host compromise** |
+| ATK-004 | Internal | Lateral movement | Security zone access |
+
+### 2.2 Cardinality Explosion Mechanism
 
 A cardinality explosion attack exploits the fundamental architecture of time-series databases (TSDBs) used in modern SIEM systems. In Grafana Loki, logs are organized into **streams** identified by unique label combinations. Under normal operation, logs with identical labels aggregate into a single stream, maintaining constant index overhead regardless of log volume.
 
-The attack subverts this design by injecting logs with **high-cardinality labels** that are labels containing unique values per entry (e.g., UUIDs). This forces the creation of a new stream for each log entry, causing exponential growth in index size and memory consumption.
+The attack subverts this design by injecting logs with **high-cardinality labels**—labels containing unique values per entry (e.g., UUIDs). This forces the creation of a new stream for each log entry, causing exponential growth in index size and memory consumption.
 
 Figure 2.1 illustrates the fundamental difference between Loki's intended ingestion process and the mechanism exploited during a cardinality explosion attack. Under normal operating conditions (left panel), Loki utilizes an exact-match methodology for labels to aggregate logs into a static number of streams. For example, multiple log entries sharing the identical label set {job="nginx", host="web1"} are appended to a single, existing stream, resulting in O(1) index complexity relative to ingestion volume. Conversely, the attack scenario (right panel) demonstrates the injection of high-cardinality data, where a dynamic identifier (e.g., a UUID) is introduced into the label set for every individual log entry. This forces the ingestion engine to create a unique stream and corresponding index entry for every incoming log, shifting the resource complexity from O(1) to O(n). The 'Impact' section visualizes the resultant degradation, showing linear growth in index size and memory usage, which precipitates query latency degradation and eventual service failure.
 
@@ -133,9 +156,9 @@ flowchart TB
     style MALICIOUS_IMPACT fill:#fce4ec,stroke:#e91e63
 ```
 
-**Figure 2.1:** Cardinality explosion mechanism comparing normal log aggregation (O(1) complexity) versus attack-induced stream proliferation (O(n) complexity).
+**Figure 2.2:** Cardinality explosion mechanism comparing normal log aggregation (O(1) complexity) versus attack-induced stream proliferation (O(n) complexity).
 
-### 2.2 Index Growth Analysis
+### 2.3 Index Growth Analysis
 
 The index growth rate scales multiplicatively with the number of high-cardinality label fields employed. Adding a second randomized field increases the theoretical maximum cardinality from n to n².
 
@@ -145,16 +168,16 @@ The index growth rate scales multiplicatively with the number of high-cardinalit
 | Attack (1K) | `{job="app", request_id="uuid-*"}` | 1,000 | 1,000× |
 | Attack (100K) | `{job="app", request_id="uuid-*", trace_id="uuid-*"}` | 100,000 | 100,000× |
 
-**Table 2.1:** Index growth scaling based on high-cardinality label field count.
+**Table 2.2:** Index growth scaling based on high-cardinality label field count.
 
-### 2.3 MITRE ATT&CK Classification
+### 2.4 MITRE ATT&CK Classification
 
 | Technique ID | Technique Name | Applicability |
 | --- | --- | --- |
 | **T1565.001** | Stored Data Manipulation | Corruption of SIEM index integrity |
 | **T1499.003** | Application Exhaustion Flood | Resource exhaustion via stream proliferation |
 
-### 2.4 Related Vulnerabilities
+### 2.5 Related Vulnerabilities
 
 This attack exploits a class of misconfiguration vulnerabilities in centralized logging infrastructure. Related CVEs include:
 
@@ -167,7 +190,11 @@ This attack exploits a class of misconfiguration vulnerabilities in centralized 
 
 ### 3.1 Network Trust Architecture
 
-Unlike perimeter-focused attacks (e.g., WAF DoS), this attack exploits the **implicit trust relationship** between internal log forwarders and the centralized SIEM. Firewall rules explicitly permit traffic from trusted endpoints to the security zone, creating an attack vector invisible to perimeter defenses.
+This attack vector demonstrates a critical principle in DMZ security: **perimeter defenses are insufficient when internal trust relationships can be exploited**. Unlike ATK-001 (edge firewall testing) or ATK-002 (WAF assessment), this attack leverages the implicit trust relationship between internal log forwarders and the centralized SIEM. Firewall rules explicitly permit traffic from trusted endpoints to the security zone, creating an attack vector invisible to perimeter defenses.
+
+**Prerequisite from Previous Attack Phases:**
+
+This attack assumes successful completion of ATK-002 (web application compromise), providing shell access to a trusted endpoint within the DMZ. The compromised host inherits all network permissions granted to legitimate log forwarders.
 
 The network trust architecture exploited by this attack vector is depicted in Figure 3.1. The diagram segments the infrastructure into three distinct zones based on trust levels: the untrusted Internet, a semi-trusted DMZ containing public-facing services, and a trusted Security Zone hosting the SIEM infrastructure. Traditional perimeter defenses (Firewall DENY) effectively block direct external access to the Loki instance on port 3100. However, the model highlights a critical allowed path from the DMZ Web Server to the Loki instance, necessary for legitimate log forwarding. The attack proceeds by first compromising the host within the semi-trusted zone, subsequently pivoting to utilize this pre-established, trusted network pathway to deliver the malicious payload to the Security Zone, thereby circumventing perimeter access controls.
 
@@ -194,18 +221,19 @@ flowchart LR
     style SECURITY fill:#d4edda,stroke:#28a745
 ```
 
-**Figure 3.1:** Trust relationship architecture. Direct attacker access is blocked; however, compromised trusted endpoints inherit logging permissions.
+**Figure 3.1:** Trust relationship architecture within the DMZ infrastructure. Direct attacker access is blocked by perimeter defenses; however, compromised trusted endpoints (achieved via ATK-002) inherit logging permissions to the Security Zone.
 
 ### 3.2 Initial Access Requirements
 
-**Prerequisite:** The attacker must have compromised a Fluent Bit instance on a trusted endpoint (e.g., web server in the DMZ). This initial compromise (Phase 1) is assumed to have occurred via a separate attack vector (RCE, SSH key theft, etc.) and is not further discussed in this attack documentation.
+**Prerequisite:** The attacker must have compromised a Fluent Bit instance on a trusted endpoint (e.g., web server in the DMZ). Within the DMZ project attack sequence, this is achieved through ATK-002 (web application exploitation) or alternative vectors such as SSH key compromise.
 
-**Distinction from Perimeter Attacks:**
+**Distinction from Other DMZ Attack Vectors:**
 
-| Attack Type | Trust Relationship | Network Path |
-| --- | --- | --- |
-| WAF DoS | Untrusted → DMZ | Internet → WAF |
-| **Cardinality Explosion** | Trusted → Security Zone | Compromised Host → SIEM |
+| Attack ID | Attack Type | Trust Relationship | Network Path |
+| --- | --- | --- | --- |
+| ATK-001 | Edge Firewall Bypass | Untrusted → Perimeter | Internet → Edge Router |
+| ATK-002 | WAF/Web App Exploit | Untrusted → DMZ | Internet → WAF → Web Server |
+| **ATK-003** | **Cardinality Explosion** | **Trusted → Security Zone** | **Compromised Host → SIEM** |
 
 ---
 
@@ -802,15 +830,26 @@ While the `max_streams_per_user` limit effectively caps the attack's impact, res
 
 ### 7.1 Findings Summary
 
-1. **Vulnerability Confirmed:** Grafana Loki's default configuration permits cardinality explosion attacks, causing +757.8% memory increase and potential denial of service.
+This security verification (ATK-003) of the SIEM subsystem within the DMZ infrastructure yields the following conclusions:
 
-2. **Trust Model Exploitation:** The attack bypasses perimeter defenses by leveraging compromised trusted endpoints with legitimate logging permissions.
+1. **Vulnerability Confirmed:** Grafana Loki's default configuration permits cardinality explosion attacks, causing +757.8% memory increase and potential denial of service. This represents a critical gap in the defense-in-depth model.
 
-3. **Countermeasure Insufficiency (Phase 2):** HTTP Basic Authentication is trivially bypassed via credential scraping from local Fluent Bit configurations.
+2. **Trust Model Exploitation:** The attack demonstrates that compromising a DMZ host (via ATK-002) enables pivoting to attack security infrastructure itself—a significant escalation in attack impact.
+
+3. **Countermeasure Insufficiency (Phase 2):** HTTP Basic Authentication is trivially bypassed via credential scraping from local Fluent Bit configurations, highlighting the need for defense-in-depth at the application layer.
 
 4. **Effective Mitigation Validated (Phase 3):** Native Loki cardinality limits (`max_streams_per_user: 1000`) **experimentally validated** to cap attack impact. Over **9,058 injection attempts** were blocked with HTTP 429 responses, achieving **90% attack mitigation** with streams hard-capped at the configured limit.
 
-### 7.2 Further Actions
+### 7.2 Implications for DMZ Security Model
+
+| Security Principle | Status | Evidence |
+| --- | --- | --- |
+| Defense-in-Depth | ✓ Validated | Phase 3 limits effective despite auth bypass |
+| Least Privilege | ⚠ Partial | Fluent Bit credentials exposed to compromised hosts |
+| Zero Trust | ✗ Not Implemented | Internal hosts inherit logging permissions |
+| Segmentation | ✓ Effective | Attack requires prior DMZ compromise |
+
+### 7.3 Recommended Actions
 
 | Priority | Recommendation | Implementation | Status |
 | --- | --- | --- | --- |
