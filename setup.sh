@@ -11,7 +11,7 @@
 # ==========================================================
 
 # --- Konfiguration ---
-TOPOLOGY_FILE="topology.yaml"
+TOPOLOGY_FILE="topology.clab.yml"
 TEST_SCRIPT_PATH="./tests/run_all_tests.sh"
 BUILD_SCRIPT_PATH="./build/build_all_containers.sh"
 BOTNET_SCRIPT="./attacks/launch_botnet.sh"

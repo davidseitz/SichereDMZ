@@ -115,7 +115,7 @@ def attack_worker():
 
             # 3. Submit the Signup
             username = f"bot_{generate_random_string(8)}"
-            password = "Password123!"
+            password = "Password123!@"
 
             r_post = session.post(TARGET_URL, data={
                 "username": username,
