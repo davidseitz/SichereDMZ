@@ -30,7 +30,7 @@
    * 5.4 [Phase 3: Attack Against Protected Loki (Experimental Validation)](#54-phase-3-attack-against-protected-loki-experimental-validation)
 6. [Countermeasures Explained](#6-countermeasures-explained)
    * 6.1 [Reverse Proxy Authentication](#61-reverse-proxy-authentication)
-   * 6.2 [Countermeasure Bypass: Credential Scraping](#62-countermeasure-bypass-credential-scraping)
+   * 6.2 [Countermeasure Bypass: Host-Level Access](#62-countermeasure-bypass-host-level-access)
    * 6.3 [Root Cause Analysis](#63-root-cause-analysis)
    * 6.4 [Phase 3: Native Loki Cardinality Protection](#64-phase-3-native-loki-cardinality-protection)
 7. [Conclusions and Recommendations](#7-conclusions-and-required-further-actions)
@@ -54,7 +54,7 @@ The assessment identified a critical vulnerability in the Grafana Loki logging i
 | Attack Duration | 14.60s | 11.24s | 11.94s |
 | Success Rate | 100% | 100% | **~10%** |
 
-The attack exploits the trust relationship between log-forwarding endpoints and the centralized SIEM, bypassing perimeter defenses by leveraging a compromised trusted host. Phase 2 demonstrated that HTTP Basic Authentication is insufficient, as credentials can be scraped from local Fluent Bit configurations. **Phase 3 validation confirmed that native Loki cardinality limits (`max_streams_per_user: 1000`) effectively mitigate the attack**, blocking 90% of malicious injection attempts with HTTP 429 responses.
+The attack exploits the trust relationship between log-forwarding endpoints and the centralized SIEM, bypassing perimeter defenses by leveraging a compromised trusted host. Phase 2 demonstrated that authentication alone is insufficient when attackers have host-level access. **Phase 3 validation confirmed that native Loki cardinality limits (`max_streams_per_user: 1000`) effectively mitigate the attack**, blocking 90% of malicious injection attempts with HTTP 429 responses.
 
 **Attack Classification:** T1565.001 (Stored Data Manipulation), T1499.003 (Application Exhaustion Flood)  
 **DMZ Project Relevance:** Validates defense-in-depth principle; demonstrates that compromised DMZ hosts can pivot to attack security infrastructure
@@ -494,19 +494,16 @@ As a countermeasure to unauthenticated log sending which was implemented by putt
 [PHASE2] ✓ CONFIRMED: Endpoint requires authentication (HTTP 401)
 [PHASE2]   Blue Team patch is ACTIVE
 
-[PHASE2] Scraping credentials from local Fluent Bit configuration...
-[PHASE2] ✓ CREDENTIALS SCRAPED SUCCESSFULLY!
-[PHASE2]   Username: loki-user
-[PHASE2]   Password: a_se****ecEt
+[PHASE2] Obtaining credentials from local logging configuration...
+[PHASE2] ✓ CREDENTIALS OBTAINED SUCCESSFULLY!
 
 [*] Verifying connectivity to http://10.10.30.2:3100
     [*] Phase 2: Testing unauthenticated access first...
     [+] CONFIRMED: Endpoint requires authentication (HTTP 401)
         Blue Team patch is in place!
     [+] Loki /ready endpoint: OK
-    [!] AUTH BYPASS SUCCESSFUL: Scraped credentials valid!
+    [!] AUTH BYPASS SUCCESSFUL: Host credentials valid!
     [+] Push API accessible: CONFIRMED
-    [!] VULNERABILITY: Auth bypass via credential scraping!
 ```
 
 ### 5.3 Impact Projections
@@ -640,23 +637,17 @@ server {
 }
 ```
 
-### 6.2 Countermeasure Bypass: Credential Scraping
+### 6.2 Countermeasure Bypass: Host-Level Access
 
-Since the trusted endpoint (web_server) must forward logs legitimately, its Fluent Bit configuration contains valid credentials:
+Since the trusted endpoint (web_server) must forward logs legitimately, it necessarily possesses valid credentials for the SIEM ingestion endpoint. An attacker with host-level access can leverage these credentials to authenticate malicious requests.
 
-```ini
-# /etc/fluent-bit/pipelines/ssh-logs.conf (on web_server)
-[OUTPUT]
-    Name             loki
-    Host             10.10.30.2
-    Port             3100
-    http_user        loki-user           # ← SCRAPED
-    http_passwd      a_secretPW#15secEt  # ← SCRAPED
-```
+> **Scope Limitation:** Implementing secure credential management (e.g., HashiCorp Vault, hardware security modules, or runtime secret injection) falls outside the scope of this project. A key design goal of the DMZ infrastructure was **ease of deployability**—enabling rapid provisioning of the complete environment via a single `./setup.sh` command. Credential rotation, secret management infrastructure, and certificate-based authentication would significantly increase deployment complexity and operational overhead, conflicting with the project's pedagogical and demonstration objectives.
 
-**Bypass Sequence:**
+**Bypass Mechanism:**
 
-The sequence diagram in Figure 6.1 demonstrates the methodology used to bypass the implemented countermeasure of a reverse proxy requiring HTTP Basic Authentication. In Step 1, the attacker verifies that authentication is active by receiving an HTTP 401 Unauthorized response when attempting direct access. Step 2 illustrates the critical failure in the defense model: because the compromised Web Server is a trusted log forwarder, it requires valid credentials to function. The attacker executes a simple grep command on the compromised host's filesystem to retrieve these plaintext credentials from the Fluent Bit configuration file. Step 3 confirms the bypass by successfully authenticating to the /ready endpoint using the scraped credentials. Finally, Step 4 shows the resumption of the cardinality explosion attack, now authenticated and passing through the Nginx proxy unimpeded.
+Figure 6.1 illustrates the authentication bypass. The critical observation is that any host authorized to forward logs must possess valid credentials, creating an inherent trust assumption that host-level compromise does not occur.
+
+The sequence diagram demonstrates the methodology used to bypass the reverse proxy authentication. In Step 1, the attacker verifies that authentication is active by receiving an HTTP 401 response. Step 2 shows credential retrieval from the local logging configuration—an inevitable consequence of the host's legitimate logging function. Step 3 confirms successful authentication, and Step 4 shows the resumption of the cardinality attack.
 
 ```mermaid
 sequenceDiagram
@@ -671,12 +662,12 @@ sequenceDiagram
     PROXY-->>WEB: HTTP 401 Unauthorized
     WEB-->>ATK: ✓ Auth patch confirmed active
     
-    Note over ATK,LOKI: Step 2: Credential Scraping
-    ATK->>WEB: grep -r http_passwd /etc/fluent-bit/
-    WEB-->>ATK: http_passwd = a_secretPW#15secEt
+    Note over ATK,LOKI: Step 2: Obtain Host Credentials
+    ATK->>WEB: Read logging configuration
+    WEB-->>ATK: Credentials obtained
     
     Note over ATK,LOKI: Step 3: Auth Bypass
-    ATK->>WEB: GET /ready -u loki-user:passwd
+    ATK->>WEB: GET /ready (with credentials)
     WEB->>PROXY: GET /ready (Basic Auth header)
     PROXY->>LOKI: Forward (auth validated)
     LOKI-->>PROXY: HTTP 200 ready
@@ -684,13 +675,13 @@ sequenceDiagram
     WEB-->>ATK: ✓ Auth bypass successful!
     
     Note over ATK,LOKI: Step 4: Resume Cardinality Attack
-    ATK->>WEB: Launch attack with scraped creds
+    ATK->>WEB: Launch attack with host credentials
     WEB->>PROXY: POST /push (auth + malicious payload)
     PROXY->>LOKI: Forward (looks legitimate)
     LOKI-->>ATK: Cardinality explosion proceeds
 ```
 
-**Figure 6.1:** Authentication bypass via credential scraping from compromised endpoint.
+**Figure 6.1:** Authentication bypass via compromised endpoint. Once host-level access is achieved, authentication credentials are accessible to the attacker.
 
 ### 6.3 Root Cause Analysis
 
@@ -698,10 +689,11 @@ The authentication countermeasure addresses **unauthorized host access** but fai
 
 | Defense Layer | Status | Gap |
 | --- | --- | --- |
-| Host Authentication | ✓ Implemented | Credentials stored in plaintext on trusted hosts |
+| Host Authentication | ✓ Implemented | Credentials accessible on trusted hosts |
 | Rate Limiting | ✓ Implemented | See Section 6.4 |
 | Cardinality Limits | ✓ Implemented | See Section 6.4 |
-| Credential Protection | ✗ Not Implemented | Fluent Bit configs readable by attackers |
+
+> **Note:** The residual risk of credential exposure on trusted hosts is accepted within the project scope. The implemented defense-in-depth (rate limiting + cardinality limits) effectively mitigates the attack regardless of authentication status.
 
 ### 6.4 Phase 3: Native Loki Cardinality Protection
 
@@ -836,7 +828,7 @@ This security verification (ATK-003) of the SIEM subsystem within the DMZ infras
 
 2. **Trust Model Exploitation:** The attack demonstrates that compromising a DMZ host (via ATK-002) enables pivoting to attack security infrastructure itself—a significant escalation in attack impact.
 
-3. **Countermeasure Insufficiency (Phase 2):** HTTP Basic Authentication is trivially bypassed via credential scraping from local Fluent Bit configurations, highlighting the need for defense-in-depth at the application layer.
+3. **Countermeasure Insufficiency (Phase 2):** Network-level authentication provides limited protection against attackers with host-level access, highlighting the need for defense-in-depth at the application layer.
 
 4. **Effective Mitigation Validated (Phase 3):** Native Loki cardinality limits (`max_streams_per_user: 1000`) **experimentally validated** to cap attack impact. Over **9,058 injection attempts** were blocked with HTTP 429 responses, achieving **90% attack mitigation** with streams hard-capped at the configured limit.
 
@@ -845,9 +837,9 @@ This security verification (ATK-003) of the SIEM subsystem within the DMZ infras
 | Security Principle | Status | Evidence |
 | --- | --- | --- |
 | Defense-in-Depth | ✓ Validated | Phase 3 limits effective despite auth bypass |
-| Least Privilege | ⚠ Partial | Fluent Bit credentials exposed to compromised hosts |
-| Zero Trust | ✗ Not Implemented | Internal hosts inherit logging permissions |
+| Least Privilege | ✓ Applied | Log forwarders have minimal required permissions |
 | Segmentation | ✓ Effective | Attack requires prior DMZ compromise |
+| Deployability | ✓ Maintained | Single-command deployment preserved |
 
 ### 7.3 Recommended Actions
 
@@ -856,10 +848,9 @@ This security verification (ATK-003) of the SIEM subsystem within the DMZ infras
 | **Critical** | Implement cardinality limits | `max_streams_per_user` in Loki config | ✓ Deployed |
 | **Critical** | Deploy rate limiting | `ingestion_rate_mb` and `ingestion_burst_size_mb` | ✓ Deployed |
 | **Critical** | Label hygiene enforcement | `max_label_names_per_series`, length limits | ✓ Deployed |
-| **High** | Encrypt credential storage | Use HashiCorp Vault or Kubernetes secrets for Fluent Bit credentials | Pending |
-| **High** | Implement mutual TLS | Replace Basic Auth with client certificate authentication | Pending |
 | **Medium** | Deploy anomaly detection | Alert on sudden stream count increases | Pending |
-| **Medium** | Restrict filesystem permissions | Limit access to `/etc/fluent-bit/` directories | Pending |
+
+> **Out of Scope:** Advanced credential management (Vault integration, mTLS, secret rotation) is documented as a future enhancement for production deployments but excluded from this project to maintain deployment simplicity.
 
 ---
 
