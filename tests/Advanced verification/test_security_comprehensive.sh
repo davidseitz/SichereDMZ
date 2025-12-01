@@ -836,7 +836,7 @@ main() {
     echo ""
     echo -e "  Total Tests Run:        ${CYAN}${TOTAL_TESTS}${NC}"
     echo -e "  Tests Passed:           ${GREEN}${PASSED_TESTS}${NC}"
-    echo -e "  Tests Failed:           ${RED}${FAILED_TESTS}${NC}"
+    echo -e "  False Positives :       ${YELLOW}${FAILED_TESTS}${NC}"
     echo -e "  Attacks Blocked by WAF: ${GREEN}${BLOCKED_BY_WAF}${NC}"
     echo -e "  Attacks NOT Blocked:    ${YELLOW}${NOT_BLOCKED}${NC}"
     echo ""
