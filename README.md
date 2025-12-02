@@ -165,7 +165,8 @@ This advanced attack demonstrates a critical vulnerability in SIEM infrastructur
 
 1. **Deploy the Lab:**
    ```bash
-   sudo ./setup.sh start
+   # You might need to double check that docker rootless use is configuerd
+   ./setup.sh start
    ```
 
 2. **Verify Container Status:**

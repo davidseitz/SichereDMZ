@@ -1,0 +1,11 @@
+[2025-12-02 22:35:35] [INFO] Benchmark started
+[2025-12-02 22:35:35] [INFO] Skip reset: false
+[2025-12-02 22:35:35] [INFO] Starting Stage 00: Environment Reset
+[2025-12-02 22:36:11] [SUCCESS] Stage 00: Environment Reset completed in 36s
+[2025-12-02 22:36:11] [INFO] Starting Stage 01: Baseline Capture
+[2025-12-02 22:36:18] [SUCCESS] Stage 01: Baseline Capture completed in 7s
+[2025-12-02 22:36:18] [INFO] Starting Stage 02: Cardinality Explosion Attack
+[2025-12-02 22:36:40] [SUCCESS] Stage 02: Cardinality Explosion Attack completed in 22s
+[2025-12-02 22:36:40] [INFO] Starting Stage 03: Post-Attack Verification
+[2025-12-02 22:36:47] [SUCCESS] Stage 03: Post-Attack Verification completed in 7s
+[2025-12-02 22:36:47] [SUCCESS] Benchmark completed in 72s
