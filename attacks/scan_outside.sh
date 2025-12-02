@@ -12,9 +12,9 @@ CONTAINER_NAME="clab-security_lab-attacker_1"
 
 # [!] EDIT THIS LINE: Add all existing subnets here, separated by spaces.
 # Example: "10.10.10.0/29 10.10.20.0/24 10.10.30.0/30"
-TARGET_SUBNETS="10.10.10.0/16"
+#TARGET_SUBNETS="10.10.10.0/16"
 
-#TARGET_SUBNETS="10.10.10.0/29 10.10.20.0/29 10.10.30.0/29 10.10.40.0/29 10.10.50.0/29 10.10.60.0/28"
+TARGET_SUBNETS="10.10.10.0/29 10.10.20.0/29 10.10.30.0/29 10.10.40.0/29 10.10.50.0/29 10.10.60.0/28"
 
 REPORT_NAME="attacks/reports/dmz_vuln_scan_outside_$(date +%Y-%m-%d_%H-%M).txt"
 CONTAINER_REPORT_PATH="/tmp/$(basename "$REPORT_NAME")"
