@@ -19,10 +19,11 @@
    * 4.3 [Technical Implementation](#43-technical-implementation)
    * 4.4 [Malicious Payload Structure](#44-malicious-payload-structure)
 5. [Experimental Results](#5-experimental-results)
-   * 5.1 [Phase 1: Baseline Attack (No Authentication)](#51-phase-1-baseline-attack-no-authentication)
-   * 5.2 [Phase 2: Authentication Bypass via Credential Scraping](#52-phase-2-authentication-bypass-via-credential-scraping)
+   * 5.1 [Consolidated Attack Results](#51-consolidated-attack-results)
+   * 5.2 [Phase Descriptions](#52-phase-descriptions)
    * 5.3 [Impact Projections](#53-impact-projections)
-   * 5.4 [Phase 3: Attack Against Protected Loki (Experimental Validation)](#54-phase-3-attack-against-protected-loki-experimental-validation)
+   * 5.4 [Impact Chain Analysis](#54-impact-chain-analysis)
+   * 5.5 [Key Findings](#55-key-findings)
 6. [Countermeasures Explained](#6-countermeasures-explained)
    * 6.1 [Reverse Proxy Authentication](#61-reverse-proxy-authentication)
    * 6.2 [Countermeasure Bypass: Host-Level Access](#62-countermeasure-bypass-host-level-access)
@@ -412,107 +413,52 @@ Each push creates a **new unique stream** because `request_id`, `trace_id`, `spa
 
 ## 5\. Experimental Results
 
-### 5.1 Phase 1: Baseline Attack (No Authentication)
+This section presents the consolidated experimental results across all attack phases. Each phase was executed against the same Loki SIEM infrastructure with progressively enhanced security controls.
 
-**Test Environment:** Grafana Loki with default configuration (no authentication on ingestion endpoint).
+### 5.1 Consolidated Attack Results
 
-**Memory Impact (Container-Level):**
+**Table 5.1: Comparative Analysis Across All Attack Phases**
 
-| Metric | Value |
-| --- | --- |
-| Baseline Memory | 46.25 MiB |
-| Post-Attack Memory | 404.8 MiB |
-| Memory Delta | \+357.60 MiB |
-| Percentage Increase | \+757.8% |
+| Metric | Baseline (Pre-Attack) | Phase 1 (No Auth) | Phase 2 (Auth Bypass) | Phase 3 (Protected) |
+| --- | --- | --- | --- | --- |
+| **Environment Configuration** |
+| Authentication | None | None | HTTP Basic Auth | HTTP Basic Auth |
+| Cardinality Limits | None | None | None | `max_streams_per_user: 1000` |
+| Rate Limiting | None | None | None | `ingestion_rate_mb: 1` |
+| **Memory Impact** |
+| Container Memory | 46.25 MiB | 404.8 MiB | 430.8 MiB | 385.6 MiB |
+| Memory Delta | — | +357.60 MiB (+757.8%) | +332.55 MiB (+337.1%) | +298.50 MiB (+342%) |
+| **Cardinality Impact** |
+| Active Streams | 16 | 5,000 | 5,000 | **1,000** (capped) |
+| Streams Created | — | +4,984 | +5,000 | +1,000 |
+| **Attack Performance** |
+| Attack Duration | — | 14.60 seconds | 11.24 seconds | 11.94 seconds |
+| Injection Rate | — | 340.75 entries/sec | 440.88 entries/sec | ~79 entries/sec |
+| Entries Sent | — | ~4,975 | ~4,975 | 944 |
 
-Stream Cardinality Impact (Loki Ingester):
+### 5.2 Phase Descriptions
 
-| Metric | Value |
-| --- | --- |
-| Baseline Active Streams | 16 |
-| Post-Attack Active Streams | 5,000 |
-| New Streams Created | 4,984 |
-| Attack-Specific Streams | 4,975 (`job="application"`) |
+**Phase 1 — Baseline Attack (No Authentication):**  
+Grafana Loki with default configuration. Direct access to ingestion endpoint permitted. Attack achieved 100% success rate with +757.8% memory increase.
 
-**Attack Performance Metrics:**
+**Phase 2 — Authentication Bypass:**  
+Nginx reverse proxy with HTTP Basic Authentication deployed. Attack re-executed using host credentials, achieving identical impact (5,000 streams, +337.1% memory). Authentication countermeasure bypassed via host-level access.
 
-| Metric | Value |
-| --- | --- |
-| Attack Duration | 14.60 seconds |
-| Injection Rate | 340.75 entries/second |
-| Success Rate | **100%** |
-
-**Visual Impact Summary:**
-
-```
-MEMORY CONSUMPTION
-──────────────────────────────────────────────────────────────────────────
-Baseline   │████                                                    │  46 MiB
-Post-Attack│████████████████████████████████████████████████████████│ 405 MiB
-──────────────────────────────────────────────────────────────────────────
-                              +757.8% INCREASE
-
-ACTIVE STREAMS (Cardinality)
-──────────────────────────────────────────────────────────────────────────
-Baseline   │▌                                                       │    16
-Post-Attack│████████████████████████████████████████████████████████│ 5,000
-──────────────────────────────────────────────────────────────────────────
-                              +31,150% INCREASE
-```
-
-### 5.2 Phase 2: Authentication Bypass via Credential Scraping
-
-As a countermeasure to unauthenticated log sending which was implemented by putting a proxy between the endpoints and SIEM (see Section 6), the attack was re-executed using scraped credentials.
-
-**Authentication Verification:**
-
-| Test | Result |
-| --- | --- |
-| Unauthenticated `/ready` | HTTP 401 Unauthorized ✓ |
-| Authenticated `/ready` (scraped creds) | HTTP 200 OK ✓ |
-| Unauthenticated push | HTTP 401 Unauthorized ✓ |
-| Authenticated push (scraped creds) | HTTP 204 No Content ✓ |
-
-**Attack Impact (With Auth Bypass):**
-
-| Metric | Baseline | Post-Attack | Delta |
-| --- | --- | --- | --- |
-| Container Memory | 98.14 MiB | 430.8 MiB | \+332.55 MiB (+337.1%) |
-| Ingester Streams | 0 | 5,000 | \+5,000 |
-| Attack Duration | — | 11.24 seconds | — |
-| Injection Rate | — | 440.88 entries/sec | — |
-
-**Console Output (Key Excerpts):**
-
-```
-[PHASE2] Testing if Blue Team auth patch is in place...
-[PHASE2] ✓ CONFIRMED: Endpoint requires authentication (HTTP 401)
-[PHASE2]   Blue Team patch is ACTIVE
-
-[PHASE2] Obtaining credentials from local logging configuration...
-[PHASE2] ✓ CREDENTIALS OBTAINED SUCCESSFULLY!
-
-[*] Verifying connectivity to http://10.10.30.2:3100
-    [*] Phase 2: Testing unauthenticated access first...
-    [+] CONFIRMED: Endpoint requires authentication (HTTP 401)
-        Blue Team patch is in place!
-    [+] Loki /ready endpoint: OK
-    [!] AUTH BYPASS SUCCESSFUL: Host credentials valid!
-    [+] Push API accessible: CONFIRMED
-```
+**Phase 3 — Protected Loki (Cardinality Limits):**  
+Native Loki `limits_config` deployed with `max_streams_per_user: 1000`. Attack constrained to 1,000 streams with 9,058 injection attempts rejected (HTTP 429). **90% attack mitigation achieved.**
 
 ### 5.3 Impact Projections
 
 **Scaling Analysis (Theoretical Projections):**
 
-| Metric | Before Attack | After 5K Streams | After 100K Streams (Projected) |
+| Metric | Baseline | After 5K Streams | After 100K Streams (Projected) |
 | --- | --- | --- | --- |
-| Index Size | \~1 MB | \~50 MB | \~500 MB |
+| Index Size | ~1 MB | ~50 MB | ~500 MB |
 | Query Latency (p99) | 50ms | 5000ms+ | **Timeout** |
 | Memory Usage | 46 MiB | 405 MiB | **OOM Kill** |
-| Active Streams | \~16 | \~5,000 | \~50,000 |
+| Active Streams | ~16 | ~5,000 | ~50,000 |
 
-**Impact Chain Analysis:**
+### 5.4 Impact Chain Analysis
 
 Figure 5.1 provides a causal analysis of the attack's cascading impact on the SIEM infrastructure. The root cause, the "Cardinality Attack," triggers two primary failure chains. The dominant chain involves the rapid expansion of the index size, leading directly to memory exhaustion on the Loki ingesters. This resource starvation causes queries to time out, which immediately stops security alerts from firing. A secondary effect involves the slowdown of backend storage compaction processes, leading to write failures and irreversible log data loss. Both chains converge on the ultimate operational consequence: "Attacker Achieves SIEM Blindness," where the security team is rendered incapable of detecting or investigating ongoing malicious activity.
 
@@ -548,61 +494,8 @@ flowchart TD
 | Compliance Violations | Log integrity compromised (audit failures) |
 | Resource Costs | Emergency scaling or infrastructure replacement |
 
-### 5.4 Phase 3: Attack Against Protected Loki (Experimental Validation)
-
-Following deployment of Loki's native `limits_config` (see Section 6.4), the attack was re-executed to validate the effectiveness of cardinality limits.
-
-**Test Environment:**
-
-| Component | Configuration |
-| --- | --- |
-| Loki `max_streams_per_user` | 1,000 |
-| Authentication | HTTP Basic Auth (scraped credentials used) |
-| Attack Tool | `loki_cardinality_attack.py` |
-| Attack Target | 5,000 unique label combinations |
-
-**Experimental Results:**
-
-| Metric | Value |
-| --- | --- |
-| Baseline Memory | 86.99 MiB |
-| Post-Attack Memory | 385.6 MiB |
-| Memory Delta | +298.50 MiB (+342%) |
-| Baseline Active Streams | 0 |
-| Post-Attack Active Streams | **1,000** (hard cap enforced) |
-| Attack Entries Sent | 944 |
-| HTTP 429 Rejections | **9,058** |
-| Attack Duration | 11.94 seconds |
-
-**Key Observations:**
-
-1. **Cardinality Limit Enforced:** Streams were hard-capped at 1,000 — the exact value of `max_streams_per_user`.
-
-2. **Mass Rejection:** Over **9,058** log injection attempts were rejected with HTTP 429 (`Too Many Requests`).
-
-3. **Memory Impact Reduced:** While memory still increased, the attack could not cause unbounded growth due to the stream cap.
-
-4. **Attack Mitigation:** 90% of attack attempts were blocked, compared to 100% success in Phase 2.
-
-**Visual Comparison: Phase 2 vs Phase 3:**
-
-```
-ACTIVE STREAMS (Cardinality)
-──────────────────────────────────────────────────────────────────────────
-Phase 2    │████████████████████████████████████████████████████████│ 5,000
-Phase 3    │██████████▌                                             │ 1,000 (CAPPED)
-──────────────────────────────────────────────────────────────────────────
-                              80% REDUCTION
-
-HTTP 429 REJECTIONS
-──────────────────────────────────────────────────────────────────────────
-Phase 2    │                                                        │     0
-Phase 3    │████████████████████████████████████████████████████████│ 9,058
-──────────────────────────────────────────────────────────────────────────
-                              ATTACK BLOCKED!
-```
-
-**Conclusion:** Phase 3 countermeasures (native Loki cardinality limits) **successfully mitigate** the cardinality explosion attack. While the authentication bypass still works (credential scraping), the attack's impact is fundamentally constrained by the application-layer stream limits.
+### 5.5 Key Findings
+Phase 3 enforced a hard cap of 1,000 active streams, which matched the configured max_streams_per_user and resulted in the ingester reporting the stream count as capped. As a consequence, Loki explicitly rejected over 9,058 injection attempts with HTTP 429 (Too Many Requests). Although authentication was bypassed via host‑level compromise, the application‑layer ingestion and cardinality limits operated independently and successfully constrained the attack, validating the defense‑in‑depth approach. In conclusion, the Phase 3 countermeasures (native Loki cardinality limits) effectively mitigated the cardinality explosion attack, achieving approximately 90% reduction in successful injections with streams hard‑capped at the configured limit.
 
 ---
 
