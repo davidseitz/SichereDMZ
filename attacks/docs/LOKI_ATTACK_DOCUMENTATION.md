@@ -781,6 +781,7 @@ Over **9,058 log injection attempts were explicitly rejected** by Loki's cardina
 **Defense-in-Depth Summary:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#ffffff', 'mainBkg': '#ffffff'}}}%%
 flowchart TD
     A["Malicious Log Push"] --> B{"Layer 1:<br/>Nginx Auth"}
     B -->|"No Creds"| C["HTTP 401<br/>BLOCKED"]
